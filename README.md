@@ -288,3 +288,4 @@ This project is licensed under the MIT License.
 ## Support
 
 For support, email support@aiconsultant.com or create an issue in the repository.
+# AI_CONSULTANT_PLATFORM
