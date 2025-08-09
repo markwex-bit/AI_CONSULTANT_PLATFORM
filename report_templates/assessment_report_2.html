@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI Assessment Report - {{ client_company }}</title>
+    <style>
+        @page {
+            margin: 0.75in;
+            @top-center {
+                content: "AI Strategy Pro - Confidential Assessment Report";
+                font-size: 10px;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Page " counter(page);
+                font-size: 10px;
+                color: #666;
+            }
+        }
+        
+        body { 
+            font-family: 'Arial', sans-serif; 
+            line-height: 1.5; 
+            color: #333;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+        }
+        
+        .header { 
+            text-align: center; 
+            border-bottom: 3px solid #4f46e5; 
+            padding-bottom: 20px; 
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 25px;
+            margin: -15px -15px 30px -15px;
+        }
+        
+        .company-logo { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #4f46e5; 
+            margin-bottom: 8px;
+        }
+        
+        .report-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+            margin: 15px 0;
+        }
+        
+        .client-info {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .section { 
+            margin: 25px 0; 
+            page-break-inside: avoid;
+        }
+        
+        .section h2 { 
+            color: #4f46e5; 
+            border-bottom: 2px solid #e5e7eb; 
+            padding-bottom: 8px;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .section h3 {
+            color: #374151;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .executive-summary {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .score-container { 
+            text-align: center; 
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 25px; 
+            margin: 25px 0;
+        }
+        
+        .ai-score { 
+            font-size: 60px; 
+            font-weight: bold;
+            color: #10b981; 
+            margin: 8px 0;
+        }
+        
+        .score-label {
+            font-size: 20px;
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        .readiness-level {
+            font-size: 16px;
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+        
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .breakdown-card {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .breakdown-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4f46e5;
+            margin-bottom: 5px;
+        }
+        
+        .breakdown-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .breakdown-status {
+            font-size: 11px;
+            color: #059669;
+            font-weight: 600;
+        }
+        
+        .opportunity-card {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        
+        .opportunity-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 12px;
+        }
+        
+        .opportunity-roi {
+            background: #10b981;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+        
+        .vendors-section {
+            margin-top: 12px;
+        }
+        
+        .vendor-item {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+        
+        .vendor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .vendor-name {
+            font-weight: bold;
+            color: #4f46e5;
+            font-size: 14px;
+        }
+        
+        .vendor-cost {
+            font-size: 12px;
+            color: #059669;
+            font-weight: 600;
+        }
+        
+        .vendor-description {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+        
+        .vendor-rating {
+            font-size: 11px;
+            color: #f59e0b;
+            font-weight: 600;
+        }
+        
+        .timeline-section {
+            background: #f0f9ff;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .timeline-item {
+            margin: 15px 0;
+            padding-left: 20px;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .timeline-phase {
+            font-weight: bold;
+            color: #1e40af;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+        
+        .timeline-duration {
+            background: #3b82f6;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        
+        .timeline-tasks {
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+        
+        .action-items {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 18px;
+            margin: 15px 0;
+        }
+        
+        .action-items h4 {
+            color: #dc2626;
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .action-items ol {
+            margin: 12px 0;
+            padding-left: 20px;
+        }
+        
+        .action-items li {
+            margin: 8px 0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 11px;
+        }
+        
+        .contact-info {
+            background: #f0f9ff;
+            border: 1px solid #3b82f6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .highlight-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+        
+        .highlight-box h4 {
+            color: #92400e;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .strengths-list {
+            background: #ecfdf5;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 12px 0;
+        }
+        
+        .strengths-list ul {
+            margin: 8px 0;
+            padding-left: 18px;
+        }
+        
+        .strengths-list li {
+            margin: 6px 0;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="company-logo">AI Strategy Pro</div>
+        <div class="report-title">AI Readiness Assessment Report</div>
+        <div class="client-info">Prepared for: <strong>{{ client_company }}</strong></div>
+        <div class="client-info">Contact: {{ primary_contact }}</div>
+        <div class="client-info">Report Date: {{ report_date }}</div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="section">
+        <h2>Executive Summary</h2>
+        <div class="executive-summary">
+            <p><strong>{{ client_company }}</strong> demonstrates <strong>{{ readiness_level }}</strong> potential for AI implementation based on our comprehensive assessment. This analysis identifies <strong>{{ opportunity_count }} specific AI opportunities</strong> with combined potential ROI of <strong>${{ (total_roi_min + total_roi_max) // 2 }}</strong> annually.</p>
+            
+            <p>Your organization shows particular strength in <strong>{{ industry }}</strong> sector applications, with existing infrastructure and processes that provide a solid foundation for AI integration. We recommend beginning with high-impact, low-risk pilot projects to build organizational confidence and demonstrate clear business value.</p>
+        </div>
+        
+        <div class="score-container">
+            <div class="ai-score">{{ ai_score }}%</div>
+            <div class="score-label">Overall AI Readiness Score</div>
+            <div class="readiness-level">{{ readiness_level }} Readiness Level</div>
+        </div>
+    </div>
+
+    <!-- Detailed Assessment Breakdown -->
+    <div class="section">
+        <h2>AI Readiness Assessment Breakdown</h2>
+        <p>Our comprehensive evaluation assessed your organization across five critical dimensions for AI implementation success:</p>
+        
+        <div class="breakdown-grid">
+            <div class="breakdown-card">
+                <div class="breakdown-score">{{ tech_score }}%</div>
+                <div class="breakdown-label">Technology Infrastructure</div>
+                <div class="breakdown-status">{{ tech_status }}</div>
+            </div>
+            <div class="breakdown-card">
+                <div class="breakdown-score">{{ data_score }}%</div>
+                <div class="breakdown-label">Data Readiness</div>
+                <div class="breakdown-status">{{ data_status }}</div>
+            </div>
+            <div class="breakdown-card">
+                <div class="breakdown-score">{{ team_score }}%</div>
+                <div class="breakdown-label">Team Preparedness</div>
+                <div class="breakdown-status">{{ team_status }}</div>
+            </div>
+            <div class="breakdown-card">
+                <div class="breakdown-score">{{ process_score }}%</div>
+                <div class="breakdown-label">Process Maturity</div>
+                <div class="breakdown-status">{{ process_status }}</div>
+            </div>
+        </div>
+
+        <div class="strengths-list">
+            <h3>Organizational Strengths</h3>
+            <ul>
+                <li><strong>Technology Infrastructure:</strong> {{ tech_strengths }}</li>
+                <li><strong>Data Assets:</strong> {{ data_strengths }}</li>
+                <li><strong>Team Capabilities:</strong> {{ team_strengths }}</li>
+                <li><strong>Process Foundation:</strong> {{ process_strengths }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Page Break -->
+    <div class="page-break"></div>
+
+    <!-- AI Opportunities -->
+    <div class="section">
+        <h2>Identified AI Opportunities</h2>
+        <p>Based on your assessment responses and industry analysis, we've identified the following high-impact AI opportunities ranked by ROI potential and implementation feasibility:</p>
+        
+        {% for opportunity in opportunities %}
+        <div class="opportunity-card">
+            <div class="opportunity-title">{{ loop.index }}. {{ opportunity.title }}</div>
+            <p><strong>Business Impact:</strong> {{ opportunity.description }}</p>
+            <div class="opportunity-roi">Estimated Annual ROI: ${{ opportunity.roi }}</div>
+            
+            {% if opportunity.impact %}
+            <p><strong>Expected Results:</strong> {{ opportunity.impact }}</p>
+            {% endif %}
+            
+            {% if opportunity.approach %}
+            <p><strong>Implementation Strategy:</strong> {{ opportunity.approach }}</p>
+            {% endif %}
+            
+            {% if opportunity.solutions %}
+            <div class="vendors-section">
+                <h4 style="color: #374151; font-size: 14px; margin: 12px 0 8px 0;">Recommended Solutions:</h4>
+                {% for solution in opportunity.solutions %}
+                <div class="vendor-item">
+                    <div class="vendor-header">
+                        <div class="vendor-name">{{ solution.name }}</div>
+                        <div class="vendor-cost">{{ solution.cost }}</div>
+                    </div>
+                    <div class="vendor-description">{{ solution.description }}</div>
+                    {% if solution.rating %}
+                    <div class="vendor-rating">⭐ {{ solution.rating }}/5.0 rating</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Implementation Timeline -->
+    <div class="section">
+        <h2>12-Month Implementation Roadmap</h2>
+        
+        <div class="timeline-section">
+            <h3>Phased Implementation Approach</h3>
+            
+            <div class="timeline-item">
+                <div class="timeline-phase">Phase 1: Foundation & Assessment</div>
+                <div class="timeline-duration">Months 1-2</div>
+                <div class="timeline-tasks">
+                    • Stakeholder alignment and project team formation<br>
+                    • Detailed technical assessment and data audit<br>
+                    • Vendor evaluation and pilot project selection<br>
+                    • Success metrics definition and baseline establishment
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-phase">Phase 2: Pilot Implementation</div>
+                <div class="timeline-duration">Months 3-5</div>
+                <div class="timeline-tasks">
+                    • Deploy first AI solution ({{ opportunities[0].title if opportunities else "highest-priority opportunity" }})<br>
+                    • Team training and change management<br>
+                    • Initial integration with existing systems<br>
+                    • Performance monitoring and optimization
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-phase">Phase 3: Scaling & Expansion</div>
+                <div class="timeline-duration">Months 6-9</div>
+                <div class="timeline-tasks">
+                    • Scale successful pilot across organization<br>
+                    • Implement second AI opportunity<br>
+                    • Advanced feature rollout and integration<br>
+                    • ROI measurement and business case validation
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-phase">Phase 4: Optimization & Growth</div>
+                <div class="timeline-duration">Months 10-12</div>
+                <div class="timeline-tasks">
+                    • Deploy remaining high-priority initiatives<br>
+                    • Advanced analytics and reporting implementation<br>
+                    • Strategic planning for next-generation AI capabilities<br>
+                    • Knowledge sharing and best practices documentation
+                </div>
+            </div>
+        </div>
+        
+        <div class="highlight-box">
+            <h4>💡 Key Success Factors</h4>
+            <p><strong>Start Small, Scale Smart:</strong> Begin with pilot projects that demonstrate clear value and build organizational confidence before expanding to larger initiatives.</p>
+            <p><strong>Focus on Change Management:</strong> Success depends as much on people and processes as on technology. Invest in training and communication throughout implementation.</p>
+        </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="section">
+        <h2>Immediate Next Steps & Action Plan</h2>
+        
+        <div class="action-items">
+            <h4>🎯 Priority Actions (Next 30 Days)</h4>
+            <ol>
+                <li><strong>Executive Alignment:</strong> Schedule stakeholder meeting to review findings and secure commitment for AI implementation initiative</li>
+                <li><strong>Vendor Evaluation:</strong> Begin detailed evaluation of recommended solutions for highest-priority opportunity ({{ opportunities[0].title if opportunities else "primary focus area" }})</li>
+                <li><strong>Team Formation:</strong> Establish AI steering committee with representatives from IT, operations, and business units</li>
+                <li><strong>Budget Planning:</strong> Develop detailed budget proposal based on recommended timeline and vendor costs</li>
+                <li><strong>Risk Assessment:</strong> Conduct thorough security and compliance review for selected AI solutions</li>
+            </ol>
+        </div>
+
+        <div class="highlight-box">
+            <h4>🚀 Quick Win Opportunity</h4>
+            <p>Consider starting with <strong>{{ opportunities[0].title if opportunities else "customer service automation" }}</strong> as your pilot project. This typically shows results within 30-60 days and provides excellent proof of concept for broader AI adoption.</p>
+        </div>
+
+        <div class="contact-info">
+            <h4>Ready to Begin Your AI Implementation?</h4>
+            <p>Contact AI Strategy Pro to discuss your next steps and develop a detailed implementation plan.</p>
+            <p><strong>Email:</strong> strategy@aistrategypro.com | <strong>Phone:</strong> (555) 123-4567</p>
+            <p><strong>Next Step:</strong> Schedule a 30-minute strategy consultation to review these findings and plan your implementation approach.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>AI Strategy Pro</strong> - Professional AI Consulting & Implementation Services</p>
+        <p>This assessment report is confidential and proprietary to {{ client_company }}. All recommendations are based on assessment data provided and current industry best practices as of {{ report_date }}.</p>
+    </div>
+</body>
+</html>

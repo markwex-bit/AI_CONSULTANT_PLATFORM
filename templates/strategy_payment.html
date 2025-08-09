@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block title %}Strategy Blueprint Payment - AI Strategy Consultant{% endblock %}
+{% block extra_head %}
+<style>
+    .payment-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+    .payment-header {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    .payment-body {
+        padding: 2rem;
+    }
+    .product-summary {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .product-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+    .product-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .product-features li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+    }
+    .product-features li:last-child {
+        border-bottom: none;
+    }
+    .product-features li::before {
+        content: "✓";
+        background: #10b981;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    .price-section {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .price {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #059669;
+        margin-bottom: 0.5rem;
+    }
+    .price-subtitle {
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+    .payment-form {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    .cta-button {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(5, 150, 105, 0.3);
+    }
+    .cta-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .security-notice {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.875rem;
+        color: #92400e;
+    }
+    .loading {
+        display: none;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    .spinner {
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid #10b981;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+<script src="https://js.stripe.com/v3/"></script>
+{% endblock %}
+
+{% block content %}
+<div class="payment-container">
+    <div class="payment-header">
+        <h1>Strategy Blueprint Payment</h1>
+        <p>Complete your purchase to receive your comprehensive strategic analysis</p>
+    </div>
+    
+    <div class="payment-body">
+        <div class="product-summary">
+            <div class="product-title">Strategy Blueprint - What You'll Receive</div>
+            <ul class="product-features">
+                <li>Everything from your original Assessment Report</li>
+                <li>Detailed competitive analysis in your industry</li>
+                <li>Comprehensive vendor evaluation matrix</li>
+                <li>Risk assessment and mitigation strategies</li>
+                <li>Change management framework</li>
+                <li>Team training and hiring recommendations</li>
+                <li>Budget planning with quarterly breakdowns</li>
+                <li>Success metrics and KPI dashboard design</li>
+                <li>Complete strategic roadmap with business case</li>
+            </ul>
+        </div>
+        
+        <div class="price-section">
+            <div class="price">$1,500</div>
+            <div class="price-subtitle">One-time investment for comprehensive strategic analysis</div>
+        </div>
+        
+        <div class="payment-form">
+            <form id="payment-form">
+                <input type="hidden" id="assessment-id" value="{{ assessment_id }}">
+                
+                <div class="form-group">
+                    <label for="card-element">Credit or debit card</label>
+                    <div id="card-element" style="padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; background: white;"></div>
+                    <div id="card-errors" style="color: #dc2626; font-size: 0.875rem; margin-top: 0.5rem;"></div>
+                </div>
+                
+                <button type="submit" class="cta-button" id="submit-button">
+                    Pay $1,500 - Generate Strategy Blueprint
+                </button>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing your payment...</p>
+                </div>
+            </form>
+            
+            <div class="security-notice">
+                🔒 Your payment is secured by Stripe. We never store your card information.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize Stripe
+const stripe = Stripe('{{ stripe_key }}');
+const elements = stripe.elements();
+
+// Create card element
+const card = elements.create('card', {
+    style: {
+        base: {
+            fontSize: '16px',
+            color: '#374151',
+            '::placeholder': {
+                color: '#9ca3af',
+            },
+        },
+    },
+});
+
+// Mount card element
+card.mount('#card-element');
+
+// Handle form submission
+const form = document.getElementById('payment-form');
+const submitButton = document.getElementById('submit-button');
+const loading = document.getElementById('loading');
+
+form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    
+    // Disable submit button and show loading
+    submitButton.disabled = true;
+    submitButton.textContent = 'Processing...';
+    loading.style.display = 'block';
+    
+    try {
+        // Create payment intent
+        const response = await fetch('/create_strategy_payment_intent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                assessment_id: document.getElementById('assessment-id').value
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Confirm payment
+        const { error, paymentIntent } = await stripe.confirmCardPayment(data.client_secret, {
+            payment_method: {
+                card: card,
+            }
+        });
+        
+        if (error) {
+            throw new Error(error.message);
+        }
+        
+        if (paymentIntent.status === 'succeeded') {
+            // Payment successful - redirect to success page
+            window.location.href = `/strategy_success/${document.getElementById('assessment-id').value}`;
+        }
+        
+    } catch (error) {
+        console.error('Payment error:', error);
+        document.getElementById('card-errors').textContent = error.message;
+        
+        // Re-enable submit button and hide loading
+        submitButton.disabled = false;
+        submitButton.textContent = 'Pay $1,500 - Generate Strategy Blueprint';
+        loading.style.display = 'none';
+    }
+});
+
+// Handle card errors
+card.addEventListener('change', ({error}) => {
+    const displayError = document.getElementById('card-errors');
+    if (error) {
+        displayError.textContent = error.message;
+    } else {
+        displayError.textContent = '';
+    }
+});
+</script>
+{% endblock %}
+

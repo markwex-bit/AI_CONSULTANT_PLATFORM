@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <h1>Transform Your Business with AI</h1>
+        <p>Expert AI consulting for businesses with 50-500 employees. Cut through the hype and discover practical AI solutions that drive real results.</p>
+        <a href="{{ url_for('assessment') }}" class="cta-button" style="font-size: 18px; padding: 16px 32px;">Start Your Free AI Assessment</a>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">How We Help You Succeed with AI</h2>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎓</div>
+                <h3>AI Education & Strategy</h3>
+                <p>We start by demystifying AI for your team. Understand what's real vs. hype, and develop a strategic approach that fits your business goals.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Opportunity Assessment</h3>
+                <p>Comprehensive evaluation of your business processes to identify the highest-impact AI opportunities with clear ROI projections.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🛠️</div>
+                <h3>Solution Recommendations</h3>
+                <p>Get unbiased recommendations for both SaaS solutions and custom development, tailored to your budget and technical capabilities.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>Implementation Roadmap</h3>
+                <p>Step-by-step implementation plan with timelines, resource requirements, and success metrics to ensure your AI projects deliver results.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🤝</div>
+                <h3>Ongoing Support</h3>
+                <p>Guidance through vendor selection, project oversight, and change management to ensure successful AI adoption across your organization.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Proven ROI</h3>
+                <p>Track record of helping businesses save 20-40% on operational costs while improving efficiency and customer satisfaction.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Why Choose Our AI Consulting?</h2>
+        <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+            <p style="font-size: 18px; line-height: 1.8; margin-bottom: 2rem;">
+                Unlike generic AI consultants, we combine deep technical expertise with real-world business intelligence experience. 
+                We've worked in automotive, healthcare, and publishing industries - we understand your challenges.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 3rem;">
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: #4f46e5;">15+</div>
+                    <div>Years BI Experience</div>
+                </div>
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: #4f46e5;">50+</div>
+                    <div>AI Projects Delivered</div>
+                </div>
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: #4f46e5;">$2M+</div>
+                    <div>Client Savings Generated</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

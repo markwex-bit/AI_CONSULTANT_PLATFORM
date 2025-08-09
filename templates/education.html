@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}AI Education & Strategy - AI Strategy Consultant{% endblock %}
+
+{% block extra_head %}
+<style>
+    .education-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .education-header {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+    
+    .slide-container {
+        display: none;
+        padding: 3rem;
+    }
+    
+    .slide-container.active {
+        display: block;
+    }
+    
+    .slide-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .slide-counter {
+        font-weight: 600;
+        color: #6b7280;
+    }
+    
+    .myth-reality {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .myth-card, .reality-card {
+        padding: 2rem;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+    }
+    
+    .myth-card {
+        background: #fef2f2;
+        border-color: #fca5a5;
+    }
+    
+    .reality-card {
+        background: #f0f9ff;
+        border-color: #93c5fd;
+    }
+    
+    .industry-examples {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .industry-card {
+        background: #f8fafc;
+        padding: 2rem;
+        border-radius: 8px;
+        border-left: 4px solid #4f46e5;
+    }
+    
+    .roi-calculator {
+        background: #f0f9ff;
+        border: 2px solid #3b82f6;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .calculator-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 1rem 0;
+    }
+    
+    .input-group {
+        margin-bottom: 1rem;
+    }
+    
+    .input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .input-group input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e5e7eb;
+        border-radius: 6px;
+    }
+    
+    .result-display {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    
+    .result-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #10b981;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="background: #f8fafc; min-height: 100vh; padding: 2rem 0;">
+    <div class="education-container">
+        <div class="education-header">
+            <h1>AI Education & Strategy Session</h1>
+            <p>Demystifying AI for Your Business Team</p>
+        </div>
+        
+        <!-- Slide 1: What AI Actually Is -->
+        <div class="slide-container active" id="slide1">
+            <h2>What AI Actually Is (vs. What Movies Show)</h2>
+            
+            <div class="myth-reality">
+                <div class="myth-card">
+                    <h3>🤖 The Hollywood Myth</h3>
+                    <ul>
+                        <li>Robots taking over the world</li>
+                        <li>Human-like consciousness</li>
+                        <li>One AI system does everything</li>
+                        <li>Immediate job replacement</li>
+                        <li>Perfect accuracy always</li>
+                    </ul>
+                </div>
+                
+                <div class="reality-card">
+                    <h3>✅ Business Reality</h3>
+                    <ul>
+                        <li>Pattern recognition tools</li>
+                        <li>Specialized task automation</li>
+                        <li>Different tools for different jobs</li>
+                        <li>Human-AI collaboration</li>
+                        <li>Probability-based decisions</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background: #fef3c7; padding: 2rem; border-radius: 8px; margin: 2rem 0;">
+                <h4>💡 Key Takeaway</h4>
+                <p><strong>AI is not magic.</strong> It's sophisticated pattern matching that can automate specific business tasks when given enough data and proper setup.</p>
+            </div>
+        </div>
+        
+        <!-- Slide 2: Types of AI for Business -->
+        <div class="slide-container" id="slide2">
+            <h2>4 Types of AI That Matter for Your Business</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                <div style="background: #f0f9ff; padding: 2rem; border-radius: 8px;">
+                    <h3>🤖 Automation AI</h3>
+                    <p><strong>What it does:</strong> Handles repetitive tasks</p>
+                    <p><strong>Examples:</strong> Email responses, data entry, appointment scheduling</p>
+                    <p><strong>ROI:</strong> 60-80% time savings</p>
+                </div>
+                
+                <div style="background: #ecfdf5; padding: 2rem; border-radius: 8px;">
+                    <h3>📊 Analysis AI</h3>
+                    <p><strong>What it does:</strong> Finds patterns in data</p>
+                    <p><strong>Examples:</strong> Sales forecasting, customer segmentation, fraud detection</p>
+                    <p><strong>ROI:</strong> 15-30% better decisions</p>
+                </div>
+                
+                <div style="background: #fef7ff; padding: 2rem; border-radius: 8px;">
+                    <h3>🔮 Prediction AI</h3>
+                    <p><strong>What it does:</strong> Forecasts future outcomes</p>
+                    <p><strong>Examples:</strong> Demand planning, maintenance schedules, market trends</p>
+                    <p><strong>ROI:</strong> 20-40% cost reduction</p>
+                </div>
+                
+                <div style="background: #fffbeb; padding: 2rem; border-radius: 8px;">
+                    <h3>✍️ Content AI</h3>
+                    <p><strong>What it does:</strong> Creates and processes content</p>
+                    <p><strong>Examples:</strong> Writing assistance, document summarization, image processing</p>
+                    <p><strong>ROI:</strong> 50-70% faster content creation</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 3: Industry Examples -->
+        <div class="slide-container" id="slide3">
+            <h2>AI Success Stories in Your Industry</h2>
+            
+            <div class="industry-examples">
+                <div class="industry-card">
+                    <h3>🚗 Automotive</h3>
+                    <ul>
+                        <li><strong>Parts Demand Forecasting:</strong> 25% inventory reduction</li>
+                        <li><strong>Quality Control:</strong> 90% defect detection accuracy</li>
+                        <li><strong>Customer Service:</strong> 60% faster response times</li>
+                        <li><strong>Predictive Maintenance:</strong> 30% less downtime</li>
+                    </ul>
+                </div>
+                
+                <div class="industry-card">
+                    <h3>🏥 Healthcare</h3>
+                    <ul>
+                        <li><strong>Appointment Scheduling:</strong> 40% fewer no-shows</li>
+                        <li><strong>Medical Records:</strong> 75% faster processing</li>
+                        <li><strong>Patient Communication:</strong> 24/7 availability</li>
+                        <li><strong>Billing Automation:</strong> 50% error reduction</li>
+                    </ul>
+                </div>
+                
+                <div class="industry-card">
+                    <h3>📚 Publishing</h3>
+                    <ul>
+                        <li><strong>Content Optimization:</strong> 35% higher engagement</li>
+                        <li><strong>Editing Assistance:</strong> 60% faster turnaround</li>
+                        <li><strong>Market Research:</strong> Real-time trend analysis</li>
+                        <li><strong>Distribution:</strong> Personalized recommendations</li>
+                    </ul>
+                </div>
+                
+                <div class="industry-card">
+                    <h3>🏭 Manufacturing</h3>
+                    <ul>
+                        <li><strong>Production Planning:</strong> 20% efficiency gains</li>
+                        <li><strong>Supply Chain:</strong> 15% cost reduction</li>
+                        <li><strong>Equipment Monitoring:</strong> 40% fewer breakdowns</li>
+                        <li><strong>Quality Assurance:</strong> 95% automated inspection</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 4: ROI Calculator -->
+        <div class="slide-container" id="slide4">
+            <h2>Calculate Your Potential AI ROI</h2>
+            
+            <div class="roi-calculator">
+                <h3>Quick ROI Estimator</h3>
+                <div class="calculator-grid">
+                    <div>
+                        <div class="input-group">
+                            <label>Hours spent on repetitive tasks per week:</label>
+                            <input type="number" id="hoursPerWeek" placeholder="e.g., 20" oninput="calculateROI()">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Average hourly cost (salary + benefits):</label>
+                            <input type="number" id="hourlyCost" placeholder="e.g., 35" oninput="calculateROI()">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Number of employees doing these tasks:</label>
+                            <input type="number" id="numEmployees" placeholder="e.g., 5" oninput="calculateROI()">
+                        </div>
+                    </div>
+                    
+                    <div class="result-display" id="roiResults">
+                        <div class="result-number">$0</div>
+                        <div>Annual savings potential</div>
+                        <div style="margin-top: 1rem; font-size: 14px; color: #6b7280;">
+                            Assuming 60% automation of repetitive tasks
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 5: Implementation Reality -->
+        <div class="slide-container" id="slide5">
+            <h2>What AI Implementation Actually Looks Like</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin: 2rem 0;">
+                <div>
+                    <h3>📅 Typical Timeline</h3>
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                        <strong>Month 1-2:</strong> Assessment & Planning<br>
+                        <small>Identify opportunities, select tools, plan rollout</small>
+                    </div>
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                        <strong>Month 3-4:</strong> Pilot Implementation<br>
+                        <small>Start with one process, test and refine</small>
+                    </div>
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                        <strong>Month 5-8:</strong> Full Rollout<br>
+                        <small>Scale successful pilots across organization</small>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>💰 Investment Ranges</h3>
+                    <div style="background: #ecfdf5; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                        <strong>Small Projects:</strong> $5K - $25K<br>
+                        <small>Single process automation, SaaS tools</small>
+                    </div>
+                    <div style="background: #ecfdf5; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                        <strong>Medium Projects:</strong> $25K - $75K<br>
+                        <small>Multiple processes, custom integration</small>
+                    </div>
+                    <div style="background: #ecfdf5; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                        <strong>Large Projects:</strong> $75K+<br>
+                        <small>Company-wide transformation, custom AI</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: #fef3c7; padding: 2rem; border-radius: 8px; margin: 2rem 0;">
+                <h4>🎯 Success Factors</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                    <div>
+                        <strong>✅ What Works:</strong>
+                        <ul>
+                            <li>Start with clear, measurable problems</li>
+                            <li>Begin with pilot projects</li>
+                            <li>Involve end users early</li>
+                            <li>Focus on data quality first</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong>❌ Common Pitfalls:</strong>
+                        <ul>
+                            <li>Trying to automate everything at once</li>
+                            <li>Ignoring change management</li>
+                            <li>Poor data preparation</li>
+                            <li>Unrealistic expectations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-navigation">
+            <button class="btn-secondary" id="prevSlide" onclick="changeSlide(-1)" style="display: none;">← Previous</button>
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> of <span id="totalSlides">5</span>
+            </div>
+            <button class="cta-button" id="nextSlide" onclick="changeSlide(1)">Next →</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentSlideNum = 1;
+const totalSlidesNum = 5;
+
+function showSlide(slideNum) {
+    // Hide all slides
+    document.querySelectorAll('.slide-container').forEach(s => s.classList.remove('active'));
+    
+    // Show current slide
+    document.getElementById('slide' + slideNum).classList.add('active');
+    
+    // Update navigation
+    document.getElementById('prevSlide').style.display = slideNum > 1 ? 'block' : 'none';
+    document.getElementById('nextSlide').textContent = slideNum === totalSlidesNum ? 'Complete Session' : 'Next →';
+    
+    // Update counter
+    document.getElementById('currentSlide').textContent = slideNum;
+}
+
+function changeSlide(direction) {
+    if (direction === 1 && currentSlideNum < totalSlidesNum) {
+        currentSlideNum++;
+        showSlide(currentSlideNum);
+    } else if (direction === -1 && currentSlideNum > 1) {
+        currentSlideNum--;
+        showSlide(currentSlideNum);
+    } else if (direction === 1 && currentSlideNum === totalSlidesNum) {
+        alert('Education session complete! Your team now has a solid foundation for AI implementation.');
+    }
+}
+
+function calculateROI() {
+    const hoursPerWeek = parseFloat(document.getElementById('hoursPerWeek').value) || 0;
+    const hourlyCost = parseFloat(document.getElementById('hourlyCost').value) || 0;
+    const numEmployees = parseFloat(document.getElementById('numEmployees').value) || 0;
+    
+    // Calculate annual savings assuming 60% automation
+    const weeklyHours = hoursPerWeek * numEmployees;
+    const weeklyCost = weeklyHours * hourlyCost;
+    const annualCost = weeklyCost * 52;
+    const savings = annualCost * 0.6; // 60% automation
+    
+    document.getElementById('roiResults').innerHTML = `
+        <div class="result-number">$${savings.toLocaleString()}</div>
+        <div>Annual savings potential</div>
+        <div style="margin-top: 1rem; font-size: 14px; color: #6b7280;">
+            Assuming 60% automation of repetitive tasks
+        </div>
+    `;
+}
+
+// Initialize
+showSlide(1);
+</script>
+{% endblock %}

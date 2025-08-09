@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI Assessment Report - {{ client_company }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6; 
+            color: #1e293b;
+            font-size: 12px;
+            background: #f8fafc;
+        }
+        
+        .page {
+            background: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3730a3 50%, #7c3aed 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(30deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(30deg); }
+        }
+        
+        .company-logo {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .report-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .client-info {
+            font-size: 16px;
+            margin: 8px 0;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin: 32px 0;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+            color: white;
+            padding: 20px 32px;
+            font-size: 20px;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+        }
+        
+        .section-content {
+            padding: 32px;
+        }
+        
+        /* Executive Summary */
+        .executive-summary {
+            background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 50%, #ede9fe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .executive-summary::before {
+            content: '🎯';
+            position: absolute;
+            top: -15px;
+            left: 24px;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 20px;
+        }
+        
+        /* Score Display */
+        .score-container {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 3px solid #10b981;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 32px 0;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+        }
+        
+        .score-container::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: linear-gradient(45deg, #10b981, #059669, #047857);
+            border-radius: 25px;
+            z-index: -1;
+        }
+        
+        .ai-score {
+            font-size: 84px;
+            font-weight: 800;
+            color: #047857;
+            margin: 16px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #10b981, #047857);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .score-label {
+            font-size: 24px;
+            color: #1f2937;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .readiness-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 700;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* Breakdown Grid */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 24px 0;
+        }
+        
+        .breakdown-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .breakdown-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .breakdown-score {
+            font-size: 48px;
+            font-weight: 700;
+            color: #3730a3;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #3730a3, #1e40af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .breakdown-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .breakdown-status {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        /* Opportunity Cards */
+        .opportunity-card {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.1);
+        }
+        
+        .opportunity-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f59e0b, #d97706, #b45309);
+        }
+        
+        .opportunity-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .opportunity-number {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            margin-right: 16px;
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+        }
+        
+        .opportunity-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #92400e;
+        }
+        
+        .roi-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 16px;
+            display: inline-block;
+            margin: 16px 0;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .roi-badge::before {
+            content: '💰 ';
+            margin-right: 4px;
+        }
+        
+        /* Vendor Grid */
+        .vendor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        .vendor-item {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .vendor-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .vendor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .vendor-name {
+            font-weight: 700;
+            color: #3730a3;
+            font-size: 16px;
+        }
+        
+        .vendor-cost {
+            background: #ecfdf5;
+            color: #059669;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .vendor-description {
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+        
+        /* Timeline */
+        .timeline-container {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+        }
+        
+        .timeline-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 32px;
+        }
+        
+        .timeline-item {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            border-left: 5px solid #3b82f6;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+            position: relative;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 20px;
+            width: 16px;
+            height: 16px;
+            background: #3b82f6;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        
+        .timeline-phase {
+            font-weight: 700;
+            color: #1e40af;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        
+        .timeline-duration {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        
+        .timeline-tasks {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #4b5563;
+        }
+        
+        .timeline-tasks li {
+            margin: 4px 0;
+        }
+        
+        /* Action Items */
+        .action-container {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 2px solid #f87171;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            position: relative;
+        }
+        
+        .action-container::before {
+            content: '🎯';
+            position: absolute;
+            top: -15px;
+            left: 32px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 24px;
+        }
+        
+        .action-header {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 24px;
+        }
+        
+        .action-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            border-left: 4px solid #f87171;
+            display: flex;
+            align-items: flex-start;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .action-number {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        
+        .action-text {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        /* Highlight Boxes */
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .highlight-box::before {
+            content: '💡';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 16px;
+            font-size: 16px;
+        }
+        
+        .highlight-header {
+            color: #92400e;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        /* Contact Section */
+        .contact-section {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            margin: 24px 0;
+        }
+        
+        .contact-header {
+            color: #1e40af;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .contact-details {
+            font-size: 14px;
+            margin: 8px 0;
+        }
+        
+        /* Strengths Grid */
+        .strengths-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        .strength-item {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #10b981;
+        }
+        
+        .strength-label {
+            font-weight: 700;
+            color: #065f46;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .strength-text {
+            font-size: 12px;
+            color: #047857;
+            line-height: 1.4;
+        }
+        
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-top: 4px solid #3730a3;
+            padding: 32px;
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            margin-top: 40px;
+        }
+        
+        .footer-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+        
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mb-4 { margin-bottom: 16px; }
+        .mt-4 { margin-top: 16px; }
+        .font-bold { font-weight: 700; }
+        
+        /* Print Styles */
+        @media print {
+            .page { margin: 0; }
+            .section { break-inside: avoid; }
+            .opportunity-card { break-inside: avoid; }
+            .timeline-item { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-logo">🚀 AI STRATEGY PRO</div>
+            <div class="report-title">AI Readiness Assessment Report</div>
+            <div class="client-info">Prepared for: <strong>{{ client_company }}</strong></div>
+            <div class="client-info">Primary Contact: {{ primary_contact }}</div>
+            <div class="client-info">Report Date: {{ report_date }}</div>
+        </div>
+
+        <div class="container">
+            <!-- Executive Summary -->
+            <div class="section">
+                <div class="section-header">📋 Executive Summary</div>
+                <div class="section-content">
+                    <div class="executive-summary">
+                        <p style="font-size: 15px; margin-bottom: 16px;"><strong>{{ client_company }}</strong> demonstrates <strong>{{ readiness_level }}</strong> potential for AI implementation based on our comprehensive assessment.</p>
+                        <p style="font-size: 14px;">This analysis identifies <strong>{{ opportunity_count }} specific AI opportunities</strong> with combined potential ROI of <strong>${{ "{:,}".format(total_roi_min) }}</strong> annually.</p>
+                    </div>
+                    
+                    <div class="score-container">
+                        <div class="ai-score">{{ ai_score }}%</div>
+                        <div class="score-label">Overall AI Readiness Score</div>
+                        <div class="readiness-badge">{{ readiness_level }} Readiness Level</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessment Breakdown -->
+            <div class="section">
+                <div class="section-header">📊 AI Readiness Assessment Breakdown</div>
+                <div class="section-content">
+                    <p style="margin-bottom: 24px; font-size: 14px;">Your organization was evaluated across four critical dimensions for AI implementation success:</p>
+                    
+                    <div class="breakdown-grid">
+                        <div class="breakdown-card">
+                            <div class="breakdown-score">{{ tech_score }}%</div>
+                            <div class="breakdown-label">Technology Infrastructure</div>
+                            <div class="breakdown-status">{{ tech_status }}</div>
+                        </div>
+                        <div class="breakdown-card">
+                            <div class="breakdown-score">{{ data_score }}%</div>
+                            <div class="breakdown-label">Data Readiness</div>
+                            <div class="breakdown-status">{{ data_status }}</div>
+                        </div>
+                        <div class="breakdown-card">
+                            <div class="breakdown-score">{{ team_score }}%</div>
+                            <div class="breakdown-label">Team Preparedness</div>
+                            <div class="breakdown-status">{{ team_status }}</div>
+                        </div>
+                        <div class="breakdown-card">
+                            <div class="breakdown-score">{{ process_score }}%</div>
+                            <div class="breakdown-label">Process Maturity</div>
+                            <div class="breakdown-status">{{ process_status }}</div>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-header">🎯 Key Organizational Strengths</div>
+                        <div class="strengths-grid">
+                            <div class="strength-item">
+                                <div class="strength-label">Technology Infrastructure</div>
+                                <div class="strength-text">{{ tech_strengths }}</div>
+                            </div>
+                            <div class="strength-item">
+                                <div class="strength-label">Data Assets</div>
+                                <div class="strength-text">{{ data_strengths }}</div>
+                            </div>
+                            <div class="strength-item">
+                                <div class="strength-label">Team Capabilities</div>
+                                <div class="strength-text">{{ team_strengths }}</div>
+                            </div>
+                            <div class="strength-item">
+                                <div class="strength-label">Process Foundation</div>
+                                <div class="strength-text">{{ process_strengths }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Opportunities -->
+            <div class="section">
+                <div class="section-header">💡 Identified AI Opportunities</div>
+                <div class="section-content">
+                    <p style="margin-bottom: 24px; font-size: 14px;">Based on your assessment, we've identified the following high-impact AI opportunities ranked by ROI potential:</p>
+                    
+                    {% for opportunity in opportunities %}
+                    <div class="opportunity-card">
+                        <div class="opportunity-header">
+                            <div class="opportunity-number">{{ loop.index }}</div>
+                            <div class="opportunity-title">{{ opportunity.title }}</div>
+                        </div>
+                        <p style="margin: 16px 0; font-size: 14px;"><strong>Business Impact:</strong> {{ opportunity.description }}</p>
+                        <div class="roi-badge">Estimated Annual ROI: ${{ "{:,}".format(opportunity.roi) }}</div>
+                        
+                        {% if opportunity.impact %}
+                        <p style="margin: 16px 0; font-size: 13px;"><strong>Expected Results:</strong> {{ opportunity.impact }}</p>
+                        {% endif %}
+                        
+                        {% if opportunity.solutions %}
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: #92400e; margin-bottom: 16px; font-size: 16px;">🔧 Recommended Solutions:</h4>
+                            <div class="vendor-grid">
+                                {% for solution in opportunity.solutions %}
+                                <div class="vendor-item">
+                                    <div class="vendor-header">
+                                        <div class="vendor-name">{{ solution.name }}</div>
+                                        <div class="vendor-cost">{{ solution.cost }}</div>
+                                    </div>
+                                    <div class="vendor-description">{{ solution.description }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Implementation Timeline -->
+            <div class="section">
+                <div class="section-header">🗓️ 12-Month Implementation Roadmap</div>
+                <div class="section-content">
+                    <div class="timeline-container">
+                        <div class="timeline-title">Phased Implementation Approach</div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-phase">Phase 1: Foundation & Assessment</div>
+                            <div class="timeline-duration">Months 1-2</div>
+                            <div class="timeline-tasks">
+                                <ul>
+                                    <li>Stakeholder alignment and project team formation</li>
+                                    <li>Detailed technical assessment and data audit</li>
+                                    <li>Vendor evaluation and pilot project selection</li>
+                                    <li>Success metrics definition and baseline establishment</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-phase">Phase 2: Pilot Implementation</div>
+                            <div class="timeline-duration">Months 3-5</div>
+                            <div class="timeline-tasks">
+                                <ul>
+                                    <li>Deploy first AI solution ({{ opportunities[0].title if opportunities else "highest-priority opportunity" }})</li>
+                                    <li>Team training and change management programs</li>
+                                    <li>Initial integration with existing systems</li>
+                                    <li>Performance monitoring and optimization</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-phase">Phase 3: Scaling & Expansion</div>
+                            <div class="timeline-duration">Months 6-9</div>
+                            <div class="timeline-tasks">
+                                <ul>
+                                    <li>Scale successful pilot across organization</li>
+                                    <li>Implement second AI opportunity</li>
+                                    <li>Advanced feature rollout and integration</li>
+                                    <li>ROI measurement and business case validation</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-phase">Phase 4: Optimization & Growth</div>
+                            <div class="timeline-duration">Months 10-12</div>
+                            <div class="timeline-tasks">
+                                <ul>
+                                    <li>Deploy remaining high-priority initiatives</li>
+                                    <li>Advanced analytics and reporting implementation</li>
+                                    <li>Strategic planning for next-generation AI capabilities</li>
+                                    <li>Knowledge sharing and best practices documentation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="section">
+                <div class="section-header">🎯 Immediate Next Steps & Action Plan</div>
+                <div class="section-content">
+                    <div class="action-container">
+                        <div class="action-header">Priority Actions (Next 30 Days)</div>
+                        
+                        <div class="action-item">
+                            <div class="action-number">1</div>
+                            <div class="action-text">
+                                <strong>Executive Alignment:</strong> Schedule stakeholder meeting to review findings and secure commitment for AI implementation initiative
+                            </div>
+                        </div>
+                        
+                        <div class="action-item">
+                            <div class="action-number">2</div>
+                            <div class="action-text">
+                                <strong>Vendor Evaluation:</strong> Begin detailed evaluation of recommended solutions for {{ opportunities[0].title if opportunities else "primary focus area" }}
+                            </div>
+                        </div>
+                        
+                        <div class="action-item">
+                            <div class="action-number">3</div>
+                            <div class="action-text">
+                                <strong>Team Formation:</strong> Establish AI steering committee with representatives from IT, operations, and business units
+                            </div>
+                        </div>
+                        
+                        <div class="action-item">
+                            <div class="action-number">4</div>
+                            <div class="action-text">
+                                <strong>Budget Planning:</strong> Develop detailed budget proposal based on recommended timeline and vendor costs
+                            </div>
+                        </div>
+                        
+                        <div class="action-item">
+                            <div class="action-number">5</div>
+                            <div class="action-text">
+                                <strong>Risk Assessment:</strong> Conduct security and compliance review for selected AI solutions
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-header">🚀 Quick Win Opportunity</div>
+                        <p style="margin: 0; font-size: 13px;">Consider starting with <strong>{{ opportunities[0].title if opportunities else "customer service automation" }}</strong> as your pilot project. This typically shows results within 30-60 days and provides excellent proof of concept for broader AI adoption.</p>
+                   </div>
+
+                   <div class="contact-section">
+                       <div class="contact-header">Ready to Begin Your AI Implementation?</div>
+                       <p style="margin: 12px 0; font-size: 15px;">Contact AI Strategy Pro to discuss your next steps and develop a detailed implementation plan.</p>
+                       <div class="contact-details"><strong>📧 Email:</strong> strategy@aistrategypro.com</div>
+                       <div class="contact-details"><strong>📞 Phone:</strong> (555) 123-4567</div>
+                       <div class="contact-details" style="font-weight: 700; margin-top: 16px;">🎯 Next Step: Schedule a 30-minute strategy consultation</div>
+                   </div>
+               </div>
+           </div>
+       </div>
+
+       <!-- Footer -->
+       <div class="footer">
+           <div class="footer-title">🚀 AI Strategy Pro - Professional AI Consulting & Implementation Services</div>
+           <p>This assessment report is confidential and proprietary to {{ client_company }}. All recommendations based on assessment data and industry best practices. Report generated {{ report_date }}.</p>
+       </div>
+   </div>
+</body>
+</html>

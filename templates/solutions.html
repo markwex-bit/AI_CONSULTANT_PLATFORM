@@ -1,0 +1,572 @@
+{% extends "base.html" %}
+
+{% block title %}AI Solution Recommendations - AI Strategy Consultant{% endblock %}
+
+{% block extra_head %}
+<style>
+    .solutions-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+    
+    .solutions-header {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .category-tabs {
+        display: flex;
+        background: #f8fafc;
+        border-bottom: 2px solid #e5e7eb;
+        overflow-x: auto;
+    }
+    
+    .category-tab {
+        padding: 1rem 2rem;
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-weight: 600;
+        color: #6b7280;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+        transition: all 0.3s;
+    }
+    
+    .category-tab.active {
+        color: #10b981;
+        border-bottom-color: #10b981;
+        background: white;
+    }
+    
+    .category-tab:hover {
+        color: #10b981;
+    }
+    
+    .solutions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        padding: 3rem;
+    }
+    
+    .solution-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+    
+    .solution-card:hover {
+        border-color: #10b981;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+    }
+    
+    .solution-header {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .solution-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+    
+    .solution-type {
+        display: inline-block;
+        background: #10b981;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .solution-body {
+        padding: 1.5rem;
+    }
+    
+    .solution-description {
+        color: #6b7280;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .solution-features {
+        margin: 1rem 0;
+    }
+    
+    .solution-features h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .solution-features ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .solution-features li {
+        padding: 0.25rem 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .solution-features li::before {
+        content: "✓";
+        color: #10b981;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    
+    .solution-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .solution-price {
+        font-weight: 700;
+        color: #10b981;
+        font-size: 1.1rem;
+    }
+    
+    .solution-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .stars {
+        color: #fbbf24;
+    }
+    
+    .decision-framework {
+        background: #f0f9ff;
+        border: 2px solid #3b82f6;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem 3rem;
+    }
+    
+    .framework-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+    
+    .framework-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .comparison-table {
+        margin: 2rem 3rem;
+        overflow-x: auto;
+    }
+    
+    .comparison-table table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .comparison-table th {
+        background: #10b981;
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .comparison-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .comparison-table tr:hover {
+        background: #f8fafc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="background: #f8fafc; min-height: 100vh; padding: 2rem 0;">
+    <div class="solutions-container">
+        <div class="solutions-header">
+            <h1>AI Solution Recommendations</h1>
+            <p>Unbiased recommendations for SaaS solutions and custom development</p>
+        </div>
+        
+        <div class="decision-framework">
+            <h2>SaaS vs Custom Development Framework</h2>
+            <div class="framework-grid">
+                <div class="framework-card">
+                    <h3>✅ Choose SaaS When:</h3>
+                    <ul>
+                        <li>Standard business processes</li>
+                        <li>Quick implementation needed (1-3 months)</li>
+                        <li>Limited technical resources</li>
+                        <li>Budget under $50K annually</li>
+                        <li>Proven solution exists</li>
+                        <li>Ongoing support preferred</li>
+                    </ul>
+                </div>
+                <div class="framework-card">
+                    <h3>🛠️ Choose Custom When:</h3>
+                    <ul>
+                        <li>Unique business requirements</li>
+                        <li>Competitive differentiation needed</li>
+                        <li>Complex integrations required</li>
+                        <li>Long-term cost optimization</li>
+                        <li>Full data control necessary</li>
+                        <li>Technical team available</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category-tabs">
+            <button class="category-tab active" onclick="showCategory('customer_service', this)">Customer Service</button>
+            <button class="category-tab" onclick="showCategory('workflow_automation', this)">Workflow Automation</button>
+            <button class="category-tab" onclick="showCategory('development', this)">Development</button>
+            <button class="category-tab" onclick="showCategory('research_analysis', this)">Research & Analysis</button>
+             <button class="category-tab" onclick="showCategory('sales_marketing', this)">Sales & Marketing</button>
+        </div>
+        
+        <!-- Customer Service Solutions -->
+        <div class="solutions-grid" id="customer-service">
+            <div class="solution-card">
+                <div class="solution-header">
+                    <div class="solution-name">Intercom</div>
+                    <span class="solution-type">SaaS</span>
+                </div>
+                <div class="solution-body">
+                    <div class="solution-description">
+                        AI-powered customer messaging platform with automated responses and smart routing.
+                    </div>
+                    <div class="solution-features">
+                        <h4>Key Features:</h4>
+                        <ul>
+                            <li>AI chatbot builder</li>
+                            <li>Smart message routing</li>
+                            <li>Customer data platform</li>
+                            <li>Multi-channel support</li>
+                        </ul>
+                    </div>
+                    <div class="solution-footer">
+                        <div class="solution-price">$99-499/month</div>
+                        <div class="solution-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span>4.2/5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="solution-card">
+                <div class="solution-header">
+                    <div class="solution-name">Zendesk Answer Bot</div>
+                    <span class="solution-type">SaaS</span>
+                </div>
+                <div class="solution-body">
+                    <div class="solution-description">
+                        Automated customer support with machine learning-powered answer suggestions.
+                    </div>
+                    <div class="solution-features">
+                        <h4>Key Features:</h4>
+                        <ul>
+                            <li>Auto-suggest responses</li>
+                            <li>Ticket deflection</li>
+                            <li>Knowledge base integration</li>
+                            <li>Performance analytics</li>
+                        </ul>
+                    </div>
+                    <div class="solution-footer">
+                        <div class="solution-price">$50-150/month</div>
+                        <div class="solution-rating">
+                            <span class="stars">★★★★★</span>
+                            <span>4.5/5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="solution-card">
+                <div class="solution-header">
+                    <div class="solution-name">ChatGPT Enterprise</div>
+                    <span class="solution-type">SaaS</span>
+                </div>
+                <div class="solution-body">
+                    <div class="solution-description">
+                        Custom AI assistant for customer service with company-specific training.
+                    </div>
+                    <div class="solution-features">
+                        <h4>Key Features:</h4>
+                        <ul>
+                            <li>Custom AI training</li>
+                            <li>Data privacy controls</li>
+                            <li>API integration</li>
+                            <li>Enterprise security</li>
+                        </ul>
+                    </div>
+                    <div class="solution-footer">
+                        <div class="solution-price">$20-30/user/month</div>
+                        <div class="solution-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span>4.3/5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Document Processing Solutions -->
+        <div class="solutions-grid" id="document-processing" style="display: none;">
+            <div class="solution-card">
+                <div class="solution-header">
+                    <div class="solution-name">UiPath</div>
+                    <span class="solution-type">SaaS</span>
+                </div>
+                <div class="solution-body">
+                    <div class="solution-description">
+                        Robotic Process Automation platform with AI-powered document processing.
+                    </div>
+                    <div class="solution-features">
+                        <h4>Key Features:</h4>
+                        <ul>
+                            <li>Document extraction</li>
+                            <li>Workflow automation</li>
+                            <li>Process mining</li>
+                            <li>Bot orchestration</li>
+                        </ul>
+                    </div>
+                    <div class="solution-footer">
+                        <div class="solution-price">$420-1500/month</div>
+                        <div class="solution-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span>4.1/5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="solution-card">
+                <div class="solution-header">
+                    <div class="solution-name">ABBYY FlexiCapture</div>
+                    <span class="solution-type">SaaS</span>
+                </div>
+                <div class="solution-body">
+                    <div class="solution-description">
+                        AI-powered OCR and data extraction from documents and forms.
+                    </div>
+                    <div class="solution-features">
+                        <h4>Key Features:</h4>
+                        <ul>
+                            <li>Advanced OCR</li>
+                            <li>Form recognition</li>
+                            <li>Data validation</li>
+                            <li>Export to systems</li>
+                        </ul>
+                    </div>
+                    <div class="solution-footer">
+                        <div class="solution-price">$300-800/month</div>
+                        <div class="solution-rating">
+                            <span class="stars">★★★★★</span>
+                            <span>4.6/5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add more categories as needed -->
+        
+        <div class="comparison-table">
+            <h2 style="text-align: center; margin-bottom: 2rem;">Solution Comparison Matrix</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Solution</th>
+                        <th>Use Case</th>
+                        <th>Implementation Time</th>
+                        <th>Cost Range</th>
+                        <th>Best For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Intercom</strong></td>
+                        <td>Customer messaging</td>
+                        <td>2-4 weeks</td>
+                        <td>$99-499/month</td>
+                        <td>Growing companies</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Zendesk Answer Bot</strong></td>
+                        <td>Support automation</td>
+                        <td>1-2 weeks</td>
+                        <td>$50-150/month</td>
+                        <td>Established support teams</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UiPath</strong></td>
+                        <td>Document automation</td>
+                        <td>8-12 weeks</td>
+                        <td>$420-1500/month</td>
+                        <td>Large enterprises</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ABBYY FlexiCapture</strong></td>
+                        <td>OCR & data extraction</td>
+                        <td>4-6 weeks</td>
+                        <td>$300-800/month</td>
+                        <td>Document-heavy processes</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load solutions data from Flask backend
+let solutionsData = {};
+
+// Fetch solutions data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/solutions_data')
+        .then(response => response.json())
+        .then(data => {
+            solutionsData = data;
+            showCategory('customer_service'); // Show first category by default
+        })
+        .catch(error => {
+            console.error('Error loading solutions:', error);
+            document.querySelector('.solutions-grid').innerHTML = '<p>Error loading solutions data. Please refresh the page.</p>';
+        });
+});
+
+function showCategory(category, clickedTab = null) {
+    // Hide all solution grids
+    document.querySelectorAll('.solutions-grid').forEach(grid => {
+        grid.style.display = 'none';
+    });
+    
+    // Show or create the selected category grid
+    let categoryGrid = document.getElementById(category);
+    if (!categoryGrid) {
+        categoryGrid = createCategoryGrid(category);
+    }
+    categoryGrid.style.display = 'grid';
+    
+    // Update tab styling
+    document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    if (clickedTab) {
+        clickedTab.classList.add('active');
+    } else {
+        // Find and activate the first tab (for initial load)
+        document.querySelector('.category-tab').classList.add('active');
+    }
+}
+
+function createCategoryGrid(category) {
+    // Create new grid for this category
+    const gridContainer = document.createElement('div');
+    gridContainer.className = 'solutions-grid';
+    gridContainer.id = category;
+    
+    const solutions = solutionsData[category] || [];
+    
+    if (solutions.length === 0) {
+        gridContainer.innerHTML = '<p>No solutions available for this category.</p>';
+    } else {
+        solutions.forEach(solution => {
+            const solutionCard = createSolutionCard(solution);
+            gridContainer.appendChild(solutionCard);
+        });
+    }
+    
+    // Insert after category tabs
+    const categoryTabs = document.querySelector('.category-tabs');
+    categoryTabs.parentNode.insertBefore(gridContainer, categoryTabs.nextSibling);
+    
+    return gridContainer;
+}
+
+function createSolutionCard(solution) {
+    const card = document.createElement('div');
+    card.className = 'solution-card';
+    
+    const features = solution.features || [];
+    const featuresHTML = features.map(feature => `<li>${feature}</li>`).join('');
+    
+    const useCases = solution.use_cases || [];
+    const useCasesHTML = useCases.slice(0, 3).map(useCase => `<li>${useCase}</li>`).join('');
+    
+    card.innerHTML = `
+        <div class="solution-header">
+            <div class="solution-name">${solution.name}</div>
+            <span class="solution-type">${solution.type}</span>
+        </div>
+        <div class="solution-body">
+            <div class="solution-description">
+                ${solution.description}
+            </div>
+            ${features.length > 0 ? `
+                <div class="solution-features">
+                    <h4>Key Features:</h4>
+                    <ul>
+                        ${featuresHTML}
+                    </ul>
+                </div>
+            ` : ''}
+            ${useCases.length > 0 ? `
+                <div class="solution-features">
+                    <h4>Use Cases:</h4>
+                    <ul>
+                        ${useCasesHTML}
+                    </ul>
+                </div>
+            ` : ''}
+            <div class="solution-footer">
+                <div class="solution-price">${solution.cost}</div>
+                <div class="solution-rating">
+                    <span class="stars">★★★★${solution.rating >= 4.5 ? '★' : '☆'}</span>
+                    <span>${solution.rating}/5</span>
+                </div>
+            </div>
+            ${solution.roi_range ? `
+                <div style="margin-top: 1rem; padding: 0.5rem; background: #f0f9ff; border-radius: 6px; text-align: center;">
+                    <strong>ROI Range: ${solution.roi_range}</strong>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    return card;
+}
+</script>
+{% endblock %}

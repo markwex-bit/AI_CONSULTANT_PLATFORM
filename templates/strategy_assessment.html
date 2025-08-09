@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+{% block title %}Strategy Blueprint Assessment - AI Strategy Consultant{% endblock %}
+{% block extra_head %}
+<style>
+    .strategy-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+    .strategy-header {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    .strategy-body {
+        padding: 2rem;
+    }
+    .existing-data-section {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .existing-data-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    .existing-data-title::before {
+        content: "✓";
+        background: #10b981;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: bold;
+    }
+    .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .data-item {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .data-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    .data-value {
+        font-size: 1rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+    .challenges-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .challenge-tag {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .new-questions-section {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    .new-questions-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    .new-questions-title::before {
+        content: "📋";
+        margin-right: 0.75rem;
+        font-size: 1.5rem;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    .checkbox-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        min-width: 200px;
+    }
+    .checkbox-item.selected {
+        border-color: #10b981;
+        background: #f0fdf4;
+    }
+    .checkbox-item input[type="checkbox"] {
+        margin-right: 0.5rem;
+        width: auto;
+    }
+    .cta-button {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(5, 150, 105, 0.3);
+    }
+    .email-lookup-section {
+        background: #fef3c7;
+        border: 2px solid #f59e0b;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    .email-lookup-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #92400e;
+        margin-bottom: 1rem;
+    }
+    .email-input {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    .lookup-button {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+    .hidden {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="strategy-container">
+    <div class="strategy-header">
+        <h1>Strategy Blueprint Assessment</h1>
+        <p>Upgrade your AI assessment with comprehensive strategic analysis</p>
+        <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+            <strong>Investment: $1,500</strong> | <strong>Value: Complete strategic roadmap with business case</strong>
+        </div>
+    </div>
+    
+    <div class="strategy-body">
+        <!-- Email Lookup Section -->
+        <div class="email-lookup-section" id="emailLookupSection">
+            <div class="email-lookup-title">🔍 Find Your Previous Assessment</div>
+            <p>Enter the email address you used for your original assessment to continue with your Strategy Blueprint upgrade.</p>
+            <div class="email-input">
+                <input type="email" id="clientEmail" placeholder="Enter your email address" style="width: 100%; padding: 12px; border: 2px solid #f59e0b; border-radius: 8px; font-size: 16px;">
+                <button class="lookup-button" onclick="lookupAssessment()">Find My Assessment</button>
+            </div>
+        </div>
+
+        <!-- Assessment Form (Hidden until email is found) -->
+        <div id="assessmentForm" class="hidden">
+            <!-- Existing Data Section -->
+            <div class="existing-data-section">
+                <div class="existing-data-title">Your Original Assessment Data</div>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-label">Company Name</div>
+                        <div class="data-value" id="existingCompanyName">-</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Industry</div>
+                        <div class="data-value" id="existingIndustry">-</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Company Size</div>
+                        <div class="data-value" id="existingCompanySize">-</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Your Role</div>
+                        <div class="data-value" id="existingRole">-</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">AI Readiness Score</div>
+                        <div class="data-value" id="existingAIScore">-</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Current Technology Level</div>
+                        <div class="data-value" id="existingTechLevel">-</div>
+                    </div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Key Challenges Identified</div>
+                    <div class="challenges-list" id="existingChallenges">-</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">AI Opportunities Found</div>
+                    <div class="challenges-list" id="existingOpportunities">-</div>
+                </div>
+            </div>
+
+            <!-- New Strategic Questions -->
+            <div class="new-questions-section">
+                <div class="new-questions-title">Additional Strategic Information</div>
+                <p style="color: #64748b; margin-bottom: 2rem;">Please provide the following information to enable our comprehensive strategic analysis.</p>
+                
+                <form id="strategyForm">
+                    <input type="hidden" id="assessmentId" name="assessment_id">
+                    
+                    <!-- Competitive Analysis -->
+                    <div class="form-group">
+                        <label>Direct Competitors (3-5 main competitors)</label>
+                        <textarea name="competitors" placeholder="List your main competitors and briefly describe their strengths or market position..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your Competitive Advantages</label>
+                        <textarea name="competitive_advantages" placeholder="What advantages do you currently have or want to build? (e.g., technology, customer service, pricing, etc.)"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Market Position</label>
+                        <select name="market_position" required>
+                            <option value="">Select your market position</option>
+                            <option value="market-leader">Market Leader</option>
+                            <option value="challenger">Challenger</option>
+                            <option value="niche-player">Niche Player</option>
+                            <option value="emerging">Emerging/Startup</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Vendor Evaluation -->
+                    <div class="form-group">
+                        <label>Must-Have Vendor Features</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                <input type="checkbox" name="vendor_features" value="enterprise-support">
+                                <span>Enterprise Support</span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                <input type="checkbox" name="vendor_features" value="api-integration">
+                                <span>API Integration</span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                <input type="checkbox" name="vendor_features" value="custom-development">
+                                <span>Custom Development</span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                <input type="checkbox" name="vendor_features" value="data-security">
+                                <span>Advanced Data Security</span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                <input type="checkbox" name="vendor_features" value="scalability">
+                                <span>High Scalability</span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                <input type="checkbox" name="vendor_features" value="compliance">
+                                <span>Industry Compliance</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Assessment -->
+                    <div class="form-group">
+                        <label>Risk Tolerance Level</label>
+                        <select name="risk_tolerance" required>
+                            <option value="">Select your risk tolerance</option>
+                            <option value="conservative">Conservative - Prefer proven solutions</option>
+                            <option value="moderate">Moderate - Balance of innovation and stability</option>
+                            <option value="aggressive">Aggressive - Willing to try cutting-edge solutions</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Primary Risk Concerns</label>
+                        <textarea name="risk_concerns" placeholder="What are your biggest concerns about implementing AI? (e.g., data security, employee resistance, cost overruns, etc.)"></textarea>
+                    </div>
+                    
+                    <!-- Change Management -->
+                    <div class="form-group">
+                        <label>Organizational Structure</label>
+                        <select name="org_structure" required>
+                            <option value="">Select your organizational structure</option>
+                            <option value="hierarchical">Hierarchical - Clear chain of command</option>
+                            <option value="flat">Flat - Minimal management layers</option>
+                            <option value="matrix">Matrix - Cross-functional teams</option>
+                            <option value="hybrid">Hybrid - Combination of structures</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Decision-Making Process</label>
+                        <select name="decision_process" required>
+                            <option value="">Select your decision-making process</option>
+                            <option value="centralized">Centralized - Top-down decisions</option>
+                            <option value="decentralized">Decentralized - Distributed decision-making</option>
+                            <option value="consensus">Consensus - Group agreement required</option>
+                            <option value="consultative">Consultative - Input gathered, final decision centralized</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Team & Hiring -->
+                    <div class="form-group">
+                        <label>Current Team Size</label>
+                        <select name="team_size" required>
+                            <option value="">Select your current team size</option>
+                            <option value="1-5">1-5 employees</option>
+                            <option value="6-15">6-15 employees</option>
+                            <option value="16-50">16-50 employees</option>
+                            <option value="51-100">51-100 employees</option>
+                            <option value="100+">100+ employees</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Technical Skill Gaps</label>
+                        <textarea name="skill_gaps" placeholder="What technical skills are missing from your current team? (e.g., data science, AI/ML, system integration, etc.)"></textarea>
+                    </div>
+                    
+                    <!-- Budget Planning -->
+                    <div class="form-group">
+                        <label>Budget Allocation Preference</label>
+                        <select name="budget_allocation" required>
+                            <option value="">Select your budget allocation preference</option>
+                            <option value="upfront-heavy">Upfront Heavy - More initial investment</option>
+                            <option value="balanced">Balanced - Even distribution</option>
+                            <option value="ongoing-heavy">Ongoing Heavy - More subscription/operational costs</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>ROI Expectations Timeline</label>
+                        <select name="roi_timeline" required>
+                            <option value="">Select your ROI expectations timeline</option>
+                            <option value="3-months">3 months</option>
+                            <option value="6-months">6 months</option>
+                            <option value="12-months">12 months</option>
+                            <option value="18-months">18 months</option>
+                            <option value="24-months">24+ months</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Success Metrics -->
+                    <div class="form-group">
+                        <label>Current KPIs You Track</label>
+                        <textarea name="current_kpis" placeholder="What key performance indicators do you currently track? (e.g., customer satisfaction, revenue growth, operational efficiency, etc.)"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Target Improvement Goals</label>
+                        <textarea name="improvement_goals" placeholder="What specific improvements are you looking to achieve? (e.g., 30% reduction in response time, 25% increase in sales, etc.)"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="cta-button">Generate Strategy Blueprint ($1,500)</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function lookupAssessment() {
+    const email = document.getElementById('clientEmail').value;
+    if (!email) {
+        alert('Please enter your email address');
+        return;
+    }
+    
+    fetch('/api/lookup_assessment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayExistingData(data.assessment);
+            document.getElementById('emailLookupSection').classList.add('hidden');
+            document.getElementById('assessmentForm').classList.remove('hidden');
+        } else {
+            alert('No assessment found with that email address. Please check your email or contact support.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+}
+
+function displayExistingData(assessment) {
+    document.getElementById('assessmentId').value = assessment.id;
+    document.getElementById('existingCompanyName').textContent = assessment.company_name;
+    document.getElementById('existingIndustry').textContent = assessment.industry;
+    document.getElementById('existingCompanySize').textContent = assessment.company_size;
+    document.getElementById('existingRole').textContent = assessment.role;
+    document.getElementById('existingAIScore').textContent = assessment.ai_score + '%';
+    document.getElementById('existingTechLevel').textContent = assessment.current_tech;
+    
+    // Display challenges
+    const challenges = JSON.parse(assessment.challenges || '[]');
+    const challengesHtml = challenges.map(challenge => 
+        `<span class="challenge-tag">${challenge}</span>`
+    ).join('');
+    document.getElementById('existingChallenges').innerHTML = challengesHtml || 'None specified';
+    
+    // Display opportunities
+    const opportunities = JSON.parse(assessment.opportunities || '[]');
+    const opportunitiesHtml = opportunities.map(opp => 
+        `<span class="challenge-tag" style="background: #fef3c7; color: #92400e;">${opp}</span>`
+    ).join('');
+    document.getElementById('existingOpportunities').innerHTML = opportunitiesHtml || 'None identified';
+}
+
+function toggleCheckbox(element) {
+    const checkbox = element.querySelector('input[type="checkbox"]');
+    checkbox.checked = !checkbox.checked;
+    
+    if (checkbox.checked) {
+        element.classList.add('selected');
+    } else {
+        element.classList.remove('selected');
+    }
+}
+
+document.getElementById('strategyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    // Handle checkbox arrays
+    data.vendor_features = Array.from(formData.getAll('vendor_features'));
+    
+    fetch('/upgrade_to_strategy', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Strategy Blueprint assessment submitted successfully! You will be redirected to payment.');
+            window.location.href = `/strategy_payment/${data.assessment_id}`;
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+});
+</script>
+{% endblock %}
+

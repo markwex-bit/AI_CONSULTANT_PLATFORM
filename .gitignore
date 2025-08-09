@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+
+# Virtual env
+venv/
+.env
+.env.*
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Logs and DB
+app.log
+*.log
+ai_consultant.db
+*.sqlite3
+
+# Build/artifacts
+reports/
+*.pdf
+htmlcov/
+.coverage
+coverage.xml
+
+# Tests (exclude from repo as requested)
+test_*.py
+*_test.py
+.pytest_cache/
+
+# Playwright caches
+playwright-report/
+.playwright/
+
+# Node (if any)
+node_modules/
