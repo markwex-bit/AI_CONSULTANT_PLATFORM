@@ -15,3 +15,9 @@ except sqlite3.OperationalError as e:
         print(f"❌ Error adding report_type column: {e}")
 
 conn.close()
+
+
+
+
+
+

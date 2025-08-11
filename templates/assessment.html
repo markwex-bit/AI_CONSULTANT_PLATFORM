@@ -910,6 +910,9 @@
                             <label class="checkbox-option">
                                 <input type="checkbox" name="implementation_priority" value="product-development"> Product development
                             </label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="implementation_priority" placeholder="Other priority, specify here">
+                            </div>
                         </div>
                     </div>
                     
@@ -996,6 +999,9 @@
                             <label class="checkbox-option">
                                 <input type="checkbox" name="security_requirements" value="basic"> Basic security requirements
                             </label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="security_requirements" placeholder="Other security requirement, specify here">
+                            </div>
         </div>
                     </div>
                     
@@ -1020,6 +1026,9 @@
                             <label class="checkbox-option">
                                 <input type="checkbox" name="compliance_needs" value="none"> No specific compliance needs
                             </label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="compliance_needs" placeholder="Other compliance need, specify here">
+                            </div>
         </div>
                     </div>
                     
@@ -1038,6 +1047,9 @@
                                 <input type="checkbox" name="integration_requirements" value="mobile"> Mobile app integration</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="integration_requirements" value="none"> No specific integration needs</label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="integration_requirements" placeholder="Other integration requirement, specify here">
+                            </div>
                         </div>
         </div>
     </div>
@@ -1066,6 +1078,9 @@
                                 <input type="checkbox" name="success_metrics" value="scalability"> Scalability</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="success_metrics" value="innovation"> Innovation capabilities</label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="success_metrics" placeholder="Other success metric, specify here">
+                            </div>
         </div>
     </div>
                     
@@ -1110,6 +1125,9 @@
                                 <input type="checkbox" name="risk_factors" value="vendor-lockin"> Vendor lock-in concerns</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="risk_factors" value="security"> Security concerns</label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="risk_factors" placeholder="Other risk factor, specify here">
+                            </div>
                         </div>
                     </div>
                     
@@ -1132,6 +1150,9 @@
                                 <input type="checkbox" name="mitigation_strategies" value="security-review"> Security review</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="mitigation_strategies" value="consultant-support"> Consultant support</label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="mitigation_strategies" placeholder="Other mitigation strategy, specify here">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1156,6 +1177,9 @@
                                 <input type="checkbox" name="implementation_phases" value="training"> Training and adoption</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="implementation_phases" value="optimization"> Optimization and scaling</label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="implementation_phases" placeholder="Other implementation phase, specify here">
+                            </div>
                         </div>
                     </div>
                     
@@ -1174,6 +1198,9 @@
                                 <input type="checkbox" name="resource_requirements" value="end-users"> End user representatives</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="resource_requirements" value="external-consultant"> External consultant</label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="resource_requirements" placeholder="Other resource requirement, specify here">
+                            </div>
                         </div>
                     </div>
                     
@@ -1190,6 +1217,9 @@
                                 <input type="checkbox" name="training_needs" value="change-management"> Change management training</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="training_needs" value="ongoing"> Ongoing support and training</label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="training_needs" placeholder="Other training need, specify here">
+                            </div>
                         </div>
                     </div>
                     
@@ -1210,6 +1240,9 @@
                                 <input type="checkbox" name="vendor_criteria" value="security"> Strong security features</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="vendor_criteria" value="compliance"> Compliance certifications</label>
+                            <div class="form-group" style="margin-top:0.5rem;">
+                                <input type="text" data-other-for="vendor_criteria" placeholder="Other vendor criteria, specify here">
+                            </div>
                         </div>
                     </div>
                     
@@ -1692,22 +1725,22 @@ function changeStep(direction) {
     const newStep = currentStep + direction;
     
     if (newStep >= 1 && newStep <= totalSteps) {
-        // Validate current step before allowing navigation forward
-        if (direction > 0 && !validateCurrentStep()) {
-            alert('Please complete all required fields before continuing.');
-            return;
-        }
-        // Progressive save before navigating
+        // Always save current data, regardless of validation
         progressiveSave()
             .catch(() => {/* non-blocking */})
             .finally(() => {
-        currentStep = newStep;
-        showStep(currentStep);
-        // Clear results content unless we're on results step
-        if (currentStep !== totalSteps) {
-            const results = document.getElementById('resultsContainer');
-            if (results) results.innerHTML = '';
-        }
+                // Validate current step before allowing navigation forward
+                if (direction > 0 && !validateCurrentStep()) {
+                    alert('Please complete all required fields before continuing.');
+                    return;
+                }
+                currentStep = newStep;
+                showStep(currentStep);
+                // Clear results content unless we're on results step
+                if (currentStep !== totalSteps) {
+                    const results = document.getElementById('resultsContainer');
+                    if (results) results.innerHTML = '';
+                }
             });
     }
 }
@@ -1886,6 +1919,8 @@ function collectFormDataForStep(stepIdx) {
     if (!stepEl) return formData;
 
     const inputs = stepEl.querySelectorAll('input, select');
+    console.log(`Step ${stepIdx} inputs:`, inputs.length);
+    
     // Known checkbox groups across steps
     const checkboxGroups = new Set([
         'challenges', 'current_tools', 'tool_preferences', 'implementation_priority',
@@ -1902,9 +1937,16 @@ function collectFormDataForStep(stepIdx) {
     });
 
     inputs.forEach(input => {
+        // Skip inputs without a name attribute (like "other" fields that use data-other-for)
+        if (!input.name) {
+            return;
+        }
+        
         if (input.type === 'checkbox') {
             if (checkboxGroups.has(input.name)) {
-                if (input.checked) formData[input.name].push(input.value);
+                if (input.checked) {
+                    formData[input.name].push(input.value);
+                }
             }
         } else {
             formData[input.name] = input.value;
@@ -1924,7 +1966,6 @@ function collectFormDataForStep(stepIdx) {
             formData[target] = text;
         }
     });
-
     return formData;
 }
 

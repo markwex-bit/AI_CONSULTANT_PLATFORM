@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard - AI Strategy Consultant{% endblock %}
 {% block extra_head %}
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <style>
     .admin-container {
         max-width: 1400px;
@@ -83,14 +86,6 @@
     .data-table tr:hover {
         background: #f8fafc;
     }
-
-    /* DB view helpers */
-    .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; display: inline-block; vertical-align: top; }
-    .db-id { cursor: pointer; color: #2563eb; font-weight: 700; }
-    .db-details { background: #f9fafb; }
-    .kv-grid { display: grid; grid-template-columns: 240px 1fr; gap: 6px 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
-    .kv-grid .k { font-weight: 600; color: #374151; }
-    .kv-grid .v { background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:6px; white-space:pre-wrap; word-break:break-word; }
     
     .action-buttons {
         display: flex;
@@ -135,6 +130,19 @@
         max-height: 600px;
         overflow-y: auto;
     }
+
+    /* DB View styles */
+    .dbview-container { padding: 1.5rem; border-top: 1px solid #e5e7eb; background: #fff; }
+    .dbview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .dbview-title { font-weight: 700; color: #374151; }
+    .dbview-toggle { background: #111827; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .dbview-scroll { border: 1px solid #e5e7eb; border-radius: 8px; overflow: auto; }
+    .dbview-table { width: 100%; border-collapse: collapse; }
+    .dbview-table thead th { position: sticky; top: 0; background: #111827; color: #fff; font-weight: 700; font-size: 12px; text-align: left; padding: 8px; border-bottom: 1px solid #111827; }
+    .dbview-table tbody td { border-bottom: 1px solid #e5e7eb; padding: 6px 8px; font-size: 12px; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dbview-table tbody td.expanded { white-space: pre-wrap; overflow: visible; text-overflow: clip; max-width: none; word-break: break-word; }
+    .dbview-table tbody tr:hover { background: #f9fafb; }
+    .dbview-category { font-weight: 700; color: #111827; margin: 0.75rem 0 0.5rem 0; padding: 6px 10px; border-left: 4px solid #2563eb; background: #f3f4f6; border-radius: 6px; }
     
     .loading {
         text-align: center;
@@ -145,7 +153,7 @@
     .modal {
         display: none;
         position: fixed;
-        z-index: 1000;
+        z-index: 9999;
         left: 0;
         top: 0;
         width: 100%;
@@ -155,13 +163,15 @@
     
     .modal-content {
         background-color: white;
-        margin: 2% auto;
+        margin: 5% auto;
         padding: 20px;
         border-radius: 8px;
-        width: 80%;
-        max-width: 600px;
+        width: 90%;
+        max-width: 1200px;
         max-height: 90vh;
         overflow-y: auto;
+        position: relative;
+        z-index: 10000;
     }
     
     .close {
@@ -385,9 +395,6 @@
                 <button class="control-btn" onclick="addSampleData()" style="background: #8b5cf6; color: white;">
                     ➕ Add Sample Data
                 </button>
-                <button class="control-btn" onclick="toggleDbView()" style="background: #0ea5e9; color: white;">
-                    🧮 DB View
-                </button>
             </div>
         </div>
         
@@ -496,10 +503,24 @@
             <div id="loadingMessage" class="loading">
                 Loading assessment data...
             </div>
-            
+            <div id="batchControls" style="display: none; padding: 1rem; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                    Select All
+                </label>
+                <span id="selectedCount" style="color: #6b7280;">0 selected</span>
+                <button id="batchDeleteBtn" class="control-btn btn-clear" onclick="batchDeleteAssessments()" disabled>
+                    🗑️ Delete Selected
+                </button>
+            </div>
+        </div>
             <table class="data-table" id="assessmentsTable" style="display: none;">
                 <thead>
                     <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="headerSelectAll" onchange="toggleSelectAll()">
+                        </th>
                         <th>ID</th>
                         <th>Company</th>
                         <th>Contact</th>
@@ -516,10 +537,21 @@
             </table>
         </div>
 
-        <!-- DB Visibility Table -->
-        <div class="table-container" id="dbViewContainer" style="display:none; margin-top:1rem;">
-            <h3 style="margin:0 0 8px 0; color:#374151;">Database View (raw)</h3>
-            <div id="dbTableWrapper" style="overflow:auto; max-height:60vh; border:1px solid #e5e7eb; border-radius:8px; background:#fff;"></div>
+        <!-- DB View Section -->
+        <div class="dbview-container">
+            <div class="dbview-header">
+                <div class="dbview-title">🗄️ Database View (raw rows)</div>
+                <button class="dbview-toggle" onclick="toggleDbView()" id="dbViewToggle">Show</button>
+            </div>
+            <div id="dbViewContent" style="display:none;">
+                <div class="dbview-category">Assessment</div>
+                <div class="dbview-scroll">
+                    <table class="dbview-table" id="dbViewTable">
+                        <thead id="dbViewHead"></thead>
+                        <tbody id="dbViewBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -535,26 +567,19 @@
     </div>
 </div>
 
-<!-- DB Inspector Modal -->
-<div id="dbInspectorModal" class="modal">
-    <div class="modal-content" style="max-width: 1000px;">
-        <span class="close" onclick="closeModal('dbInspectorModal')">&times;</span>
-        <h2>🧮 Database Inspector</h2>
-        <div id="dbInspectorContent" style="max-height:70vh;overflow:auto;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;"></div>
-    </div>
- </div>
-
 <!-- Edit Modal -->
 <div id="editModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 90%; max-height: 90vh; overflow-y: auto;">
         <span class="close" onclick="closeModal('editModal')">&times;</span>
         <h2>Edit Assessment</h2>
         <form id="editForm">
             <input type="hidden" id="editId">
             
+            <!-- Basic Information -->
+            <h3 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 1rem;">Basic Information</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
-                    <label>Company Name</label>
+                    <label>Company Name *</label>
                     <input type="text" id="editCompanyName" required>
                 </div>
                 <div class="form-group">
@@ -573,55 +598,665 @@
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
-                    <label>First Name</label>
-                    <input type="text" id="editFirstName" required>
-                </div>
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input type="text" id="editLastName" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="editEmail" required>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
                     <label>Company Size</label>
                     <select id="editCompanySize">
                         <option value="10-50">10-50 employees</option>
                         <option value="51-100">51-100 employees</option>
                         <option value="101-250">101-250 employees</option>
                         <option value="251-500">251-500 employees</option>
+                        <option value="500+">500+ employees</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <input type="text" id="editRole">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Website</label>
+                <input type="url" id="editWebsite">
+            </div>
+            
+            <!-- Contact Information -->
+            <h3 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 2rem;">Contact Information</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" id="editFirstName" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name *</label>
+                    <input type="text" id="editLastName" required>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="editPhone">
+                </div>
+            </div>
+            
+            <!-- Business Assessment -->
+            <h3 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 2rem;">Business Assessment</h3>
+            <div class="form-group">
+                <label>Business Challenges</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editChallenge1" value="Customer service bottleneck"> Customer service bottleneck
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editChallenge2" value="Data management issues"> Data management issues
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editChallenge3" value="Process inefficiencies"> Process inefficiencies
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editChallenge4" value="Cost optimization"> Cost optimization
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editChallenge5" value="Competitive pressure"> Competitive pressure
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editChallenge6" value="Technology adoption"> Technology adoption
+                    </label>
+                </div>
+                <input type="text" id="editChallengesOther" placeholder="Other challenges (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Current Tech Level</label>
+                    <select id="editCurrentTech">
+                        <option value="basic">Basic</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>AI Experience</label>
+                    <select id="editAiExperience">
+                        <option value="none">None</option>
+                        <option value="basic">Basic</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Budget Range</label>
+                    <select id="editBudget">
+                        <option value="under-10k">Under $10K</option>
+                        <option value="10k-50k">$10K - $50K</option>
+                        <option value="50k-100k">$50K - $100K</option>
+                        <option value="100k-500k">$100K - $500K</option>
+                        <option value="500k+">$500K+</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Timeline</label>
+                    <select id="editTimeline">
+                        <option value="immediate">Immediate</option>
+                        <option value="3-months">3 months</option>
+                        <option value="6-months">6 months</option>
+                        <option value="1-year">1 year</option>
+                        <option value="flexible">Flexible</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Enhanced Assessment Fields -->
+            <h3 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 2rem;">Enhanced Assessment</h3>
+            <div class="form-group">
+                <label>Current Tools & Software</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTool1" value="CRM systems"> CRM systems
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTool2" value="ERP systems"> ERP systems
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTool3" value="Marketing automation"> Marketing automation
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTool4" value="Analytics platforms"> Analytics platforms
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTool5" value="Communication tools"> Communication tools
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTool6" value="Project management"> Project management
+                    </label>
+                </div>
+                <input type="text" id="editCurrentToolsOther" placeholder="Other tools (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Tool Preferences</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPref1" value="Cloud-based solutions"> Cloud-based solutions
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPref2" value="On-premise solutions"> On-premise solutions
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPref3" value="Open source"> Open source
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPref4" value="Enterprise-grade"> Enterprise-grade
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPref5" value="User-friendly interfaces"> User-friendly interfaces
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPref6" value="Integration capabilities"> Integration capabilities
+                    </label>
+                </div>
+                <input type="text" id="editToolPreferencesOther" placeholder="Other preferences (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Implementation Priority</label>
+                    <select id="editImplementationPriority">
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Team Availability</label>
+                    <select id="editTeamAvailability">
+                        <option value="dedicated">Dedicated team</option>
+                        <option value="part-time">Part-time</option>
+                        <option value="limited">Limited</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Change Management Experience</label>
+                <select id="editChangeManagementExperience">
+                    <option value="extensive">Extensive</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="limited">Limited</option>
+                    <option value="none">None</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Data Governance</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editDataGov1" value="Data classification"> Data classification
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editDataGov2" value="Access controls"> Access controls
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editDataGov3" value="Data retention policies"> Data retention policies
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editDataGov4" value="Privacy compliance"> Privacy compliance
+                    </label>
+                </div>
+                <input type="text" id="editDataGovernanceOther" placeholder="Other governance policies (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Security Requirements</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editSec1" value="Encryption"> Encryption
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editSec2" value="Multi-factor authentication"> Multi-factor authentication
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editSec3" value="Regular security audits"> Regular security audits
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editSec4" value="Compliance certifications"> Compliance certifications
+                    </label>
+                </div>
+                <input type="text" id="editSecurityRequirementsOther" placeholder="Other security requirements (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Compliance Needs</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editComp1" value="GDPR"> GDPR
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editComp2" value="HIPAA"> HIPAA
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editComp3" value="SOX"> SOX
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editComp4" value="Industry-specific"> Industry-specific
+                    </label>
+                </div>
+                <input type="text" id="editComplianceNeedsOther" placeholder="Other compliance needs (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Integration Requirements</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editInt1" value="API integration"> API integration
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editInt2" value="Database connectivity"> Database connectivity
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editInt3" value="Third-party systems"> Third-party systems
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editInt4" value="Legacy systems"> Legacy systems
+                    </label>
+                </div>
+                <input type="text" id="editIntegrationRequirementsOther" placeholder="Other integration requirements (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Success Metrics</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editMetric1" value="Cost reduction"> Cost reduction
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editMetric2" value="Efficiency improvement"> Efficiency improvement
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editMetric3" value="Customer satisfaction"> Customer satisfaction
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editMetric4" value="Revenue growth"> Revenue growth
+                    </label>
+                </div>
+                <input type="text" id="editSuccessMetricsOther" placeholder="Other success metrics (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Expected ROI</label>
+                    <input type="text" id="editExpectedRoi">
+                </div>
+                <div class="form-group">
+                    <label>Payback Period</label>
+                    <input type="text" id="editPaybackPeriod">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Risk Factors</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editRisk1" value="Data security"> Data security
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editRisk2" value="Implementation complexity"> Implementation complexity
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editRisk3" value="User adoption"> User adoption
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editRisk4" value="Budget overruns"> Budget overruns
+                    </label>
+                </div>
+                <input type="text" id="editRiskFactorsOther" placeholder="Other risk factors (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Mitigation Strategies</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editMit1" value="Phased implementation"> Phased implementation
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editMit2" value="Change management"> Change management
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editMit3" value="Training programs"> Training programs
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editMit4" value="Pilot testing"> Pilot testing
+                    </label>
+                </div>
+                <input type="text" id="editMitigationStrategiesOther" placeholder="Other mitigation strategies (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Implementation Phases</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPhase1" value="Planning & Analysis"> Planning & Analysis
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPhase2" value="Design & Development"> Design & Development
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPhase3" value="Testing & Validation"> Testing & Validation
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editPhase4" value="Deployment & Training"> Deployment & Training
+                    </label>
+                </div>
+                <input type="text" id="editImplementationPhasesOther" placeholder="Other implementation phases (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Resource Requirements</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editRes1" value="Technical expertise"> Technical expertise
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editRes2" value="Project management"> Project management
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editRes3" value="Training resources"> Training resources
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editRes4" value="Infrastructure"> Infrastructure
+                    </label>
+                </div>
+                <input type="text" id="editResourceRequirementsOther" placeholder="Other resource requirements (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Training Needs</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTrain1" value="User training"> User training
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTrain2" value="Administrator training"> Administrator training
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTrain3" value="Technical training"> Technical training
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editTrain4" value="Process training"> Process training
+                    </label>
+                </div>
+                <input type="text" id="editTrainingNeedsOther" placeholder="Other training needs (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Vendor Criteria</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editVendor1" value="Experience & track record"> Experience & track record
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editVendor2" value="Technical capabilities"> Technical capabilities
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editVendor3" value="Support & maintenance"> Support & maintenance
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editVendor4" value="Cost-effectiveness"> Cost-effectiveness
+                    </label>
+                </div>
+                <input type="text" id="editVendorCriteriaOther" placeholder="Other vendor criteria (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <!-- Strategy Blueprint Fields -->
+            <h3 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 2rem;">Strategy Blueprint</h3>
+            <div class="form-group">
+                <label>Competitors</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editCompetitor1" value="Direct competitors"> Direct competitors
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editCompetitor2" value="Indirect competitors"> Indirect competitors
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editCompetitor3" value="New market entrants"> New market entrants
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editCompetitor4" value="Substitute products"> Substitute products
+                    </label>
+                </div>
+                <input type="text" id="editCompetitorsOther" placeholder="Other competitors (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Competitive Advantages</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editAdv1" value="Technology leadership"> Technology leadership
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editAdv2" value="Customer relationships"> Customer relationships
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editAdv3" value="Operational efficiency"> Operational efficiency
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editAdv4" value="Brand recognition"> Brand recognition
+                    </label>
+                </div>
+                <input type="text" id="editCompetitiveAdvantagesOther" placeholder="Other competitive advantages (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Market Position</label>
+                <select id="editMarketPosition">
+                    <option value="leader">Market Leader</option>
+                    <option value="challenger">Challenger</option>
+                    <option value="follower">Follower</option>
+                    <option value="niche">Niche</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Vendor Features</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editVendorFeat1" value="Scalability"> Scalability
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editVendorFeat2" value="Customization"> Customization
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editVendorFeat3" value="Integration capabilities"> Integration capabilities
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editVendorFeat4" value="Analytics & reporting"> Analytics & reporting
+                    </label>
+                </div>
+                <input type="text" id="editVendorFeaturesOther" placeholder="Other vendor features (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Risk Tolerance</label>
+                    <select id="editRiskTolerance">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Risk Concerns</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                            <input type="checkbox" id="editRiskConcern1" value="Data security"> Data security
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                            <input type="checkbox" id="editRiskConcern2" value="Vendor lock-in"> Vendor lock-in
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                            <input type="checkbox" id="editRiskConcern3" value="Implementation delays"> Implementation delays
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                            <input type="checkbox" id="editRiskConcern4" value="Cost overruns"> Cost overruns
+                        </label>
+                    </div>
+                    <input type="text" id="editRiskConcernsOther" placeholder="Other risk concerns (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Organizational Structure</label>
+                <select id="editOrgStructure">
+                    <option value="centralized">Centralized</option>
+                    <option value="decentralized">Decentralized</option>
+                    <option value="hybrid">Hybrid</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Decision Process</label>
+                <select id="editDecisionProcess">
+                    <option value="autocratic">Autocratic</option>
+                    <option value="democratic">Democratic</option>
+                    <option value="consensus">Consensus</option>
+                    <option value="consultative">Consultative</option>
+                </select>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Team Size</label>
+                    <input type="text" id="editTeamSize">
+                </div>
+                <div class="form-group">
+                    <label>Skill Gaps</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                            <input type="checkbox" id="editSkillGap1" value="Technical skills"> Technical skills
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                            <input type="checkbox" id="editSkillGap2" value="Data analysis"> Data analysis
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                            <input type="checkbox" id="editSkillGap3" value="Change management"> Change management
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                            <input type="checkbox" id="editSkillGap4" value="Project management"> Project management
+                        </label>
+                    </div>
+                    <input type="text" id="editSkillGapsOther" placeholder="Other skill gaps (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Budget Allocation</label>
+                    <input type="text" id="editBudgetAllocation">
+                </div>
+                <div class="form-group">
+                    <label>ROI Timeline</label>
+                    <input type="text" id="editRoiTimeline">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Current KPIs</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editKpi1" value="Revenue growth"> Revenue growth
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editKpi2" value="Customer satisfaction"> Customer satisfaction
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editKpi3" value="Operational efficiency"> Operational efficiency
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editKpi4" value="Cost reduction"> Cost reduction
+                    </label>
+                </div>
+                <input type="text" id="editCurrentKpisOther" placeholder="Other KPIs (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div class="form-group">
+                <label>Improvement Goals</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editGoal1" value="Process automation"> Process automation
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editGoal2" value="Data-driven decisions"> Data-driven decisions
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editGoal3" value="Customer experience"> Customer experience
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editGoal4" value="Operational excellence"> Operational excellence
+                    </label>
+                </div>
+                <input type="text" id="editImprovementGoalsOther" placeholder="Other improvement goals (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <!-- System Fields -->
+            <h3 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 2rem;">System Information</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
                     <label>AI Score</label>
                     <input type="number" id="editAiScore" min="0" max="100">
                 </div>
+                <div class="form-group">
+                    <label>Report Type</label>
+                    <select id="editReportType">
+                        <option value="assessment">Assessment</option>
+                        <option value="strategy">Strategy Blueprint</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Opportunities (JSON array)</label>
+                <textarea id="editOpportunities" placeholder='[{"title": "Opportunity 1", "description": "Description", "roi": 25000}]'></textarea>
             </div>
             
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                <button type="button" class="control-btn btn-refresh" onclick="saveAssessment()">
-                    💾 Save Changes
-                </button>
-                <button type="button" class="control-btn" onclick="closeModal('editModal')" style="background: #6b7280; color: white;">
-                    ❌ Cancel
-                </button>
+                        <button type="button" class="control-btn btn-refresh" onclick="saveAssessment()">
+            💾 Save Changes
+        </button>
+        <button type="button" class="control-btn" onclick="generateReportFromEdit()" style="background: #4f46e5; color: white;">
+            📄 Generate New Report
+        </button>
+        <button type="button" class="control-btn" onclick="testModal()" style="background: #10b981; color: white;">
+            🧪 Test Modal
+        </button>
+        <button type="button" class="control-btn" onclick="closeModal('editModal')" style="background: #6b7280; color: white;">
+            ❌ Cancel
+        </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+console.log('Admin page JavaScript loaded');
 let assessments = [];
 let trendsData = {};
 
 // Load assessments when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
+    console.log('Calling loadAssessments...');
     loadAssessments();
+    console.log('Calling loadDbRows...');
+    // Preload DB rows in background
+    loadDbRows();
 });
 
 function toggleTrends() {
@@ -784,96 +1419,292 @@ function renderToolTrends(externalToolCategories) {
 }
 
 function loadAssessments() {
+    console.log('Loading assessments...');
+    console.log('loadingMessage element:', document.getElementById('loadingMessage'));
+    console.log('assessmentsTable element:', document.getElementById('assessmentsTable'));
+    console.log('batchControls element:', document.getElementById('batchControls'));
+    
     document.getElementById('loadingMessage').style.display = 'block';
     document.getElementById('assessmentsTable').style.display = 'none';
+    document.getElementById('batchControls').style.display = 'block';
     
-    return fetch('/api/assessments')
-        .then(response => response.json())
+    // Add cache-busting parameter
+    const url = '/api/assessments?t=' + Date.now();
+    console.log('Fetching from:', url);
+    
+    return fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
+            console.log('Hiding loading message...');
             document.getElementById('loadingMessage').style.display = 'none';
             
             if (data.success) {
                 assessments = data.assessments;
+                console.log('Assessments loaded:', assessments.length);
+                console.log('Calling displayAssessments...');
                 displayAssessments(assessments);
+                console.log('Showing assessments table...');
                 document.getElementById('assessmentsTable').style.display = 'table';
             } else {
+                console.error('API error:', data.error);
                 document.getElementById('loadingMessage').innerHTML = 'Error loading data: ' + (data.error || 'Unknown error');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Network error:', error);
             document.getElementById('loadingMessage').innerHTML = 'Network error loading assessments';
         });
 }
 
+// ---- DB View ----
+let dbRows = [];
+let dbColumns = [];
+
+function toggleDbView() {
+    const content = document.getElementById('dbViewContent');
+    const btn = document.getElementById('dbViewToggle');
+    const isHidden = content.style.display === 'none' || content.style.display === '';
+    if (isHidden) {
+        content.style.display = 'block';
+        btn.textContent = 'Hide';
+        if (dbRows.length === 0) {
+            loadDbRows();
+        }
+    } else {
+        content.style.display = 'none';
+        btn.textContent = 'Show';
+    }
+}
+
+function loadDbRows() {
+    fetch('/api/db_view')
+        .then(r => r.json())
+        .then(d => {
+            if (d && d.success) {
+                dbRows = d.rows || [];
+                dbColumns = computeOrderedColumns(dbRows);
+                renderDbTable(dbRows, dbColumns);
+            } else {
+                renderDbError(d && d.error ? d.error : 'Unknown error');
+            }
+        })
+        .catch(() => renderDbError('Network error'));
+}
+
+function renderDbError(msg) {
+    const thead = document.getElementById('dbViewHead');
+    const tbody = document.getElementById('dbViewBody');
+    if (!thead || !tbody) return;
+    thead.innerHTML = '';
+    tbody.innerHTML = `<tr><td style="padding:10px; color:#b91c1c;">Error: ${msg}</td></tr>`;
+}
+
+function renderDbTable(rows, columns) {
+    const thead = document.getElementById('dbViewHead');
+    const tbody = document.getElementById('dbViewBody');
+    if (!thead || !tbody) return;
+
+    if (!columns || columns.length === 0) {
+        thead.innerHTML = '';
+        tbody.innerHTML = `<tr><td style="padding:10px; color:#6b7280;">No rows</td></tr>`;
+        return;
+    }
+
+    thead.innerHTML = `<tr>${columns.map(c => `<th title="Click cells to expand/collapse">${c}</th>`).join('')}</tr>`;
+
+    if (!rows || rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${columns.length}" style="padding:10px; color:#6b7280;">Database is empty</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = rows.map(r => {
+        const tds = columns.map(col => {
+            let val = r[col];
+            if (val === null || val === undefined) val = '';
+            if (col === 'created_at') {
+                try { val = formatDateEST(val); } catch (e) {}
+            }
+            if (typeof val === 'object') {
+                try { val = JSON.stringify(val); } catch(e) { val = String(val); }
+            }
+            const safe = String(val).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return `<td title="${safe}" onclick="toggleCellExpand(event)">${safe}</td>`;
+        }).join('');
+        return `<tr>${tds}</tr>`;
+    }).join('');
+}
+
+function toggleCellExpand(ev) {
+    const td = ev.currentTarget;
+    if (!td) return;
+    td.classList.toggle('expanded');
+}
+
+function formatDateEST(input) {
+    if (!input) return '';
+    try {
+        let d;
+        if (typeof input === 'number') {
+            d = new Date(input);
+        } else {
+            const s = String(input);
+            if (s.includes('T') || s.endsWith('Z')) {
+                d = new Date(s);
+            } else if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+                // Treat naive date/time as UTC then display in EST
+                d = new Date(s.replace(' ', 'T') + 'Z');
+            } else {
+                d = new Date(s);
+            }
+        }
+        const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/New_York',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: 'numeric', minute: '2-digit', hour12: true
+        }).formatToParts(d);
+        const mm = parts.find(p => p.type === 'month')?.value || '';
+        const dd = parts.find(p => p.type === 'day')?.value || '';
+        const yyyy = parts.find(p => p.type === 'year')?.value || '';
+        const hour = parts.find(p => p.type === 'hour')?.value || '';
+        const minute = parts.find(p => p.type === 'minute')?.value || '';
+        const dayPeriod = (parts.find(p => p.type === 'dayPeriod')?.value || '').toLowerCase();
+        return `${mm}/${dd}/${yyyy} ${hour}:${minute} ${dayPeriod}`;
+    } catch (e) {
+        return String(input);
+    }
+}
+
+// Define desired assessment form column order
+function computeOrderedColumns(rows) {
+    if (!rows || rows.length === 0) return [];
+    const preferred = [
+        // Identifiers & meta
+        'id','created_at','report_type',
+        // Company & contact
+        'company_name','industry','company_size','role','website',
+        'first_name','last_name','email','phone',
+        // Core assessment selections
+        'challenges','current_tech','ai_experience','budget','timeline',
+        // Enhanced assessment arrays
+        'current_tools','tool_preferences','implementation_priority',
+        'team_availability','change_management_experience','data_governance',
+        'security_requirements','compliance_needs','integration_requirements',
+        'success_metrics','expected_roi','payback_period',
+        'risk_factors','mitigation_strategies','implementation_phases',
+        'resource_requirements','training_needs','vendor_criteria',
+        'pilot_project','scalability_requirements','maintenance_plan',
+        // Scores & computed
+        'ai_score','opportunities',
+        // Strategy blueprint (if present)
+        'competitors','competitive_advantages','market_position','vendor_features',
+        'risk_tolerance','risk_concerns','org_structure','decision_process',
+        'team_size','skill_gaps','budget_allocation','roi_timeline',
+        'current_kpis','improvement_goals'
+    ];
+
+    const present = Object.keys(rows[0] || {});
+    const ordered = [];
+    preferred.forEach(col => { if (present.includes(col)) ordered.push(col); });
+    // Append any remaining columns not in preferred list
+    present.forEach(col => { if (!ordered.includes(col)) ordered.push(col); });
+    return ordered;
+}
+
 function displayAssessments(assessmentList) {
+    console.log('displayAssessments called with:', assessmentList);
     const tbody = document.getElementById('assessmentsTableBody');
+    console.log('tbody element:', tbody);
     tbody.innerHTML = '';
     
     if (assessmentList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: #6b7280;">No assessments found</td></tr>';
+        console.log('No assessments to display');
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #6b7280;">No assessments found</td></tr>';
         return;
     }
     
-    assessmentList.forEach(assessment => {
+    console.log('Displaying', assessmentList.length, 'assessments');
+    assessmentList.forEach((assessment, index) => {
+        console.log('Creating row for assessment', index + 1, ':', assessment);
         const row = document.createElement('tr');
         const createdDate = new Date(assessment.created_at).toLocaleDateString();
         
         row.innerHTML = `
-            <td>${assessment.id}</td>
-            <td>${assessment.company_name}</td>
-            <td>${assessment.contact_name}</td>
-            <td>${assessment.email}</td>
-            <td>${assessment.industry}</td>
-            <td><span class="score-badge">${assessment.ai_score}%</span></td>
-            <td>${createdDate}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="action-btn btn-view" onclick="viewAssessment(${assessment.id})" title="View Details">👁️</button>
-                    <button class="action-btn" style="background:#0ea5e9;color:white" onclick="openDbInspector(${assessment.id})" title="DB Inspector">🧮</button>
-                    <button class="action-btn btn-delete" onclick="deleteAssessment(${assessment.id})" title="Delete">🗑️</button>
-                </div>
-            </td>
-        `;
+        <td><input type="checkbox" value="${assessment.id}" onchange="toggleBatchDeleteButton()"></td>
+        <td>${assessment.id}</td>
+        <td>${assessment.company_name}</td>
+        <td>${assessment.contact_name}</td>
+        <td>${assessment.email}</td>
+        <td>${assessment.industry}</td>
+        <td><span class="score-badge">${assessment.ai_score}%</span></td>
+        <td>${createdDate}</td>
+        <td>
+            <div class="action-buttons">
+                <button class="action-btn btn-view" onclick="viewAssessment(${assessment.id})" title="View Details">👁️</button>
+                <button class="action-btn btn-edit" onclick="editAssessment(${assessment.id})" title="Edit">✏️</button>
+            </div>
+        </td>
+`;
         
         tbody.appendChild(row);
+        console.log('Row added to tbody');
     });
+    console.log('displayAssessments completed');
 }
 
 function viewAssessment(id) {
-    const assessment = assessments.find(a => a.id === id);
-    if (!assessment) return;
+    // Fetch complete assessment data from API
+    fetch(`/api/assessment/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert('Error loading assessment details: ' + data.error);
+                return;
+            }
+            
+            const assessment = data.assessment;
+            
+            // Helper function to format arrays
+            function formatArray(arr, defaultText = 'None specified') {
+                if (!Array.isArray(arr) || arr.length === 0) return defaultText;
+                return arr.join(', ');
+            }
     
     // Format challenges and opportunities
-    const challenges = Array.isArray(assessment.challenges) ? assessment.challenges.join(', ') : 'None specified';
+    const challenges = formatArray(assessment.challenges);
     let opportunities = 'None identified';
     if (Array.isArray(assessment.opportunities) && assessment.opportunities.length > 0) {
-    opportunities = assessment.opportunities.map((opp, index) => 
-        `<div style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #10b981;">
-            <strong>${index + 1}. ${opp.title || 'Unnamed Opportunity'}</strong><br>
-            <span style="color: #6b7280; font-size: 13px;">${opp.description || 'No description available'}</span><br>
-            ${opp.roi ? `<span style="color: #059669; font-weight: 600;">Estimated ROI: $${opp.roi.toLocaleString()}</span>` : ''}
-        </div>`
+        opportunities = assessment.opportunities.map((opp, index) => 
+            `<div style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #10b981;">
+                <strong>${index + 1}. ${opp.title || 'Unnamed Opportunity'}</strong><br>
+                <span style="color: #6b7280; font-size: 13px;">${opp.description || 'No description available'}</span><br>
+                ${opp.roi ? `<span style="color: #059669; font-weight: 600;">Estimated ROI: $${opp.roi.toLocaleString()}</span>` : ''}
+            </div>`
         ).join('');
     }
     
     const content = `
-        <div style="line-height: 1.8; font-size: 14px;">
+        <div style="line-height: 1.8; font-size: 14px; max-height: 80vh; overflow-y: auto;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
                 <div>
                     <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Company Information</h3>
-                    <p><strong>Company Name:</strong> ${assessment.company_name}</p>
-                    <p><strong>Industry:</strong> ${assessment.industry}</p>
+                    <p><strong>Company Name:</strong> ${assessment.company_name || 'Not specified'}</p>
+                    <p><strong>Industry:</strong> ${assessment.industry || 'Not specified'}</p>
                     <p><strong>Company Size:</strong> ${assessment.company_size || 'Not specified'}</p>
-                    <p><strong>Primary Contact:</strong> ${assessment.contact_name}</p>
+                    <p><strong>Website:</strong> ${assessment.website || 'Not provided'}</p>
+                    <p><strong>Primary Contact:</strong> ${assessment.first_name || ''} ${assessment.last_name || ''}</p>
                     <p><strong>Role:</strong> ${assessment.role || 'Not specified'}</p>
-                    <p><strong>Email:</strong> ${assessment.email}</p>
+                    <p><strong>Email:</strong> ${assessment.email || 'Not provided'}</p>
                     <p><strong>Phone:</strong> ${assessment.phone || 'Not provided'}</p>
                 </div>
                 
                 <div>
                     <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">AI Readiness Assessment</h3>
-                    <p><strong>AI Score:</strong> <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 16px; font-weight: bold;">${assessment.ai_score}%</span></p>
+                    <p><strong>AI Score:</strong> <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 16px; font-weight: bold;">${assessment.ai_score || 0}%</span></p>
                     <p><strong>Current Tech Level:</strong> ${assessment.current_tech || 'Not specified'}</p>
                     <p><strong>AI Experience:</strong> ${assessment.ai_experience || 'Not specified'}</p>
                     <p><strong>Budget Range:</strong> ${assessment.budget || 'Not specified'}</p>
@@ -882,33 +1713,100 @@ function viewAssessment(id) {
                 </div>
             </div>
             
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Business Challenges</h3>
-                <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                    ${challenges}
-                </div>
-            </div>
+                                            <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Business Challenges</h3>
+                                    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                        ${challenges}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">AI Opportunities</h3>
+                                    <div style="background: #ecfdf5; padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981;">
+                                        ${opportunities}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Current Tools & Software</h3>
+                                    <p><strong>Current Tools:</strong> ${formatArray(assessment.current_tools)}</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Tool Preferences</h3>
+                                    <p><strong>Tool Preferences:</strong> ${formatArray(assessment.tool_preferences)}</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Implementation Priority</h3>
+                                    <p><strong>Implementation Priority:</strong> ${formatArray(assessment.implementation_priority)}</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Team & Resources</h3>
+                                    <p><strong>Team Availability:</strong> ${assessment.team_availability || 'Not specified'}</p>
+                                    <p><strong>Change Management Experience:</strong> ${assessment.change_management_experience || 'Not specified'}</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Security & Compliance</h3>
+                                    <p><strong>Security Requirements:</strong> ${formatArray(assessment.security_requirements)}</p>
+                                    <p><strong>Compliance Needs:</strong> ${formatArray(assessment.compliance_needs)}</p>
+                                    <p><strong>Data Governance:</strong> ${assessment.data_governance || 'Not specified'}</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Integration Requirements</h3>
+                                    <p><strong>Integration Requirements:</strong> ${formatArray(assessment.integration_requirements)}</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Success Metrics</h3>
+                                    <p><strong>Success Metrics:</strong> ${formatArray(assessment.success_metrics)}</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Risk Assessment</h3>
+                                    <p><strong>Risk Factors:</strong> ${formatArray(assessment.risk_factors)}</p>
+                                    <p><strong>Mitigation Strategies:</strong> ${formatArray(assessment.mitigation_strategies)}</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Implementation Planning</h3>
+                                    <p><strong>Implementation Phases:</strong> ${formatArray(assessment.implementation_phases)}</p>
+                                    <p><strong>Resource Requirements:</strong> ${formatArray(assessment.resource_requirements)}</p>
+                                    <p><strong>Training Needs:</strong> ${formatArray(assessment.training_needs)}</p>
+                                </div>
+                                
+                                                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Vendor Selection</h3>
+                                    <p><strong>Vendor Criteria:</strong> ${formatArray(assessment.vendor_criteria)}</p>
+                                    <p><strong>Pilot Project Preference:</strong> ${assessment.pilot_project || 'Not specified'}</p>
+                                    <p><strong>Scalability Requirements:</strong> ${assessment.scalability_requirements || 'Not specified'}</p>
+                                    <p><strong>Maintenance Plan Preference:</strong> ${assessment.maintenance_plan || 'Not specified'}</p>
+                                </div>
             
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">AI Opportunities</h3>
-                <div style="background: #ecfdf5; padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981;">
-                    ${opportunities}
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-                <button onclick="generateReportFromView(${assessment.id})" style="background: #4f46e5; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
-                    📄 Generate Assessment Report
-                </button>
-                <button onclick="editAssessmentFromView(${assessment.id})" style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-                    ✏️ Edit Assessment
-                </button>
-            </div>
+                                            <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                                    <button onclick="viewExistingReports(${assessment.id})" style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
+                                        📋 View Existing Reports
+                                    </button>
+                                    <button onclick="generateReportFromView(${assessment.id})" style="background: #4f46e5; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
+                                        📄 Generate New Report
+                                    </button>
+                                    <button onclick="editAssessmentFromView(${assessment.id})" style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                        ✏️ Edit Assessment
+                                    </button>
+                                </div>
         </div>
     `;
     
     document.getElementById('viewModalContent').innerHTML = content;
     document.getElementById('viewModal').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error fetching assessment details:', error);
+            alert('Error loading assessment details. Please try again.');
+        });
 }
 
 function deleteAssessment(id) {
@@ -1016,50 +1914,60 @@ function addSampleData() {
     });
 }
 
+// Helper function to collect checkbox values
+function collectCheckboxValues(checkboxPrefix, otherFieldId) {
+    const values = [];
+    document.querySelectorAll(`[id^="${checkboxPrefix}"]`).forEach(checkbox => {
+        if (checkbox.checked) {
+            values.push(checkbox.value);
+        }
+    });
+    
+    const otherValue = document.getElementById(otherFieldId).value.trim();
+    if (otherValue) {
+        values.push(...otherValue.split(',').map(item => item.trim()).filter(item => item));
+    }
+    
+    return JSON.stringify(values);
+}
+
 // Additional helper functions
-function openDbInspector(assessmentId) {
-    const content = document.getElementById('dbInspectorContent');
-    content.innerHTML = '<div class="loading">Loading raw database row…</div>';
-    document.getElementById('dbInspectorModal').style.display = 'block';
-
-    fetch(`/api/assessment_row/${assessmentId}`)
-        .then(r => r.json())
-        .then(data => {
-            if (!data.success) {
-                content.innerHTML = `<p style="color:#ef4444">Error: ${data.error || 'Unknown error'}</p>`;
-                return;
-            }
-            const row = data.row || {};
-            const container = document.createElement('div');
-            container.style.display = 'grid';
-            container.style.gridTemplateColumns = '300px 1fr';
-            container.style.gap = '8px 16px';
-
-            Object.entries(row).forEach(([col, val]) => {
-                const keyEl = document.createElement('div');
-                keyEl.style.fontWeight = '600';
-                keyEl.textContent = col;
-                const valEl = document.createElement('div');
-                let pretty = '';
-                if (typeof val === 'string' && (val.startsWith('[') || val.startsWith('{'))) {
-                    try { pretty = JSON.stringify(JSON.parse(val), null, 2); } catch (e) { pretty = val; }
+function viewExistingReports(assessmentId) {
+    // Fetch existing reports for this assessment
+    fetch(`/list_reports/${assessmentId}`)
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                if (result.reports && result.reports.length > 0) {
+                    // Create a list of reports
+                    let reportList = 'Available Reports:\n\n';
+                    result.reports.forEach((report, index) => {
+                        reportList += `${index + 1}. ${report}\n`;
+                    });
+                    
+                    // Ask user which report to view
+                    const reportIndex = prompt(reportList + '\nEnter the number of the report to view (or cancel to close):');
+                    if (reportIndex && !isNaN(reportIndex)) {
+                        const selectedReport = result.reports[parseInt(reportIndex) - 1];
+                        if (selectedReport) {
+                            window.open(`/view_report/${selectedReport}`, '_blank');
+                        }
+                    }
                 } else {
-                    pretty = String(val == null ? '' : val);
+                    alert('No existing reports found for this assessment.');
                 }
-                valEl.innerHTML = `<pre style="margin:0;background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:8px;white-space:pre-wrap;">${pretty}</pre>`;
-                container.appendChild(keyEl);
-                container.appendChild(valEl);
-            });
-
-            content.innerHTML = '';
-            content.appendChild(container);
+            } else {
+                alert('Error loading reports: ' + result.error);
+            }
         })
-        .catch(err => {
-            content.innerHTML = `<p style="color:#ef4444">Network error: ${err}</p>`;
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading reports');
         });
 }
+
 function generateReportFromView(assessmentId) {
-    if (!confirm('Generate Assessment Report ($750) for this assessment?')) {
+    if (!confirm('Generate a new HTML report for this assessment?')) {
         return;
     }
     
@@ -1073,34 +1981,26 @@ function generateReportFromView(assessmentId) {
     fetch('/generate_report_from_assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            assessment_id: assessmentId,
-            report_type: 'assessment'
-        })
+        body: JSON.stringify({ assessment_id: assessmentId })
     })
     .then(response => response.json())
     .then(result => {
-        button.textContent = originalText;
-        button.disabled = false;
-        
-    if (result.success) {
-        // Create download link
-        const a = document.createElement('a');
-        a.href = result.download_url;
-        a.download = result.download_url.split('/').pop();
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        alert('✅ Assessment Report generated successfully!');
-    } else {
-        alert('❌ Error generating report: ' + result.error);
-    }
+        if (result.success) {
+            // Open the report in a new window
+            window.open(result.view_url, '_blank');
+            alert('Report generated successfully!');
+        } else {
+            alert('Error generating report: ' + result.error);
+        }
     })
     .catch(error => {
+        console.error('Error:', error);
+        alert('Error generating report');
+    })
+    .finally(() => {
+        // Restore button
         button.textContent = originalText;
         button.disabled = false;
-        alert('❌ Network error generating report');
-        console.error('Error:', error);
     });
 }
 
@@ -1116,178 +2016,6 @@ window.onclick = function(event) {
     }
 }
 
-// Toggle DB View and load raw table
-function toggleDbView() {
-  const container = document.getElementById('dbViewContainer');
-  const visible = container.style.display !== 'none';
-  if (visible) {
-    container.style.display = 'none';
-    return;
-  }
-  container.style.display = 'block';
-  loadDbTable();
-}
-
-function loadDbTable() {
-  const wrapper = document.getElementById('dbTableWrapper');
-  wrapper.innerHTML = '<div class="loading">Loading database rows…</div>';
-  fetch('/api/assessments_raw')
-    .then(r => r.json())
-    .then(data => {
-      if (!data.success) {
-        wrapper.innerHTML = `<p style="color:#ef4444">Error: ${data.error || 'Unknown error'}</p>`;
-        return;
-      }
-      const cols = data.columns || [];
-      const rows = data.rows || [];
-      const visibleCols = ['id', 'company_name', 'email', 'industry', 'created_at'];
-      const thead = `<thead><tr>${visibleCols.map(c => `<th>${c}</th>`).join('')}<th>raw</th></tr></thead>`;
-      const bodyRows = rows.map((r, idx) => {
-        const summaryTds = visibleCols.map(c => {
-          const val = String(r[c] ?? '');
-          return `<td class="truncate" title="${escapeHtml(val)}">${escapeHtml(val)}</td>`;
-        }).join('');
-        const details = `<tr class="db-details" id="db_details_${idx}" style="display:none;"><td colspan="${visibleCols.length + 1}"><div class="kv-grid">${cols.map(k => `<div class="k">${k}</div><div class="v">${formatValue(r[k])}</div>`).join('')}</div></td></tr>`;
-        return `<tr><td class="db-id" onclick="toggleRow(${idx})">${escapeHtml(String(r['id'] ?? ''))}</td>${summaryTds}<td style="text-align:center"><span class="db-id" onclick="toggleRow(${idx})">▶</span></td></tr>${details}`;
-      }).join('');
-      const tbody = `<tbody>${bodyRows}</tbody>`;
-      wrapper.innerHTML = `<table class="data-table">${thead}${tbody}</table>`;
-    })
-    .catch(err => {
-      wrapper.innerHTML = `<p style=\"color:#ef4444\">Network error: ${err}</p>`;
-    });
-}
-
-function formatValue(val) {
-  const s = String(val == null ? '' : val);
-  if (s.startsWith('[') || s.startsWith('{')) {
-    try { return escapeHtml(JSON.stringify(JSON.parse(s), null, 2)); } catch (e) { return escapeHtml(s); }
-  }
-  return escapeHtml(s);
-}
-
-function escapeHtml(str) {
-  return str
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
-function toggleRow(idx) {
-  const row = document.getElementById(`db_details_${idx}`);
-  if (!row) return;
-  row.style.display = row.style.display === 'none' ? '' : 'none';
-}
-
-// Toggle DB View and load raw table
-// (Removed duplicate legacy DB view functions)
-
-function displayAssessments(assessmentList) {
-    const tbody = document.getElementById('assessmentsTableBody');
-    tbody.innerHTML = '';
-    
-    if (assessmentList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: #6b7280;">No assessments found</td></tr>';
-        return;
-    }
-    
-    assessmentList.forEach(assessment => {
-        const row = document.createElement('tr');
-        const createdDate = new Date(assessment.created_at).toLocaleDateString();
-        
-        row.innerHTML = `
-            <td>${assessment.id}</td>
-            <td>${assessment.company_name}</td>
-            <td>${assessment.contact_name}</td>
-            <td>${assessment.email}</td>
-            <td>${assessment.industry}</td>
-            <td><span class="score-badge">${assessment.ai_score}%</span></td>
-            <td>${createdDate}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="action-btn btn-view" onclick="viewAssessment(${assessment.id})" title="View Details">👁️</button>
-                    <button class="action-btn btn-delete" onclick="deleteAssessment(${assessment.id})" title="Delete">🗑️</button>
-                </div>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-function viewAssessment(id) {
-    const assessment = assessments.find(a => a.id === id);
-    if (!assessment) return;
-    
-    // Format challenges and opportunities
-    const challenges = Array.isArray(assessment.challenges) ? assessment.challenges.join(', ') : 'None specified';
-    let opportunities = 'None identified';
-    if (Array.isArray(assessment.opportunities) && assessment.opportunities.length > 0) {
-    opportunities = assessment.opportunities.map((opp, index) => 
-        `<div style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 6px; border-left: 3px solid #10b981;">
-            <strong>${index + 1}. ${opp.title || 'Unnamed Opportunity'}</strong><br>
-            <span style="color: #6b7280; font-size: 13px;">${opp.description || 'No description available'}</span><br>
-            ${opp.roi ? `<span style="color: #059669; font-weight: 600;">Estimated ROI: $${opp.roi.toLocaleString()}</span>` : ''}
-        </div>`
-        ).join('');
-    }
-    
-    const content = `
-        <div style="line-height: 1.8; font-size: 14px;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
-                <div>
-                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Company Information</h3>
-                    <p><strong>Company Name:</strong> ${assessment.company_name}</p>
-                    <p><strong>Industry:</strong> ${assessment.industry}</p>
-                    <p><strong>Company Size:</strong> ${assessment.company_size || 'Not specified'}</p>
-                    <p><strong>Primary Contact:</strong> ${assessment.contact_name}</p>
-                    <p><strong>Role:</strong> ${assessment.role || 'Not specified'}</p>
-                    <p><strong>Email:</strong> ${assessment.email}</p>
-                    <p><strong>Phone:</strong> ${assessment.phone || 'Not provided'}</p>
-                </div>
-                
-                <div>
-                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">AI Readiness Assessment</h3>
-                    <p><strong>AI Score:</strong> <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 16px; font-weight: bold;">${assessment.ai_score}%</span></p>
-                    <p><strong>Current Tech Level:</strong> ${assessment.current_tech || 'Not specified'}</p>
-                    <p><strong>AI Experience:</strong> ${assessment.ai_experience || 'Not specified'}</p>
-                    <p><strong>Budget Range:</strong> ${assessment.budget || 'Not specified'}</p>
-                    <p><strong>Timeline:</strong> ${assessment.timeline || 'Not specified'}</p>
-                    <p><strong>Assessment Date:</strong> ${new Date(assessment.created_at).toLocaleString()}</p>
-                </div>
-            </div>
-            
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Business Challenges</h3>
-                <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                    ${challenges}
-                </div>
-            </div>
-            
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">AI Opportunities</h3>
-                <div style="background: #ecfdf5; padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981;">
-                    ${opportunities}
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-                <button onclick="generateReportFromView(${assessment.id})" style="background: #4f46e5; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
-                    📄 Generate Assessment Report
-                </button>
-                <button onclick="editAssessmentFromView(${assessment.id})" style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-                    ✏️ Edit Assessment
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('viewModalContent').innerHTML = content;
-    document.getElementById('viewModal').style.display = 'block';
-}
-
 function deleteAssessment(id) {
     if (!confirm('Are you sure you want to delete this assessment?')) {
         return;
@@ -1393,74 +2121,377 @@ function addSampleData() {
     });
 }
 
-// Additional helper functions
-function generateReportFromView(assessmentId) {
-    if (!confirm('Generate Assessment Report ($750) for this assessment?')) {
+function editAssessment(id) {
+    console.log('editAssessment called with id:', id);
+    const assessment = assessments.find(a => a.id === id);
+    console.log('Found assessment:', assessment);
+    if (!assessment) {
+        console.log('No assessment found');
         return;
     }
     
-    // Show generating status
-    const button = event.target;
-    const originalText = button.textContent;
-    button.textContent = '⏳ Generating Report...';
-    button.disabled = true;
-    
-    // Generate the report
-    fetch('/generate_report_from_assessment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            assessment_id: assessmentId,
-            report_type: 'assessment'
-        })
-    })
-    .then(response => response.json())
-    .then(result => {
-        button.textContent = originalText;
-        button.disabled = false;
-        
-    if (result.success) {
-        // Create download link
-        const a = document.createElement('a');
-        a.href = result.download_url;
-        a.download = result.download_url.split('/').pop();
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        alert('✅ Assessment Report generated successfully!');
-    } else {
-        alert('❌ Error generating report: ' + result.error);
-    }
-    })
-    .catch(error => {
-        button.textContent = originalText;
-        button.disabled = false;
-        alert('❌ Network error generating report');
-        console.error('Error:', error);
-    });
-}
-
-function editAssessmentFromView(assessmentId) {
-    closeModal('viewModal');
-    editAssessment(assessmentId);
-}
-
-function editAssessment(id) {
-    const assessment = assessments.find(a => a.id === id);
-    if (!assessment) return;
-    
     // Populate form fields
     document.getElementById('editId').value = assessment.id;
-    document.getElementById('editCompanyName').value = assessment.company_name;
-    document.getElementById('editIndustry').value = assessment.industry;
+    document.getElementById('editCompanyName').value = assessment.company_name || '';
+    document.getElementById('editIndustry').value = assessment.industry || '';
+    document.getElementById('editCompanySize').value = assessment.company_size || '';
+    document.getElementById('editRole').value = assessment.role || '';
+    document.getElementById('editWebsite').value = assessment.website || '';
     document.getElementById('editFirstName').value = assessment.first_name || '';
     document.getElementById('editLastName').value = assessment.last_name || '';
-    document.getElementById('editEmail').value = assessment.email;
-    document.getElementById('editCompanySize').value = assessment.company_size || '';
-    document.getElementById('editAiScore').value = assessment.ai_score;
+    document.getElementById('editEmail').value = assessment.email || '';
+    document.getElementById('editPhone').value = assessment.phone || '';
+    // Handle challenges checkboxes
+    let challenges = [];
+    try {
+        challenges = assessment.challenges ? JSON.parse(assessment.challenges) : [];
+    } catch (e) {
+        console.log('Error parsing challenges:', e);
+        // If it's a string, split by comma
+        if (typeof assessment.challenges === 'string') {
+            challenges = assessment.challenges.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editChallenge"]').forEach(checkbox => {
+        checkbox.checked = challenges.includes(checkbox.value);
+    });
+    document.getElementById('editChallengesOther').value = assessment.challenges_other || '';
+    
+    // Handle current tools checkboxes
+    let currentTools = [];
+    try {
+        currentTools = assessment.current_tools ? JSON.parse(assessment.current_tools) : [];
+    } catch (e) {
+        console.log('Error parsing current_tools:', e);
+        if (typeof assessment.current_tools === 'string') {
+            currentTools = assessment.current_tools.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editTool"]').forEach(checkbox => {
+        checkbox.checked = currentTools.includes(checkbox.value);
+    });
+    document.getElementById('editCurrentToolsOther').value = assessment.current_tools_other || '';
+    
+    // Handle tool preferences checkboxes
+    let toolPreferences = [];
+    try {
+        toolPreferences = assessment.tool_preferences ? JSON.parse(assessment.tool_preferences) : [];
+    } catch (e) {
+        console.log('Error parsing tool_preferences:', e);
+        if (typeof assessment.tool_preferences === 'string') {
+            toolPreferences = assessment.tool_preferences.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editPref"]').forEach(checkbox => {
+        checkbox.checked = toolPreferences.includes(checkbox.value);
+    });
+    document.getElementById('editToolPreferencesOther').value = assessment.tool_preferences_other || '';
+    
+    document.getElementById('editCurrentTech').value = assessment.current_tech || '';
+    document.getElementById('editAiExperience').value = assessment.ai_experience || '';
+    document.getElementById('editBudget').value = assessment.budget || '';
+    document.getElementById('editTimeline').value = assessment.timeline || '';
+    document.getElementById('editImplementationPriority').value = assessment.implementation_priority || '';
+    document.getElementById('editTeamAvailability').value = assessment.team_availability || '';
+    document.getElementById('editChangeManagementExperience').value = assessment.change_management_experience || '';
+    
+    // Handle data governance checkboxes
+    let dataGovernance = [];
+    try {
+        dataGovernance = assessment.data_governance ? JSON.parse(assessment.data_governance) : [];
+    } catch (e) {
+        console.log('Error parsing data_governance:', e);
+        if (typeof assessment.data_governance === 'string') {
+            dataGovernance = assessment.data_governance.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editDataGov"]').forEach(checkbox => {
+        checkbox.checked = dataGovernance.includes(checkbox.value);
+    });
+    document.getElementById('editDataGovernanceOther').value = assessment.data_governance_other || '';
+    
+    // Handle security requirements checkboxes
+    let securityRequirements = [];
+    try {
+        securityRequirements = assessment.security_requirements ? JSON.parse(assessment.security_requirements) : [];
+    } catch (e) {
+        console.log('Error parsing security_requirements:', e);
+        if (typeof assessment.security_requirements === 'string') {
+            securityRequirements = assessment.security_requirements.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editSec"]').forEach(checkbox => {
+        checkbox.checked = securityRequirements.includes(checkbox.value);
+    });
+    document.getElementById('editSecurityRequirementsOther').value = assessment.security_requirements_other || '';
+    
+    // Handle compliance needs checkboxes
+    let complianceNeeds = [];
+    try {
+        complianceNeeds = assessment.compliance_needs ? JSON.parse(assessment.compliance_needs) : [];
+    } catch (e) {
+        console.log('Error parsing compliance_needs:', e);
+        if (typeof assessment.compliance_needs === 'string') {
+            complianceNeeds = assessment.compliance_needs.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editComp"]').forEach(checkbox => {
+        checkbox.checked = complianceNeeds.includes(checkbox.value);
+    });
+    document.getElementById('editComplianceNeedsOther').value = assessment.compliance_needs_other || '';
+    
+    // Handle integration requirements checkboxes
+    let integrationRequirements = [];
+    try {
+        integrationRequirements = assessment.integration_requirements ? JSON.parse(assessment.integration_requirements) : [];
+    } catch (e) {
+        console.log('Error parsing integration_requirements:', e);
+        if (typeof assessment.integration_requirements === 'string') {
+            integrationRequirements = assessment.integration_requirements.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editInt"]').forEach(checkbox => {
+        checkbox.checked = integrationRequirements.includes(checkbox.value);
+    });
+    document.getElementById('editIntegrationRequirementsOther').value = assessment.integration_requirements_other || '';
+    
+    // Handle success metrics checkboxes
+    let successMetrics = [];
+    try {
+        successMetrics = assessment.success_metrics ? JSON.parse(assessment.success_metrics) : [];
+    } catch (e) {
+        console.log('Error parsing success_metrics:', e);
+        if (typeof assessment.success_metrics === 'string') {
+            successMetrics = assessment.success_metrics.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editMetric"]').forEach(checkbox => {
+        checkbox.checked = successMetrics.includes(checkbox.value);
+    });
+    document.getElementById('editSuccessMetricsOther').value = assessment.success_metrics_other || '';
+    
+    document.getElementById('editExpectedRoi').value = assessment.expected_roi || '';
+    document.getElementById('editPaybackPeriod').value = assessment.payback_period || '';
+    
+    // Handle risk factors checkboxes
+    let riskFactors = [];
+    try {
+        riskFactors = assessment.risk_factors ? JSON.parse(assessment.risk_factors) : [];
+    } catch (e) {
+        console.log('Error parsing risk_factors:', e);
+        if (typeof assessment.risk_factors === 'string') {
+            riskFactors = assessment.risk_factors.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editRisk"]').forEach(checkbox => {
+        checkbox.checked = riskFactors.includes(checkbox.value);
+    });
+    document.getElementById('editRiskFactorsOther').value = assessment.risk_factors_other || '';
+    
+    // Handle mitigation strategies checkboxes
+    let mitigationStrategies = [];
+    try {
+        mitigationStrategies = assessment.mitigation_strategies ? JSON.parse(assessment.mitigation_strategies) : [];
+    } catch (e) {
+        console.log('Error parsing mitigation_strategies:', e);
+        if (typeof assessment.mitigation_strategies === 'string') {
+            mitigationStrategies = assessment.mitigation_strategies.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editMit"]').forEach(checkbox => {
+        checkbox.checked = mitigationStrategies.includes(checkbox.value);
+    });
+    document.getElementById('editMitigationStrategiesOther').value = assessment.mitigation_strategies_other || '';
+    
+    // Handle implementation phases checkboxes
+    let implementationPhases = [];
+    try {
+        implementationPhases = assessment.implementation_phases ? JSON.parse(assessment.implementation_phases) : [];
+    } catch (e) {
+        console.log('Error parsing implementation_phases:', e);
+        if (typeof assessment.implementation_phases === 'string') {
+            implementationPhases = assessment.implementation_phases.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editPhase"]').forEach(checkbox => {
+        checkbox.checked = implementationPhases.includes(checkbox.value);
+    });
+    document.getElementById('editImplementationPhasesOther').value = assessment.implementation_phases_other || '';
+    
+    // Handle resource requirements checkboxes
+    let resourceRequirements = [];
+    try {
+        resourceRequirements = assessment.resource_requirements ? JSON.parse(assessment.resource_requirements) : [];
+    } catch (e) {
+        console.log('Error parsing resource_requirements:', e);
+        if (typeof assessment.resource_requirements === 'string') {
+            resourceRequirements = assessment.resource_requirements.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editRes"]').forEach(checkbox => {
+        checkbox.checked = resourceRequirements.includes(checkbox.value);
+    });
+    document.getElementById('editResourceRequirementsOther').value = assessment.resource_requirements_other || '';
+    
+    // Handle training needs checkboxes
+    let trainingNeeds = [];
+    try {
+        trainingNeeds = assessment.training_needs ? JSON.parse(assessment.training_needs) : [];
+    } catch (e) {
+        console.log('Error parsing training_needs:', e);
+        if (typeof assessment.training_needs === 'string') {
+            trainingNeeds = assessment.training_needs.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editTrain"]').forEach(checkbox => {
+        checkbox.checked = trainingNeeds.includes(checkbox.value);
+    });
+    document.getElementById('editTrainingNeedsOther').value = assessment.training_needs_other || '';
+    
+    // Handle vendor criteria checkboxes
+    let vendorCriteria = [];
+    try {
+        vendorCriteria = assessment.vendor_criteria ? JSON.parse(assessment.vendor_criteria) : [];
+    } catch (e) {
+        console.log('Error parsing vendor_criteria:', e);
+        if (typeof assessment.vendor_criteria === 'string') {
+            vendorCriteria = assessment.vendor_criteria.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editVendor"]').forEach(checkbox => {
+        checkbox.checked = vendorCriteria.includes(checkbox.value);
+    });
+    document.getElementById('editVendorCriteriaOther').value = assessment.vendor_criteria_other || '';
+    
+    // Handle competitors checkboxes
+    let competitors = [];
+    try {
+        competitors = assessment.competitors ? JSON.parse(assessment.competitors) : [];
+    } catch (e) {
+        console.log('Error parsing competitors:', e);
+        if (typeof assessment.competitors === 'string') {
+            competitors = assessment.competitors.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editCompetitor"]').forEach(checkbox => {
+        checkbox.checked = competitors.includes(checkbox.value);
+    });
+    document.getElementById('editCompetitorsOther').value = assessment.competitors_other || '';
+    
+    // Handle competitive advantages checkboxes
+    let competitiveAdvantages = [];
+    try {
+        competitiveAdvantages = assessment.competitive_advantages ? JSON.parse(assessment.competitive_advantages) : [];
+    } catch (e) {
+        console.log('Error parsing competitive_advantages:', e);
+        if (typeof assessment.competitive_advantages === 'string') {
+            competitiveAdvantages = assessment.competitive_advantages.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editAdv"]').forEach(checkbox => {
+        checkbox.checked = competitiveAdvantages.includes(checkbox.value);
+    });
+    document.getElementById('editCompetitiveAdvantagesOther').value = assessment.competitive_advantages_other || '';
+    
+    document.getElementById('editMarketPosition').value = assessment.market_position || '';
+    
+    // Handle vendor features checkboxes
+    let vendorFeatures = [];
+    try {
+        vendorFeatures = assessment.vendor_features ? JSON.parse(assessment.vendor_features) : [];
+    } catch (e) {
+        console.log('Error parsing vendor_features:', e);
+        if (typeof assessment.vendor_features === 'string') {
+            vendorFeatures = assessment.vendor_features.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editVendorFeat"]').forEach(checkbox => {
+        checkbox.checked = vendorFeatures.includes(checkbox.value);
+    });
+    document.getElementById('editVendorFeaturesOther').value = assessment.vendor_features_other || '';
+    
+    document.getElementById('editRiskTolerance').value = assessment.risk_tolerance || '';
+    
+    // Handle risk concerns checkboxes
+    let riskConcerns = [];
+    try {
+        riskConcerns = assessment.risk_concerns ? JSON.parse(assessment.risk_concerns) : [];
+    } catch (e) {
+        console.log('Error parsing risk_concerns:', e);
+        if (typeof assessment.risk_concerns === 'string') {
+            riskConcerns = assessment.risk_concerns.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editRiskConcern"]').forEach(checkbox => {
+        checkbox.checked = riskConcerns.includes(checkbox.value);
+    });
+    document.getElementById('editRiskConcernsOther').value = assessment.risk_concerns_other || '';
+    
+    document.getElementById('editOrgStructure').value = assessment.org_structure || '';
+    document.getElementById('editDecisionProcess').value = assessment.decision_process || '';
+    document.getElementById('editTeamSize').value = assessment.team_size || '';
+    
+    // Handle skill gaps checkboxes
+    let skillGaps = [];
+    try {
+        skillGaps = assessment.skill_gaps ? JSON.parse(assessment.skill_gaps) : [];
+    } catch (e) {
+        console.log('Error parsing skill_gaps:', e);
+        if (typeof assessment.skill_gaps === 'string') {
+            skillGaps = assessment.skill_gaps.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editSkillGap"]').forEach(checkbox => {
+        checkbox.checked = skillGaps.includes(checkbox.value);
+    });
+    document.getElementById('editSkillGapsOther').value = assessment.skill_gaps_other || '';
+    
+    document.getElementById('editBudgetAllocation').value = assessment.budget_allocation || '';
+    document.getElementById('editRoiTimeline').value = assessment.roi_timeline || '';
+    
+    // Handle current KPIs checkboxes
+    let currentKpis = [];
+    try {
+        currentKpis = assessment.current_kpis ? JSON.parse(assessment.current_kpis) : [];
+    } catch (e) {
+        console.log('Error parsing current_kpis:', e);
+        if (typeof assessment.current_kpis === 'string') {
+            currentKpis = assessment.current_kpis.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editKpi"]').forEach(checkbox => {
+        checkbox.checked = currentKpis.includes(checkbox.value);
+    });
+    document.getElementById('editCurrentKpisOther').value = assessment.current_kpis_other || '';
+    
+    // Handle improvement goals checkboxes
+    let improvementGoals = [];
+    try {
+        improvementGoals = assessment.improvement_goals ? JSON.parse(assessment.improvement_goals) : [];
+    } catch (e) {
+        console.log('Error parsing improvement_goals:', e);
+        if (typeof assessment.improvement_goals === 'string') {
+            improvementGoals = assessment.improvement_goals.split(',').map(item => item.trim()).filter(item => item);
+        }
+    }
+    document.querySelectorAll('[id^="editGoal"]').forEach(checkbox => {
+        checkbox.checked = improvementGoals.includes(checkbox.value);
+    });
+    document.getElementById('editImprovementGoalsOther').value = assessment.improvement_goals_other || '';
+    document.getElementById('editAiScore').value = assessment.ai_score || '';
+    document.getElementById('editReportType').value = assessment.report_type || 'assessment';
+    document.getElementById('editOpportunities').value = assessment.opportunities || '';
     
     // Show modal
-    document.getElementById('editModal').style.display = 'block';
+    console.log('Showing edit modal');
+    const modal = document.getElementById('editModal');
+    console.log('Modal element:', modal);
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('Modal display set to block');
+    } else {
+        console.log('Modal element not found!');
+    }
 }
 
 function saveAssessment() {
@@ -1468,11 +2499,53 @@ function saveAssessment() {
         id: document.getElementById('editId').value,
         company_name: document.getElementById('editCompanyName').value,
         industry: document.getElementById('editIndustry').value,
+        company_size: document.getElementById('editCompanySize').value,
+        role: document.getElementById('editRole').value,
+        website: document.getElementById('editWebsite').value,
         first_name: document.getElementById('editFirstName').value,
         last_name: document.getElementById('editLastName').value,
         email: document.getElementById('editEmail').value,
-        company_size: document.getElementById('editCompanySize').value,
-        ai_score: document.getElementById('editAiScore').value
+        phone: document.getElementById('editPhone').value,
+        challenges: collectCheckboxValues('editChallenge', 'editChallengesOther'),
+        current_tech: document.getElementById('editCurrentTech').value,
+        ai_experience: document.getElementById('editAiExperience').value,
+        budget: document.getElementById('editBudget').value,
+        timeline: document.getElementById('editTimeline').value,
+        current_tools: collectCheckboxValues('editTool', 'editCurrentToolsOther'),
+        tool_preferences: collectCheckboxValues('editPref', 'editToolPreferencesOther'),
+        implementation_priority: document.getElementById('editImplementationPriority').value,
+        team_availability: document.getElementById('editTeamAvailability').value,
+        change_management_experience: document.getElementById('editChangeManagementExperience').value,
+        data_governance: collectCheckboxValues('editDataGov', 'editDataGovernanceOther'),
+        security_requirements: collectCheckboxValues('editSec', 'editSecurityRequirementsOther'),
+        compliance_needs: collectCheckboxValues('editComp', 'editComplianceNeedsOther'),
+        integration_requirements: collectCheckboxValues('editInt', 'editIntegrationRequirementsOther'),
+        success_metrics: collectCheckboxValues('editMetric', 'editSuccessMetricsOther'),
+        expected_roi: document.getElementById('editExpectedRoi').value,
+        payback_period: document.getElementById('editPaybackPeriod').value,
+        risk_factors: collectCheckboxValues('editRisk', 'editRiskFactorsOther'),
+        mitigation_strategies: collectCheckboxValues('editMit', 'editMitigationStrategiesOther'),
+        implementation_phases: collectCheckboxValues('editPhase', 'editImplementationPhasesOther'),
+        resource_requirements: collectCheckboxValues('editRes', 'editResourceRequirementsOther'),
+        training_needs: collectCheckboxValues('editTrain', 'editTrainingNeedsOther'),
+        vendor_criteria: collectCheckboxValues('editVendor', 'editVendorCriteriaOther'),
+        competitors: collectCheckboxValues('editCompetitor', 'editCompetitorsOther'),
+        competitive_advantages: collectCheckboxValues('editAdv', 'editCompetitiveAdvantagesOther'),
+        market_position: document.getElementById('editMarketPosition').value,
+        vendor_features: collectCheckboxValues('editVendorFeat', 'editVendorFeaturesOther'),
+        risk_tolerance: document.getElementById('editRiskTolerance').value,
+        risk_concerns: collectCheckboxValues('editRiskConcern', 'editRiskConcernsOther'),
+        org_structure: document.getElementById('editOrgStructure').value,
+        decision_process: document.getElementById('editDecisionProcess').value,
+        team_size: document.getElementById('editTeamSize').value,
+        skill_gaps: collectCheckboxValues('editSkillGap', 'editSkillGapsOther'),
+        budget_allocation: document.getElementById('editBudgetAllocation').value,
+        roi_timeline: document.getElementById('editRoiTimeline').value,
+        current_kpis: collectCheckboxValues('editKpi', 'editCurrentKpisOther'),
+        improvement_goals: collectCheckboxValues('editGoal', 'editImprovementGoalsOther'),
+        ai_score: document.getElementById('editAiScore').value,
+        report_type: document.getElementById('editReportType').value,
+        opportunities: document.getElementById('editOpportunities').value
     };
     
     fetch('/api/update_assessment', {
@@ -1495,11 +2568,115 @@ function saveAssessment() {
     });
 }
 
+function testModal() {
+    console.log('testModal called');
+    const modal = document.getElementById('editModal');
+    console.log('Modal element:', modal);
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('Modal display set to block');
+    } else {
+        console.log('Modal element not found!');
+    }
+}
+
+function generateReportFromEdit() {
+    const assessmentId = document.getElementById('editId').value;
+    if (!assessmentId) {
+        alert('No assessment ID found. Please save changes first.');
+        return;
+    }
+    
+    if (!confirm('Generate a new HTML report for this assessment?')) {
+        return;
+    }
+    
+    // Show generating status
+    const button = event.target;
+    const originalText = button.textContent;
+    button.textContent = '⏳ Generating Report...';
+    button.disabled = true;
+    
+    // Generate the report
+    fetch('/generate_report_from_assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessment_id: assessmentId })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // Open the report in a new window
+            window.open(result.view_url, '_blank');
+            alert('Report generated successfully!');
+        } else {
+            alert('Error generating report: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error generating report');
+    })
+    .finally(() => {
+        // Restore button
+        button.textContent = originalText;
+        button.disabled = false;
+    });
+}
+
 // Close modals when clicking outside
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
     }
 }
+
+function toggleBatchDeleteButton() {
+    const checkboxes = document.querySelectorAll('#assessmentsTableBody input[type="checkbox"]');
+    const selectedCount = Array.from(checkboxes).filter(checkbox => checkbox.checked).length;
+    document.getElementById('selectedCount').textContent = selectedCount + ' selected';
+    document.getElementById('batchDeleteBtn').disabled = selectedCount === 0;
+}
+
+function batchDeleteAssessments() {
+    const checkboxes = document.querySelectorAll('#assessmentsTableBody input[type="checkbox"]');
+    const selectedIds = Array.from(checkboxes).filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} assessments?`)) {
+        return;
+    }
+
+    fetch('/api/batch_delete_assessments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds })
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                loadAssessments();
+                alert(`Successfully deleted ${result.deleted_count} assessments!`);
+            } else {
+                alert('Error deleting assessments: ' + result.error);
+            }
+        })
+        .catch(error => {
+            alert('Network error deleting assessments');
+        });
+}
+
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('#assessmentsTableBody input[type="checkbox"]');
+    const headerCheckbox = document.getElementById('headerSelectAll');
+
+    if (headerCheckbox.checked) {
+        checkboxes.forEach(checkbox => checkbox.checked = true);
+    } else {
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+    }
+
+    toggleBatchDeleteButton();
+}
 </script>
+
 {% endblock %}

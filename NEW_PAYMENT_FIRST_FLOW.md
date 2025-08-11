@@ -211,3 +211,9 @@ sqlite3 ai_consultant.db ".schema assessments"
 sqlite3 ai_consultant.db "SELECT company_name, report_type, created_at FROM assessments ORDER BY created_at DESC LIMIT 5;"
 ```
 
+
+
+
+
+
+
