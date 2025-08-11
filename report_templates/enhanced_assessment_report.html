@@ -749,6 +749,186 @@
             .opportunity-card { break-inside: avoid; }
             .timeline-item { break-inside: avoid; }
         }
+
+        /* New Styles for Tool Recommendations & Risk Assessment */
+        .tool-categories {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+            margin-bottom: 24px;
+        }
+
+        .tool-category h3 {
+            color: #1e40af;
+            margin: 24px 0 16px 0;
+            font-size: 18px;
+        }
+
+        .preferred-vendor {
+            border: 2px solid #10b981;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .preferred-vendor .vendor-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .preferred-vendor .vendor-name {
+            color: white;
+        }
+
+        .preferred-vendor .vendor-cost {
+            background: white;
+            color: #059669;
+        }
+
+        .preferred-vendor .vendor-description {
+            color: #e2e8f0;
+        }
+
+        .preferred-vendor .vendor-features {
+            color: #e2e8f0;
+        }
+
+        .preferred-vendor .vendor-metrics {
+            color: #e2e8f0;
+        }
+
+        .preferred-vendor .vendor-metrics .rating {
+            color: white;
+        }
+
+        .preferred-vendor .vendor-metrics .roi {
+            color: white;
+        }
+
+        .preferred-vendor .vendor-metrics .implementation {
+            color: white;
+        }
+
+        .external-vendor {
+            border: 1px solid #d1d5db;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .external-vendor .vendor-header {
+            background: #f8fafc;
+        }
+
+        .external-vendor .vendor-name {
+            color: #3730a3;
+        }
+
+        .external-vendor .vendor-cost {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .external-vendor .vendor-description {
+            color: #6b7280;
+        }
+
+        .external-vendor .vendor-features {
+            color: #6b7280;
+        }
+
+        .external-vendor .vendor-metrics {
+            color: #6b7280;
+        }
+
+        .external-vendor .vendor-metrics .rating {
+            color: #6b7280;
+        }
+
+        .external-vendor .vendor-metrics .roi {
+            color: #6b7280;
+        }
+
+        .external-vendor .vendor-metrics .implementation {
+            color: #6b7280;
+        }
+
+        .preferred-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-left: 10px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .external-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-left: 10px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .risk-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .risk-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .risk-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .risk-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-right: 10px;
+        }
+
+        .risk-level {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .risk-description {
+            font-size: 13px;
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .mitigation-strategy {
+            font-size: 13px;
+            color: #059669;
+            font-weight: 600;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -1041,7 +1221,7 @@
 
             <!-- Implementation Timeline -->
             <div class="section">
-                <div class="section-header">🗓️ 12-Month Implementation Roadmap</div>
+                <div class="section-header">🗓️ 6-Month Implementation Roadmap</div>
                 <div class="section-content">
                     <div class="timeline-container">
                         <div class="timeline-title">Phased Implementation Approach</div>
@@ -1061,7 +1241,7 @@
                         
                         <div class="timeline-item">
                             <div class="timeline-phase">Phase 2: Pilot Implementation</div>
-                            <div class="timeline-duration">Months 3-5</div>
+                            <div class="timeline-duration">Months 3-4</div>
                             <div class="timeline-tasks">
                                 <ul>
                                     <li>Deploy first AI solution ({{ opportunities[0].title if opportunities else "highest-priority opportunity" }})</li>
@@ -1073,27 +1253,14 @@
                         </div>
                         
                         <div class="timeline-item">
-                            <div class="timeline-phase">Phase 3: Scaling & Expansion</div>
-                            <div class="timeline-duration">Months 6-9</div>
+                            <div class="timeline-phase">Phase 3: Scaling & Optimization</div>
+                            <div class="timeline-duration">Months 5-6</div>
                             <div class="timeline-tasks">
                                 <ul>
                                     <li>Scale successful pilot across organization</li>
                                     <li>Implement second AI opportunity</li>
                                     <li>Advanced feature rollout and integration</li>
                                     <li>ROI measurement and business case validation</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-phase">Phase 4: Optimization & Growth</div>
-                            <div class="timeline-duration">Months 10-12</div>
-                            <div class="timeline-tasks">
-                                <ul>
-                                    <li>Deploy remaining high-priority initiatives</li>
-                                    <li>Advanced analytics and reporting implementation</li>
-                                    <li>Strategic planning for next-generation AI capabilities</li>
-                                    <li>Knowledge sharing and best practices documentation</li>
                                 </ul>
                             </div>
                         </div>
@@ -1156,6 +1323,208 @@
                        <div class="contact-details"><strong>📞 Phone:</strong> (555) 123-4567</div>
                        <div class="contact-details" style="font-weight: 700; margin-top: 16px;">🎯 Next Step: Schedule a 30-minute strategy consultation</div>
                    </div>
+               </div>
+           </div>
+       </div>
+
+       <!-- Tool Recommendations & Pricing -->
+       <div class="section">
+           <div class="section-header">🛠️ Curated Tool Recommendations & Pricing</div>
+           <div class="section-content">
+               <p style="margin-bottom: 24px; font-size: 14px;">Based on your assessment and identified opportunities, here are our recommended AI tools with pricing and implementation details:</p>
+               
+               <!-- Tool Categories -->
+               <div class="tool-categories">
+                   <!-- Process Automation Tools -->
+                   <div class="tool-category">
+                       <h3 style="color: #1e40af; margin: 24px 0 16px 0; font-size: 18px;">🔄 Process Automation Solutions</h3>
+                       
+                       <div class="vendor-grid">
+                           <div class="vendor-item preferred-vendor">
+                               <div class="vendor-header">
+                                   <div class="vendor-name">Zapier</div>
+                                   <div class="vendor-cost">$20-599/month</div>
+                                   <div class="preferred-badge">Preferred</div>
+                               </div>
+                               <div class="vendor-description">AI orchestration platform connecting 8,000+ apps with automated workflows</div>
+                               <div class="vendor-features">
+                                   <strong>Key Features:</strong> 8,000+ app integrations, AI workflows, No-code automation
+                               </div>
+                               <div class="vendor-metrics">
+                                   <span class="rating">⭐ 4.5/5</span>
+                                   <span class="roi">ROI: 2,360% - 2,400%</span>
+                                   <span class="implementation">Setup: 1-4 weeks</span>
+                               </div>
+                           </div>
+                           
+                           <div class="vendor-item preferred-vendor">
+                               <div class="vendor-header">
+                                   <div class="vendor-name">Gumloop</div>
+                                   <div class="vendor-cost">$49-199/month</div>
+                                   <div class="preferred-badge">Preferred</div>
+                               </div>
+                               <div class="vendor-description">Visual AI automation framework with drag-and-drop workflow building</div>
+                               <div class="vendor-features">
+                                   <strong>Key Features:</strong> Visual workflow builder, AI model integrations, Parallel execution
+                               </div>
+                               <div class="vendor-metrics">
+                                   <span class="rating">⭐ 4.3/5</span>
+                                   <span class="roi">ROI: 793% - 2,000%</span>
+                                   <span class="implementation">Setup: 2-3 weeks</span>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+                   
+                   <!-- Customer Service Tools -->
+                   <div class="tool-category">
+                       <h3 style="color: #1e40af; margin: 24px 0 16px 0; font-size: 18px;">💬 Customer Service Automation</h3>
+                       
+                       <div class="vendor-grid">
+                           <div class="vendor-item preferred-vendor">
+                               <div class="vendor-header">
+                                   <div class="vendor-name">Zendesk Answer Bot</div>
+                                   <div class="vendor-cost">$50-150/month</div>
+                                   <div class="preferred-badge">Preferred</div>
+                               </div>
+                               <div class="vendor-description">Automated customer support with ML-powered answer suggestions</div>
+                               <div class="vendor-features">
+                                   <strong>Key Features:</strong> Auto-suggest responses, Ticket deflection, Knowledge base integration
+                               </div>
+                               <div class="vendor-metrics">
+                                   <span class="rating">⭐ 4.5/5</span>
+                                   <span class="roi">ROI: 2,000% - 8,000%</span>
+                                   <span class="implementation">Setup: 1-2 weeks</span>
+                               </div>
+                           </div>
+                           
+                           <div class="vendor-item preferred-vendor">
+                               <div class="vendor-header">
+                                   <div class="vendor-name">Intercom</div>
+                                   <div class="vendor-cost">$99-499/month</div>
+                                   <div class="preferred-badge">Preferred</div>
+                               </div>
+                               <div class="vendor-description">AI-powered customer messaging platform with automated responses</div>
+                               <div class="vendor-features">
+                                   <strong>Key Features:</strong> AI chatbot builder, Smart message routing, Multi-channel support
+                               </div>
+                               <div class="vendor-metrics">
+                                   <span class="rating">⭐ 4.2/5</span>
+                                   <span class="roi">ROI: 1,500% - 5,000%</span>
+                                   <span class="implementation">Setup: 2-4 weeks</span>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+                   
+                   <!-- Business Intelligence Tools -->
+                   <div class="tool-category">
+                       <h3 style="color: #1e40af; margin: 24px 0 16px 0; font-size: 18px;">📊 Business Intelligence & Analytics</h3>
+                       
+                       <div class="vendor-grid">
+                           <div class="vendor-item preferred-vendor">
+                               <div class="vendor-header">
+                                   <div class="vendor-name">Power BI</div>
+                                   <div class="vendor-cost">$10-20/user/month</div>
+                                   <div class="preferred-badge">Preferred</div>
+                               </div>
+                               <div class="vendor-description">Microsoft's business analytics service with AI insights and natural language queries</div>
+                               <div class="vendor-features">
+                                   <strong>Key Features:</strong> Natural language queries, AI-powered insights, Excel integration
+                               </div>
+                               <div class="vendor-metrics">
+                                   <span class="rating">⭐ 4.2/5</span>
+                                   <span class="roi">ROI: 1,200% - 3,500%</span>
+                                   <span class="implementation">Setup: 1-4 weeks</span>
+                               </div>
+                           </div>
+                           
+                           <div class="vendor-item external-vendor">
+                               <div class="vendor-header">
+                                   <div class="vendor-name">Tableau</div>
+                                   <div class="vendor-cost">$70/user/month</div>
+                                   <div class="external-badge">External</div>
+                               </div>
+                               <div class="vendor-description">Leading data visualization and business intelligence platform with AI-powered insights</div>
+                               <div class="vendor-features">
+                                   <strong>Key Features:</strong> Interactive dashboards, AI-powered insights, Real-time data connections
+                               </div>
+                               <div class="vendor-metrics">
+                                   <span class="rating">⭐ 4.3/5</span>
+                                   <span class="roi">ROI: 1,500% - 4,000%</span>
+                                   <span class="implementation">Setup: 2-6 weeks</span>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+               
+               <div class="highlight-box">
+                   <div class="highlight-header">💡 Vendor Selection Strategy</div>
+                   <p style="margin: 0; font-size: 13px;"><strong>Preferred Vendors:</strong> These are our recommended partners with proven track records and optimized pricing. <strong>External Vendors:</strong> Additional options when our preferred vendors don't meet specific requirements.</p>
+               </div>
+           </div>
+       </div>
+
+       <!-- Risk Assessment & Mitigation -->
+       <div class="section">
+           <div class="section-header">⚠️ Risk Assessment & Mitigation Strategies</div>
+           <div class="section-content">
+               <p style="margin-bottom: 24px; font-size: 14px;">Based on your assessment, we've identified key risks and developed mitigation strategies:</p>
+               
+               <div class="risk-grid">
+                   <div class="risk-item high-risk">
+                       <div class="risk-header">
+                           <span class="risk-icon">🔴</span>
+                           <span class="risk-title">Technology Integration Risk</span>
+                           <span class="risk-level">High</span>
+                       </div>
+                       <div class="risk-description">Your basic technology infrastructure may require upgrades before AI implementation</div>
+                       <div class="mitigation-strategy">
+                           <strong>Mitigation:</strong> Start with cloud-based SaaS solutions that require minimal infrastructure changes. Implement in phases, beginning with standalone tools before complex integrations.
+                       </div>
+                   </div>
+                   
+                   <div class="risk-item medium-risk">
+                       <div class="risk-header">
+                           <span class="risk-icon">🟡</span>
+                           <span class="risk-title">Team Adoption Risk</span>
+                           <span class="risk-level">Medium</span>
+                       </div>
+                       <div class="risk-description">Limited team availability and change management experience could slow adoption</div>
+                       <div class="mitigation-strategy">
+                           <strong>Mitigation:</strong> Implement comprehensive training programs and designate AI champions. Start with tools that have intuitive interfaces and provide extensive support documentation.
+                       </div>
+                   </div>
+                   
+                   <div class="risk-item medium-risk">
+                       <div class="risk-header">
+                           <span class="risk-icon">🟡</span>
+                           <span class="risk-title">Data Security Risk</span>
+                           <span class="risk-level">Medium</span>
+                       </div>
+                       <div class="risk-description">Limited data governance structures may pose security and compliance challenges</div>
+                       <div class="mitigation-strategy">
+                           <strong>Mitigation:</strong> Choose vendors with enterprise-grade security certifications. Implement data access controls and regular security audits. Consider starting with non-sensitive data processes.
+                       </div>
+                   </div>
+                   
+                   <div class="risk-item low-risk">
+                       <div class="risk-header">
+                           <span class="risk-icon">🟢</span>
+                           <span class="risk-title">Budget Overrun Risk</span>
+                           <span class="risk-level">Low</span>
+                       </div>
+                       <div class="risk-description">Implementation costs may exceed initial budget estimates</div>
+                       <div class="mitigation-strategy">
+                           <strong>Mitigation:</strong> Start with lower-cost SaaS solutions and scale up based on ROI. Implement in phases to spread costs over time. Monitor spending closely and adjust scope as needed.
+                       </div>
+                   </div>
+               </div>
+               
+               <div class="highlight-box">
+                   <div class="highlight-header">🛡️ Risk Management Framework</div>
+                   <p style="margin: 0; font-size: 13px;"><strong>Monthly Risk Reviews:</strong> Schedule regular check-ins to assess risk levels and adjust mitigation strategies. <strong>Contingency Planning:</strong> Maintain backup plans for critical dependencies and vendor alternatives.</p>
                </div>
            </div>
        </div>

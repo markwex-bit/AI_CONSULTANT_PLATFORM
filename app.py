@@ -21,6 +21,9 @@ from models import db_manager
 from werkzeug.utils import secure_filename
 import uuid
 from report_generator import ReportGenerator
+import random
+from config import Config
+REPORTS_DIR = Config.REPORTS_DIR
 
 # Configure logging
 logging.basicConfig(
@@ -281,9 +284,20 @@ def get_assessment_details(assessment_id):
                          'implementation_priority', 'security_requirements', 'compliance_needs',
                          'integration_requirements', 'success_metrics', 'risk_factors', 
                          'mitigation_strategies', 'implementation_phases', 'resource_requirements',
-                         'training_needs', 'vendor_criteria']:
-                # Parse JSON arrays
-                assessment[column] = json.loads(row[i]) if row[i] else []
+                         'training_needs', 'vendor_criteria', 'competitors', 'data_governance',
+                         'vendor_features', 'risk_concerns', 'improvement_goals']:
+                # Parse JSON arrays with better error handling
+                try:
+                    if row[i] and row[i].strip():
+                        assessment[column] = json.loads(row[i])
+                    else:
+                        assessment[column] = []
+                except (json.JSONDecodeError, TypeError, AttributeError):
+                    # If JSON parsing fails, try to handle as comma-separated string
+                    if row[i] and isinstance(row[i], str):
+                        assessment[column] = [item.strip() for item in row[i].split(',') if item.strip()]
+                    else:
+                        assessment[column] = []
             else:
                 # Regular text fields
                 assessment[column] = row[i]
@@ -292,6 +306,7 @@ def get_assessment_details(assessment_id):
         return jsonify({'success': True, 'assessment': assessment})
         
     except Exception as e:
+        print(f"Error in get_assessment_details: {str(e)}")
         return jsonify({'success': False, 'error': str(e)})
 @app.route('/generate_report_from_assessment', methods=['POST'])
 def generate_report_from_assessment():
@@ -337,12 +352,34 @@ def generate_report_from_assessment():
         ai_score = calculate_detailed_ai_score(assessment_data)
         opportunities = generate_detailed_opportunities(assessment_data)
 
-        # Generate HTML report
-        report_html = generate_html_assessment_report(assessment_id, assessment_data, ai_score, opportunities)
+        # Save the LLM-generated opportunities back to the database
+        try:
+            conn = sqlite3.connect('ai_consultant.db')
+            cursor = conn.cursor()
+            
+            # Update the assessment with the new AI score and opportunities
+            cursor.execute('''
+                UPDATE assessments 
+                SET ai_score = ?, opportunities = ?
+                WHERE id = ?
+            ''', (ai_score, json.dumps(opportunities), assessment_id))
+            
+            conn.commit()
+            conn.close()
+            print(f"Updated assessment {assessment_id} with AI score {ai_score} and {len(opportunities)} opportunities")
+        except Exception as e:
+            print(f"Warning: Could not save opportunities to database: {str(e)}")
+
+        # Generate HTML report based on report type
+        if report_type == 'strategy':
+            # Generate Strategy Blueprint Report
+            report_html = generate_html_strategy_report(assessment_id, assessment, ai_score, opportunities)
+        else:
+            # Generate Assessment Report (default)
+            report_html = generate_html_assessment_report(assessment_id, assessment_data, ai_score, opportunities)
         
         # Save the HTML report
         company_name = assessment.get('company_name', 'Unknown').replace(' ', '_').replace('/', '_')
-        report_type = assessment.get('report_type', 'assessment')
         created_at = assessment.get('created_at', datetime.now().strftime('%Y%m%d'))
         
         filename = f"{assessment_id}_{company_name}_{report_type}_{created_at}.html"
@@ -436,28 +473,15 @@ def submit_assessment():
         if not opportunities:
             opportunities = [{"title": "Customer Service Automation", "description": "AI chatbots could handle routine inquiries", "roi": 25000}]
         
-        # Save to database using context manager
-        with sqlite3.connect('ai_consultant.db') as conn:
-            cursor = conn.cursor()
-            
-            challenges_json = json.dumps(data.get('challenges', []))
-            opportunities_json = json.dumps(opportunities)
-            
-            cursor.execute('''
-                INSERT INTO assessments (
-                    company_name, industry, company_size, role, challenges,
-                    current_tech, ai_experience, budget, timeline,
-                    first_name, last_name, email, phone, ai_score, opportunities
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                data.get('company_name'), data.get('industry'), data.get('company_size'),
-                data.get('role'), challenges_json, data.get('current_tech'),
-                data.get('ai_experience'), data.get('budget'), data.get('timeline'),
-                data.get('first_name'), data.get('last_name'), data.get('email'),
-                data.get('phone'), ai_score, opportunities_json
-            ))
-            
-            assessment_id = cursor.lastrowid
+        # Save to database using database manager with form source tracking
+        assessment_data = {
+            **data,
+            'form_source': 'assessment',
+            'assessment_completed_at': datetime.now().isoformat(),
+            'report_type': 'assessment'
+        }
+        
+        assessment_id = db_manager.save_assessment(assessment_data, ai_score, opportunities)
         
         # Generate and save HTML report
         try:
@@ -644,38 +668,242 @@ def clear_all_assessments():
         return jsonify({'success': False, 'error': str(e)})
 @app.route('/api/add_sample_data', methods=['POST'])
 def add_sample_data():
+    """Dynamically generate sample data for all fields in the assessments table"""
     try:
         conn = sqlite3.connect('ai_consultant.db')
         cursor = conn.cursor()
         
-        sample_assessments = [
-            ('Tech Innovations Inc', 'technology', '101-250', 'ceo', 
-             '["manual-processes", "data-analysis"]', 'advanced', 'implementing', 
-             'over-100k', 'immediate', 'Jane', 'Doe', 'jane@techinnovations.com', 
-             '555-0123', 92, '[]'),
-            ('Metro Healthcare', 'healthcare', '251-500', 'it-director',
-             '["customer-service", "document-processing"]', 'intermediate', 'piloting',
-             '50k-100k', '3-months', 'Dr. Robert', 'Johnson', 'robert@metrohealthcare.com',
-             '555-0456', 78, '[]'),
-            ('AutoParts Plus', 'automotive', '51-100', 'ops-manager',
-             '["manual-processes", "competitive-pressure"]', 'basic', 'exploring',
-             '25k-50k', '6-months', 'Maria', 'Garcia', 'maria@autopartsplus.com',
-             '555-0789', 65, '[]')
+        # Get all columns from the assessments table
+        cursor.execute("PRAGMA table_info(assessments)")
+        columns_info = cursor.fetchall()
+        columns = [col[1] for col in columns_info]  # Column names
+        
+        # Sample data templates
+        sample_companies = [
+            {
+                'company_name': 'Tech Innovations Inc',
+                'industry': 'technology',
+                'company_size': '101-250',
+                'role': 'ceo',
+                'first_name': 'Jane',
+                'last_name': 'Doe',
+                'email': 'jane@techinnovations.com',
+                'phone': '555-0123',
+                'website': 'www.techinnovations.com'
+            },
+            {
+                'company_name': 'Metro Healthcare',
+                'industry': 'healthcare',
+                'company_size': '251-500',
+                'role': 'it-director',
+                'first_name': 'Dr. Robert',
+                'last_name': 'Johnson',
+                'email': 'robert@metrohealthcare.com',
+                'phone': '555-0456',
+                'website': 'www.metrohealthcare.com'
+            },
+            {
+                'company_name': 'AutoParts Plus',
+                'industry': 'automotive',
+                'company_size': '51-100',
+                'role': 'ops-manager',
+                'first_name': 'Maria',
+                'last_name': 'Garcia',
+                'email': 'maria@autopartsplus.com',
+                'phone': '555-0789',
+                'website': 'www.autopartsplus.com'
+            }
         ]
         
-        for sample in sample_assessments:
-            cursor.execute('''
-                INSERT INTO assessments (
-                    company_name, industry, company_size, role, challenges,
-                    current_tech, ai_experience, budget, timeline,
-                    first_name, last_name, email, phone, ai_score, opportunities
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', sample)
+        def generate_sample_value(column_name, company_data):
+            """Generate appropriate sample data based on column name"""
+            if column_name == 'company_name':
+                return company_data['company_name']
+            elif column_name == 'industry':
+                return company_data['industry']
+            elif column_name == 'company_size':
+                return company_data['company_size']
+            elif column_name == 'role':
+                return company_data['role']
+            elif column_name == 'first_name':
+                return company_data['first_name']
+            elif column_name == 'last_name':
+                return company_data['last_name']
+            elif column_name == 'email':
+                return company_data['email']
+            elif column_name == 'phone':
+                return company_data['phone']
+            elif column_name == 'website':
+                return company_data['website']
+            elif column_name == 'challenges':
+                # Use exact form checkbox values
+                challenge_options = ['Customer service bottleneck', 'Data management issues', 'Process inefficiencies']
+                return json.dumps(challenge_options)
+            elif column_name == 'current_tools':
+                # Use exact form checkbox values
+                tool_options = ['CRM systems', 'Marketing automation', 'Communication tools']
+                return json.dumps(tool_options)
+            elif column_name == 'tool_preferences':
+                # Use exact form checkbox values
+                preference_options = ['Cloud-based solutions', 'Integration capabilities', 'Analytics platforms']
+                return json.dumps(preference_options)
+            elif column_name == 'current_tech':
+                return 'intermediate'
+            elif column_name == 'ai_experience':
+                return 'piloting'
+            elif column_name == 'budget':
+                return '50k-100k'
+            elif column_name == 'timeline':
+                return '3-months'
+            elif column_name == 'implementation_priority':
+                return 'medium'
+            elif column_name == 'team_availability':
+                return 'part-time-dedicated'
+            elif column_name == 'change_management_experience':
+                return 'moderate'
+            elif column_name == 'data_governance':
+                # Use exact form checkbox values
+                governance_options = ['Data classification', 'Access controls']
+                return json.dumps(governance_options)
+            elif column_name == 'security_requirements':
+                # Use exact form checkbox values
+                security_options = ['Encryption', 'Compliance certifications']
+                return json.dumps(security_options)
+            elif column_name == 'compliance_needs':
+                # Use exact form checkbox values
+                compliance_options = ['SOX', 'Industry-specific']
+                return json.dumps(compliance_options)
+            elif column_name == 'integration_requirements':
+                # Use exact form checkbox values
+                integration_options = ['API integration', 'Database connectivity']
+                return json.dumps(integration_options)
+            elif column_name == 'success_metrics':
+                # Use exact form checkbox values
+                metrics_options = ['Customer satisfaction', 'Efficiency improvement', 'Cost reduction']
+                return json.dumps(metrics_options)
+            elif column_name == 'expected_roi':
+                return 'medium'
+            elif column_name == 'payback_period':
+                return '12-months'
+            elif column_name == 'risk_factors':
+                # Use exact form checkbox values
+                risk_options = ['Data security', 'User adoption']
+                return json.dumps(risk_options)
+            elif column_name == 'mitigation_strategies':
+                # Use exact form checkbox values
+                mitigation_options = ['Phased implementation', 'Training programs']
+                return json.dumps(mitigation_options)
+            elif column_name == 'implementation_phases':
+                # Use exact form checkbox values
+                phase_options = ['Planning & Analysis', 'Design & Development']
+                return json.dumps(phase_options)
+            elif column_name == 'resource_requirements':
+                # Use exact form checkbox values
+                resource_options = ['Technical expertise', 'Project management']
+                return json.dumps(resource_options)
+            elif column_name == 'training_needs':
+                # Use exact form checkbox values
+                training_options = ['User training', 'Technical training']
+                return json.dumps(training_options)
+            elif column_name == 'vendor_criteria':
+                # Use exact form checkbox values
+                vendor_options = ['Cost-effectiveness', 'Technical capabilities']
+                return json.dumps(vendor_options)
+            elif column_name == 'competitors':
+                # Use exact form checkbox values
+                competitor_options = ['Direct competitors', 'Indirect competitors']
+                return json.dumps(competitor_options)
+            elif column_name == 'competitive_advantages':
+                # Use exact form checkbox values from admin form
+                competitive_options = ['Innovation capabilities', 'Customer relationships', 'Operational efficiency']
+                return json.dumps(competitive_options)
+            elif column_name == 'market_position':
+                return 'challenger'
+            elif column_name == 'vendor_features':
+                # Use exact form checkbox values from admin form
+                vendor_feature_options = ['Scalability', 'Customization', 'Integration capabilities']
+                return json.dumps(vendor_feature_options)
+            elif column_name == 'risk_tolerance':
+                return 'moderate'
+            elif column_name == 'risk_concerns':
+                # Use exact form checkbox values from admin form
+                risk_concern_options = ['Data security', 'Vendor lock-in', 'Implementation delays']
+                return json.dumps(risk_concern_options)
+            elif column_name == 'org_structure':
+                return 'hierarchical'
+            elif column_name == 'decision_process':
+                return 'consultative'
+            elif column_name == 'team_size':
+                return '16-50'
+            elif column_name == 'skill_gaps':
+                # Use exact form checkbox values from admin form
+                skill_gap_options = ['Technical skills', 'Data analysis', 'Change management']
+                return json.dumps(skill_gap_options)
+            elif column_name == 'budget_allocation':
+                return 'balanced'
+            elif column_name == 'roi_timeline':
+                return '12-months'
+            elif column_name == 'current_kpis':
+                # Use exact form checkbox values from admin form
+                kpi_options = ['Revenue growth', 'Customer satisfaction', 'Operational efficiency']
+                return json.dumps(kpi_options)
+            elif column_name == 'improvement_goals':
+                # Use exact form checkbox values from admin form
+                goal_options = ['Process automation', 'Data analytics', 'Customer experience']
+                return json.dumps(goal_options)
+            elif column_name == 'ai_score':
+                return random.randint(75, 95)
+            elif column_name == 'opportunities':
+                opportunities = [
+                    {
+                        "title": "Customer Service Automation",
+                        "description": "Implement AI chatbots to handle routine inquiries",
+                        "roi": random.randint(30000, 40000)
+                    },
+                    {
+                        "title": "Data Analytics & BI",
+                        "description": "Deploy AI-powered analytics for better insights",
+                        "roi": random.randint(30000, 40000)
+                    }
+                ]
+                return json.dumps(opportunities)
+            elif column_name == 'report_type':
+                return 'assessment'
+            elif column_name == 'form_source':
+                return 'assessment'
+            elif column_name == 'assessment_completed_at':
+                return datetime.now().isoformat()
+            elif column_name == 'strategy_completed_at':
+                return None
+            elif column_name == 'created_at':
+                return datetime.now().isoformat()
+            else:
+                # For any other fields, return a default value
+                return None
+        
+        # Generate sample data for each company
+        for company_data in sample_companies:
+            # Generate values for all columns
+            values = []
+            placeholders = []
+            
+            for column in columns:
+                if column == 'id':  # Skip auto-increment field
+                    continue
+                values.append(generate_sample_value(column, company_data))
+                placeholders.append('?')
+            
+            # Build dynamic INSERT query
+            columns_str = ', '.join([col for col in columns if col != 'id'])
+            placeholders_str = ', '.join(placeholders)
+            
+            query = f"INSERT INTO assessments ({columns_str}) VALUES ({placeholders_str})"
+            cursor.execute(query, values)
         
         conn.commit()
         conn.close()
         
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'message': f'Added {len(sample_companies)} sample assessments with all fields populated'})
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -739,6 +967,261 @@ def api_db_view():
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+@app.route('/api/form_summary')
+def api_form_summary():
+    """Get form completion summary for all assessments"""
+    try:
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                id,
+                company_name,
+                email,
+                form_source,
+                assessment_completed_at,
+                strategy_completed_at,
+                CASE 
+                    WHEN assessment_completed_at IS NOT NULL AND strategy_completed_at IS NOT NULL 
+                    THEN 'Complete (Both Forms)'
+                    WHEN assessment_completed_at IS NOT NULL 
+                    THEN 'Assessment Only'
+                    WHEN strategy_completed_at IS NOT NULL 
+                    THEN 'Strategy Only'
+                    ELSE 'Incomplete'
+                END as completion_status,
+                created_at
+            FROM assessments
+            ORDER BY created_at DESC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        assessments = []
+        for row in rows:
+            assessments.append({
+                'id': row[0],
+                'company_name': row[1],
+                'email': row[2],
+                'form_source': row[3],
+                'assessment_completed_at': row[4],
+                'strategy_completed_at': row[5],
+                'completion_status': row[6],
+                'created_at': row[7]
+            })
+        
+        return jsonify({
+            'success': True,
+            'assessments': assessments
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/assessment_data')
+def api_assessment_data():
+    """Get only assessment form data"""
+    try:
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                id,
+                company_name,
+                industry,
+                company_size,
+                role,
+                website,
+                challenges,
+                current_tech,
+                ai_experience,
+                budget,
+                timeline,
+                first_name,
+                last_name,
+                email,
+                phone,
+                current_tools,
+                tool_preferences,
+                implementation_priority,
+                team_availability,
+                change_management_experience,
+                data_governance,
+                security_requirements,
+                compliance_needs,
+                integration_requirements,
+                success_metrics,
+                expected_roi,
+                payback_period,
+                risk_factors,
+                mitigation_strategies,
+                implementation_phases,
+                resource_requirements,
+                training_needs,
+                vendor_criteria,
+                pilot_project,
+                scalability_requirements,
+                maintenance_plan,
+                assessment_completed_at
+            FROM assessments
+            WHERE assessment_completed_at IS NOT NULL
+            ORDER BY assessment_completed_at DESC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        assessments = []
+        for row in rows:
+            # Helper function to safely parse JSON fields
+            def safe_json_loads(value):
+                if not value or value == 'None':
+                    return []
+                try:
+                    if isinstance(value, str):
+                        if value.startswith("'") and value.endswith("'"):
+                            value = value[1:-1]
+                        if value == '[]':
+                            return []
+                        if value == '{}':
+                            return {}
+                    return json.loads(value) if isinstance(value, str) else value
+                except (json.JSONDecodeError, TypeError):
+                    return []
+            
+            assessments.append({
+                'id': row[0],
+                'company_name': row[1],
+                'industry': row[2],
+                'company_size': row[3],
+                'role': row[4],
+                'website': row[5],
+                'challenges': safe_json_loads(row[6]),
+                'current_tech': row[7],
+                'ai_experience': row[8],
+                'budget': row[9],
+                'timeline': row[10],
+                'first_name': row[11],
+                'last_name': row[12],
+                'email': row[13],
+                'phone': row[14],
+                'current_tools': safe_json_loads(row[15]),
+                'tool_preferences': safe_json_loads(row[16]),
+                'implementation_priority': safe_json_loads(row[17]),
+                'team_availability': row[18],
+                'change_management_experience': row[19],
+                'data_governance': safe_json_loads(row[20]),
+                'security_requirements': safe_json_loads(row[21]),
+                'compliance_needs': safe_json_loads(row[22]),
+                'integration_requirements': safe_json_loads(row[23]),
+                'success_metrics': safe_json_loads(row[24]),
+                'expected_roi': row[25],
+                'payback_period': row[26],
+                'risk_factors': safe_json_loads(row[27]),
+                'mitigation_strategies': safe_json_loads(row[28]),
+                'implementation_phases': safe_json_loads(row[29]),
+                'resource_requirements': safe_json_loads(row[30]),
+                'training_needs': safe_json_loads(row[31]),
+                'vendor_criteria': safe_json_loads(row[32]),
+                'pilot_project': row[33],
+                'scalability_requirements': row[34],
+                'maintenance_plan': row[35],
+                'assessment_completed_at': row[36]
+            })
+        
+        return jsonify({
+            'success': True,
+            'assessments': assessments
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/strategy_data')
+def api_strategy_data():
+    """Get only strategy form data"""
+    try:
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                id,
+                company_name,
+                email,
+                competitors,
+                competitive_advantages,
+                market_position,
+                vendor_features,
+                risk_tolerance,
+                risk_concerns,
+                org_structure,
+                decision_process,
+                team_size,
+                skill_gaps,
+                budget_allocation,
+                roi_timeline,
+                current_kpis,
+                improvement_goals,
+                strategy_completed_at
+            FROM assessments
+            WHERE strategy_completed_at IS NOT NULL
+            ORDER BY strategy_completed_at DESC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        assessments = []
+        for row in rows:
+            # Helper function to safely parse JSON fields
+            def safe_json_loads(value):
+                if not value or value == 'None':
+                    return []
+                try:
+                    if isinstance(value, str):
+                        if value.startswith("'") and value.endswith("'"):
+                            value = value[1:-1]
+                        if value == '[]':
+                            return []
+                        if value == '{}':
+                            return {}
+                    return json.loads(value) if isinstance(value, str) else value
+                except (json.JSONDecodeError, TypeError):
+                    return []
+            
+            assessments.append({
+                'id': row[0],
+                'company_name': row[1],
+                'email': row[2],
+                'competitors': safe_json_loads(row[3]),
+                'competitive_advantages': safe_json_loads(row[4]),
+                'market_position': row[5],
+                'vendor_features': safe_json_loads(row[6]),
+                'risk_tolerance': row[7],
+                'risk_concerns': safe_json_loads(row[8]),
+                'org_structure': row[9],
+                'decision_process': row[10],
+                'team_size': row[11],
+                'skill_gaps': safe_json_loads(row[12]),
+                'budget_allocation': row[13],
+                'roi_timeline': row[14],
+                'current_kpis': safe_json_loads(row[15]),
+                'improvement_goals': safe_json_loads(row[16]),
+                'strategy_completed_at': row[17]
+            })
+        
+        return jsonify({
+            'success': True,
+            'assessments': assessments
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 def generate_assessment_data(form_data):
     """Generate comprehensive assessment data for PDF report"""
     return generate_enhanced_assessment_data(form_data)
@@ -1022,229 +1505,191 @@ def generate_detailed_opportunities(form_data):
     return opportunities[:3]  # Return top 3 opportunities
 
 def generate_html_assessment_report(assessment_id, data, ai_score, opportunities):
-    """Generate an HTML assessment report"""
+    """Generate an HTML assessment report using the enhanced template"""
     try:
-        # Create a professional HTML report
-        html_content = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Strategy Assessment Report - {data.get('company_name', 'Company')}</title>
-    <style>
-        body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-        }}
-        .container {{
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }}
-        .header {{
-            text-align: center;
-            border-bottom: 3px solid #4f46e5;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }}
-        .header h1 {{
-            color: #1f2937;
-            margin: 0;
-            font-size: 2.5em;
-        }}
-        .header p {{
-            color: #6b7280;
-            margin: 10px 0 0 0;
-            font-size: 1.1em;
-        }}
-        .score-section {{
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 30px;
-        }}
-        .score {{
-            font-size: 4em;
-            font-weight: bold;
-            margin: 0;
-        }}
-        .score-label {{
-            font-size: 1.2em;
-            opacity: 0.9;
-        }}
-        .section {{
-            margin-bottom: 30px;
-            padding: 25px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            background: #fafafa;
-        }}
-        .section h2 {{
-            color: #1f2937;
-            border-bottom: 2px solid #4f46e5;
-            padding-bottom: 10px;
-            margin-top: 0;
-        }}
-        .opportunity-card {{
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }}
-        .opportunity-title {{
-            color: #1f2937;
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }}
-        .opportunity-description {{
-            color: #6b7280;
-            margin-bottom: 15px;
-        }}
-        .roi {{
-            color: #059669;
-            font-weight: bold;
-            font-size: 1.1em;
-        }}
-        .info-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }}
-        .info-item {{
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #4f46e5;
-        }}
-        .info-label {{
-            font-weight: bold;
-            color: #374151;
-            margin-bottom: 5px;
-        }}
-        .info-value {{
-            color: #6b7280;
-        }}
-        .footer {{
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            color: #6b7280;
-        }}
-        @media print {{
-            body {{ background: white; }}
-            .container {{ box-shadow: none; }}
-        }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>AI Strategy Assessment Report</h1>
-            <p>Generated for {data.get('company_name', 'Company')} on {datetime.now().strftime('%B %d, %Y')}</p>
-        </div>
+        # Load the enhanced template
+        template_path = os.path.join('report_templates', 'enhanced_assessment_report.html')
+        if not os.path.exists(template_path):
+            return f"<h1>Error: Enhanced assessment template not found</h1>"
         
-        <div class="score-section">
-            <div class="score">{ai_score}%</div>
-            <div class="score-label">AI Readiness Score</div>
-        </div>
+        with open(template_path, 'r', encoding='utf-8') as f:
+            template_content = f.read()
         
-        <div class="section">
-            <h2>Company Information</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Company Name</div>
-                    <div class="info-value">{data.get('company_name', 'Not specified')}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Industry</div>
-                    <div class="info-value">{data.get('industry', 'Not specified')}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Company Size</div>
-                    <div class="info-value">{data.get('company_size', 'Not specified')}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Primary Contact</div>
-                    <div class="info-value">{data.get('first_name', '')} {data.get('last_name', '')}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Role</div>
-                    <div class="info-value">{data.get('role', 'Not specified')}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Email</div>
-                    <div class="info-value">{data.get('email', 'Not provided')}</div>
-                </div>
-            </div>
-        </div>
+        # Generate comprehensive report data using ReportGenerator
+        from report_generator import ReportGenerator
+        report_gen = ReportGenerator()
+        report_data = report_gen.generate_assessment_report_data(data)
         
-        <div class="section">
-            <h2>Current Technology Assessment</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Current Tech Level</div>
-                    <div class="info-value">{data.get('current_tech', 'Not specified')}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">AI Experience</div>
-                    <div class="info-value">{data.get('ai_experience', 'Not specified')}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Budget Range</div>
-                    <div class="info-value">{data.get('budget', 'Not specified')}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Timeline</div>
-                    <div class="info-value">{data.get('timeline', 'Not specified')}</div>
-                </div>
-            </div>
-        </div>
+        # Helper function to safely parse JSON or string data
+        def safe_parse_list(value):
+            if isinstance(value, list):
+                return value
+            elif isinstance(value, str):
+                try:
+                    # Try to parse as JSON first
+                    import json
+                    parsed = json.loads(value)
+                    if isinstance(parsed, list):
+                        return parsed
+                except (json.JSONDecodeError, TypeError):
+                    pass
+                # If it's a string representation of a list, try to parse it
+                if value.startswith('[') and value.endswith(']'):
+                    # Remove brackets and split by comma
+                    content = value[1:-1]
+                    items = [item.strip().strip('"\'') for item in content.split(',') if item.strip()]
+                    return items
+            return []
         
-        <div class="section">
-            <h2>Business Challenges</h2>
-            <div class="info-item">
-                <div class="info-value">
-                    {', '.join(data.get('challenges', [])) if data.get('challenges') else 'No challenges specified'}
-                </div>
-            </div>
-        </div>
+        # Add basic data for template
+        report_data.update({
+            'assessment_id': assessment_id,
+            'ai_score': ai_score,
+            'opportunities': opportunities,
+            'client_company': data.get('company_name', 'Unknown Company'),
+            'primary_contact': f"{data.get('first_name', '')} {data.get('last_name', '')}".strip(),
+            'report_date': datetime.now().strftime('%B %d, %Y'),
+            'company_name': data.get('company_name', 'Unknown Company'),
+            'industry': data.get('industry', 'Not specified'),
+            'company_size': data.get('company_size', 'Not specified'),
+            'role': data.get('role', 'Not specified'),
+            'first_name': data.get('first_name', ''),
+            'last_name': data.get('last_name', ''),
+            'email': data.get('email', ''),
+            'phone': data.get('phone', ''),
+            'website': data.get('website', ''),
+            'current_tech': data.get('current_tech', 'Not specified'),
+            'ai_experience': data.get('ai_experience', 'Not specified'),
+            'budget': data.get('budget', 'Not specified'),
+            'timeline': data.get('timeline', 'Not specified'),
+            'challenges': safe_parse_list(data.get('challenges', [])),
+            'current_tools': safe_parse_list(data.get('current_tools', [])),
+            'created_at': data.get('created_at', datetime.now().isoformat()),
+            'form_source': data.get('form_source', 'assessment')
+        })
         
-        <div class="section">
-            <h2>AI Opportunities</h2>
-            {''.join([f'''
-            <div class="opportunity-card">
-                <div class="opportunity-title">{opp.get('title', 'Opportunity')}</div>
-                <div class="opportunity-description">{opp.get('description', 'No description available')}</div>
-                <div class="roi">Estimated ROI: ${opp.get('roi', 0):,}</div>
-            </div>
-            ''' for opp in opportunities]) if opportunities else '<p>No opportunities identified</p>'}
-        </div>
-        
-        <div class="footer">
-            <p>Report ID: {assessment_id} | Generated on {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
-            <p>This report was generated by the AI Strategy Consultant Platform</p>
-        </div>
-    </div>
-</body>
-</html>
-        """
+        # Render template with Jinja2
+        from jinja2 import Template
+        template = Template(template_content)
+        html_content = template.render(**report_data)
         return html_content
+        
     except Exception as e:
-        return f"<html><body><h1>Error generating report</h1><p>{str(e)}</p></body></html>"
+        return f"<h1>Error generating HTML report: {str(e)}</h1>"
+
+def generate_html_strategy_report(assessment_id, assessment_data, ai_score, opportunities):
+    """Generate a comprehensive Strategy Blueprint HTML report"""
+    try:
+        # Load the strategy blueprint template
+        template_path = os.path.join('report_templates', 'strategy_blueprint_report.html')
+        
+        if not os.path.exists(template_path):
+            return f"<h1>Error: Strategy Blueprint template not found</h1>"
+        
+        with open(template_path, 'r', encoding='utf-8') as f:
+            template_content = f.read()
+        
+        # Prepare comprehensive data for the strategy report
+        report_data = {
+            'assessment_id': assessment_id,
+            'client_company': assessment_data.get('company_name', 'Unknown Company'),
+            'primary_contact': f"{assessment_data.get('first_name', '')} {assessment_data.get('last_name', '')}".strip(),
+            'report_date': datetime.now().strftime('%B %d, %Y'),
+            'company_name': assessment_data.get('company_name', 'Unknown Company'),
+            'industry': assessment_data.get('industry', 'Not specified'),
+            'company_size': assessment_data.get('company_size', 'Not specified'),
+            'role': assessment_data.get('role', 'Not specified'),
+            'first_name': assessment_data.get('first_name', ''),
+            'last_name': assessment_data.get('last_name', ''),
+            'email': assessment_data.get('email', ''),
+            'phone': assessment_data.get('phone', ''),
+            'website': assessment_data.get('website', ''),
+            'ai_score': ai_score,
+            'opportunities': opportunities,
+            'challenges': assessment_data.get('challenges', []),
+            'current_tech': assessment_data.get('current_tech', 'Not specified'),
+            'ai_experience': assessment_data.get('ai_experience', 'Not specified'),
+            'budget': assessment_data.get('budget', 'Not specified'),
+            'timeline': assessment_data.get('timeline', 'Not specified'),
+            'current_tools': assessment_data.get('current_tools', []),
+            'tool_preferences': assessment_data.get('tool_preferences', []),
+            'implementation_priority': assessment_data.get('implementation_priority', []),
+            'team_availability': assessment_data.get('team_availability', 'Not specified'),
+            'change_management_experience': assessment_data.get('change_management_experience', 'Not specified'),
+            'data_governance': assessment_data.get('data_governance', []),
+            'security_requirements': assessment_data.get('security_requirements', []),
+            'compliance_needs': assessment_data.get('compliance_needs', []),
+            'integration_requirements': assessment_data.get('integration_requirements', []),
+            'success_metrics': assessment_data.get('success_metrics', []),
+            'expected_roi': assessment_data.get('expected_roi', 'Not specified'),
+            'payback_period': assessment_data.get('payback_period', 'Not specified'),
+            'risk_factors': assessment_data.get('risk_factors', []),
+            'mitigation_strategies': assessment_data.get('mitigation_strategies', []),
+            'implementation_phases': assessment_data.get('implementation_phases', []),
+            'resource_requirements': assessment_data.get('resource_requirements', []),
+            'training_needs': assessment_data.get('training_needs', []),
+            'vendor_criteria': assessment_data.get('vendor_criteria', []),
+            'competitors': assessment_data.get('competitors', []),
+            'competitive_advantages': assessment_data.get('competitive_advantages', []),
+            'market_position': assessment_data.get('market_position', 'Not specified'),
+            'vendor_features': assessment_data.get('vendor_features', []),
+            'risk_tolerance': assessment_data.get('risk_tolerance', 'Not specified'),
+            'risk_concerns': assessment_data.get('risk_concerns', []),
+            'org_structure': assessment_data.get('org_structure', 'Not specified'),
+            'decision_process': assessment_data.get('decision_process', 'Not specified'),
+            'team_size': assessment_data.get('team_size', 'Not specified'),
+            'skill_gaps': assessment_data.get('skill_gaps', []),
+            'budget_allocation': assessment_data.get('budget_allocation', 'Not specified'),
+            'roi_timeline': assessment_data.get('roi_timeline', 'Not specified'),
+            'current_kpis': assessment_data.get('current_kpis', []),
+            'improvement_goals': assessment_data.get('improvement_goals', []),
+            'created_at': assessment_data.get('created_at', datetime.now().isoformat()),
+            'form_source': assessment_data.get('form_source', 'assessment'),
+            # Additional variables expected by the template
+            'strategic_position': assessment_data.get('market_position', 'Emerging').title(),
+            'total_roi_min': sum([opp.get('roi', 0) for opp in opportunities]) if opportunities else 50000,
+            'competitor_1_name': 'Direct Competitor A',
+            'competitor_1_position': 'Market Leader',
+            'competitor_1_analysis': 'Strong market presence with established AI capabilities.',
+            'competitor_2_name': 'Direct Competitor B',
+            'competitor_2_position': 'Challenger',
+            'competitor_2_analysis': 'Innovative approach but limited scale.',
+            'competitor_3_name': 'Indirect Competitor',
+            'competitor_3_position': 'Niche Player',
+            'competitor_3_analysis': 'Specialized focus in specific market segments.',
+            'strategic_recommendations': 'Focus on rapid AI adoption to gain competitive advantage.',
+            'vendors': [
+                {'name': 'Vendor A', 'category': 'AI Platform', 'cost_rating': 'medium', 'features_rating': 'high', 'support_rating': 'high', 'integration_rating': 'medium', 'overall_score': 8},
+                {'name': 'Vendor B', 'category': 'Analytics', 'cost_rating': 'low', 'features_rating': 'medium', 'support_rating': 'medium', 'integration_rating': 'high', 'overall_score': 7},
+                {'name': 'Vendor C', 'category': 'Automation', 'cost_rating': 'high', 'features_rating': 'high', 'support_rating': 'high', 'integration_rating': 'high', 'overall_score': 9}
+            ],
+            'risks': [
+                {'title': 'Data Security Risk', 'level': 'Medium', 'impact': 'High', 'mitigation': 'Implement robust security protocols'},
+                {'title': 'Implementation Risk', 'level': 'High', 'impact': 'Medium', 'mitigation': 'Phased rollout approach'},
+                {'title': 'Adoption Risk', 'level': 'Medium', 'impact': 'Medium', 'mitigation': 'Comprehensive training program'}
+            ],
+            'q1_budget': 25000,
+            'q2_budget': 35000,
+            'q3_budget': 30000,
+            'q4_budget': 20000,
+            'total_budget': 110000,
+            'roi_percentage': 25,
+            'kpis': [
+                {'metric': 'Efficiency', 'current_value': '75%', 'target_value': '90%'},
+                {'metric': 'Cost Savings', 'current_value': '$50K', 'target_value': '$150K'},
+                {'metric': 'Customer Satisfaction', 'current_value': '82%', 'target_value': '95%'}
+            ]
+        }
+        
+        # Use Jinja2 to render the template
+        from jinja2 import Template
+        template = Template(template_content)
+        html_content = template.render(**report_data)
+        
+        return html_content
+        
+    except Exception as e:
+        return f"<h1>Error generating Strategy Blueprint report: {str(e)}</h1>"
 
 def generate_assessment_report(assessment_id, data, ai_score, opportunities):
     """Generate clean, professional PDF assessment report"""

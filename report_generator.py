@@ -1369,77 +1369,143 @@ Format as JSON with fields: title, level, impact, mitigation
                                      tool_preferences: List[str], vendor_criteria: List[str],
                                      security_requirements: List[str], compliance_needs: List[str],
                                      integration_requirements: List[str]) -> List[Dict]:
-        """Generate curated tool recommendations with pricing"""
+        """Generate curated tool recommendations with pricing using preferred vendors"""
+        try:
+            # Load preferred vendors from saas_tools_database.json
+            with open('saas_tools_database.json', 'r') as f:
+                preferred_vendors = json.load(f)
+        except FileNotFoundError:
+            # Fallback to hardcoded preferred vendors if file not found
+            preferred_vendors = {
+                "customer_service": [
+                    {
+                        "name": "Zendesk Answer Bot",
+                        "type": "SaaS",
+                        "cost": "$50-150/month",
+                        "description": "Automated customer support with ML-powered answer suggestions",
+                        "rating": "4.5",
+                        "features": ["Auto-suggest responses", "Ticket deflection", "Knowledge base integration", "Performance analytics"],
+                        "best_for": "Established support teams",
+                        "implementation": "1-2 weeks",
+                        "roi_range": "2,000% - 8,000%",
+                        "use_cases": ["Support ticket automation", "Knowledge base optimization", "Response time reduction"]
+                    }
+                ],
+                "workflow_automation": [
+                    {
+                        "name": "Zapier",
+                        "type": "SaaS",
+                        "cost": "$20-599/month",
+                        "description": "AI orchestration platform connecting 8,000+ apps with automated workflows",
+                        "rating": "4.5",
+                        "features": ["8,000+ app integrations", "AI workflows and chatbots", "No-code automation", "Enterprise governance"],
+                        "best_for": "All business sizes",
+                        "implementation": "1-4 weeks",
+                        "roi_range": "2,360% - 2,400%",
+                        "use_cases": ["Lead processing automation", "Sales pipeline management", "Marketing campaign attribution"]
+                    }
+                ],
+                "business_intelligence": [
+                    {
+                        "name": "Power BI",
+                        "type": "SaaS",
+                        "cost": "$10-20/user/month",
+                        "description": "Microsoft's business analytics service with AI insights and natural language queries",
+                        "rating": "4.2",
+                        "features": ["Natural language queries", "AI-powered insights", "Excel integration", "Real-time dashboards"],
+                        "best_for": "Microsoft ecosystem users",
+                        "implementation": "1-4 weeks",
+                        "roi_range": "1,200% - 3,500%",
+                        "use_cases": ["Financial reporting", "Sales analytics", "Operational monitoring"]
+                    }
+                ]
+            }
+        
         recommendations = []
         
-        # Tool database based on assessment data
-        tool_database = {
+        # Map assessment needs to vendor categories
+        category_mapping = {
+            'customer-service': 'customer_service',
+            'analytics': 'business_intelligence',
+            'automation': 'workflow_automation',
+            'sales-marketing': 'sales_marketing',
+            'development': 'development',
+            'research-analysis': 'research_analysis',
+            'knowledge-management': 'knowledge_management',
+            'presentations': 'presentations'
+        }
+        
+        # Generate recommendations based on assessment data
+        for assessment_category, vendor_category in category_mapping.items():
+            if vendor_category in preferred_vendors:
+                tools = preferred_vendors[vendor_category]
+                
+                # Add preferred vendor flag
+                for tool in tools:
+                    tool['is_preferred'] = True
+                
+                # Add external vendor alternatives if needed
+                external_alternatives = self._get_external_alternatives(assessment_category)
+                for tool in external_alternatives:
+                    tool['is_preferred'] = False
+                
+                recommendations.append({
+                    'category': assessment_category.replace('-', ' ').title(),
+                    'preferred_tools': tools[:2],  # Top 2 preferred tools
+                    'external_tools': external_alternatives[:1],  # 1 external alternative
+                    'rationale': f'Based on your {assessment_category} needs and preferences'
+                })
+        
+        return recommendations
+    
+    def _get_external_alternatives(self, category: str) -> List[Dict]:
+        """Get external vendor alternatives when preferred vendors don't meet requirements"""
+        external_vendors = {
             'customer-service': [
                 {
-                    'name': 'Intercom',
-                    'price': '$99/month',
-                    'features': ['AI chatbot', 'Live chat', 'Analytics', 'Integration APIs'],
-                    'best_for': 'Mid-market companies with high customer interaction',
-                    'security': ['SOC 2', 'GDPR'],
-                    'integration': ['API', 'Webhooks', 'REST API']
-                },
-                {
-                    'name': 'Zendesk',
-                    'price': '$49/month',
-                    'features': ['Ticket management', 'Knowledge base', 'Automation', 'Multi-channel support'],
-                    'best_for': 'Companies needing comprehensive support system',
-                    'security': ['SOC 2', 'GDPR', 'HIPAA'],
-                    'integration': ['API', 'Webhooks', 'Marketplace apps']
+                    'name': 'Freshdesk',
+                    'type': 'SaaS',
+                    'cost': '$15-79/month',
+                    'description': 'Cloud-based customer support platform with AI automation',
+                    'rating': '4.3',
+                    'features': ['AI-powered automation', 'Multi-channel support', 'Advanced reporting', 'Integrations'],
+                    'best_for': 'Growing support teams',
+                    'implementation': '2-3 weeks',
+                    'roi_range': '1,500% - 4,000%',
+                    'use_cases': ['Customer support automation', 'Ticket management', 'Knowledge base']
                 }
             ],
             'analytics': [
                 {
                     'name': 'Tableau',
-                    'price': '$70/month',
-                    'features': ['Data visualization', 'Business intelligence', 'Real-time dashboards', 'Advanced analytics'],
-                    'best_for': 'Companies needing advanced data visualization',
-                    'security': ['SOC 2', 'GDPR'],
-                    'integration': ['API', 'Database connections', 'Cloud platforms']
-                },
-                {
-                    'name': 'Power BI',
-                    'price': '$9.99/month',
-                    'features': ['Microsoft integration', 'Self-service BI', 'Advanced analytics', 'AI insights'],
-                    'best_for': 'Microsoft ecosystem companies',
-                    'security': ['SOC 2', 'GDPR', 'ISO 27001'],
-                    'integration': ['Microsoft 365', 'Azure', 'SQL Server']
+                    'type': 'SaaS',
+                    'cost': '$70/user/month',
+                    'description': 'Leading data visualization and business intelligence platform',
+                    'rating': '4.3',
+                    'features': ['Interactive dashboards', 'AI-powered insights', 'Real-time data connections', 'Advanced analytics'],
+                    'best_for': 'Data-driven organizations',
+                    'implementation': '2-6 weeks',
+                    'roi_range': '1,500% - 4,000%',
+                    'use_cases': ['Executive dashboards', 'Sales performance tracking', 'Operational analytics']
                 }
             ],
             'automation': [
                 {
-                    'name': 'Zapier',
-                    'price': '$20/month',
-                    'features': ['Workflow automation', '5000+ integrations', 'Custom automations', 'Webhooks'],
-                    'best_for': 'Companies needing easy workflow automation',
-                    'security': ['SOC 2', 'GDPR'],
-                    'integration': ['5000+ apps', 'API', 'Webhooks']
-                },
-                {
-                    'name': 'n8n',
-                    'price': '$20/month',
-                    'features': ['Open-source automation', 'Custom workflows', 'Self-hosted option', 'Advanced logic'],
-                    'best_for': 'Companies wanting control over automation',
-                    'security': ['Self-hosted', 'GDPR'],
-                    'integration': ['API', 'Webhooks', 'Custom nodes']
+                    'name': 'Microsoft Power Automate',
+                    'type': 'SaaS',
+                    'cost': '$15/user/month',
+                    'description': 'Microsoft\'s workflow automation platform with AI capabilities',
+                    'rating': '4.1',
+                    'features': ['Microsoft 365 integration', 'AI Builder', 'RPA capabilities', 'Low-code automation'],
+                    'best_for': 'Microsoft ecosystem companies',
+                    'implementation': '2-4 weeks',
+                    'roi_range': '1,200% - 3,000%',
+                    'use_cases': ['Office automation', 'Document processing', 'Approval workflows']
                 }
             ]
         }
         
-        # Generate recommendations based on current tools and preferences
-        for category, tools in tool_database.items():
-            if category not in current_tools:  # Don't recommend tools they already have
-                recommendations.append({
-                    'category': category.replace('-', ' ').title(),
-                    'tools': tools[:2],  # Top 2 tools per category
-                    'rationale': f'Based on your {category} needs and preferences'
-                })
-        
-        return recommendations
+        return external_vendors.get(category, [])
     
     def _generate_implementation_roadmap(self, assessment_data: Dict, implementation_phases: List[str],
                                        resource_requirements: List[str], training_needs: List[str],
@@ -1525,72 +1591,88 @@ Format as JSON with fields: title, level, impact, mitigation
     
     def _generate_roi_projections(self, assessment_data: Dict, expected_roi: str, 
                                 payback_period: str, opportunities: List[Dict]) -> Dict:
-        """Generate detailed ROI projections and payback periods"""
-        total_roi_min = sum(opp.get('roi', 0) for opp in opportunities)
-        total_roi_max = int(total_roi_min * 1.5)  # 50% upside potential
-        
-        # Calculate based on expected ROI range
-        if expected_roi == '100-200':
-            roi_multiplier = 1.5
-        elif expected_roi == '200-300':
-            roi_multiplier = 2.5
-        elif expected_roi == '300-500':
-            roi_multiplier = 4.0
-        elif expected_roi == '500-1000':
-            roi_multiplier = 7.5
-        else:  # 1000%+
-            roi_multiplier = 12.0
-        
-        total_roi_min = int(total_roi_min * roi_multiplier)
-        total_roi_max = int(total_roi_max * roi_multiplier)
-        
-        # Calculate payback period
-        if payback_period == '3-6-months':
-            payback_months = 4.5
-        elif payback_period == '6-12-months':
-            payback_months = 9
-        elif payback_period == '12-18-months':
-            payback_months = 15
-        elif payback_period == '18-24-months':
-            payback_months = 21
-        else:  # 24+ months
-            payback_months = 30
-        
-        # Generate detailed ROI explanation
+        """Generate realistic ROI projections and payback periods based on budget constraints"""
+        # Get budget information for realistic calculations
+        budget = assessment_data.get('budget', '25k-50k')
         company_size = assessment_data.get('company_size', '11-50')
         industry = assessment_data.get('industry', 'technology')
-        roi_explanation = f"Based on your {industry} industry focus and {company_size} company size, our analysis projects a conservative annual ROI of ${total_roi_min:,} with upside potential of ${total_roi_max:,}. This projection considers your expected ROI range of {expected_roi}% and {payback_period} payback period. The analysis incorporates industry benchmarks for {industry} companies of your size and accounts for implementation complexity and team readiness factors."
         
-        # Generate ROI breakdown with explanations
+        # Calculate realistic ROI based on budget and company size
+        if '25k-50k' in budget:
+            base_roi = 75000  # Conservative base ROI for small budget
+            max_roi = 150000  # Maximum realistic ROI
+        elif '50k-100k' in budget:
+            base_roi = 150000
+            max_roi = 300000
+        elif '100k-250k' in budget:
+            base_roi = 300000
+            max_roi = 600000
+        else:  # 250k+
+            base_roi = 600000
+            max_roi = 1200000
+        
+        # Adjust based on company size
+        if '1-10' in company_size:
+            base_roi = int(base_roi * 0.5)
+            max_roi = int(max_roi * 0.5)
+        elif '11-50' in company_size:
+            base_roi = int(base_roi * 0.8)
+            max_roi = int(max_roi * 0.8)
+        elif '51-100' in company_size:
+            base_roi = int(base_roi * 1.0)  # Base calculation
+            max_roi = int(max_roi * 1.0)
+        elif '101-250' in company_size:
+            base_roi = int(base_roi * 1.2)
+            max_roi = int(max_roi * 1.2)
+        else:  # 250+
+            base_roi = int(base_roi * 1.5)
+            max_roi = int(max_roi * 1.5)
+        
+        # Calculate payback period based on budget and implementation complexity
+        if '3-months' in assessment_data.get('timeline', ''):
+            payback_months = 6
+        elif '6-months' in assessment_data.get('timeline', ''):
+            payback_months = 9
+        elif '12-months' in assessment_data.get('timeline', ''):
+            payback_months = 15
+        else:
+            payback_months = 12  # Default 12 months
+        
+        # Generate realistic ROI explanation
+        roi_explanation = f"Based on your {industry} industry focus, {company_size} company size, and {budget} budget range, our analysis projects a realistic annual ROI of ${base_roi:,}-${max_roi:,} with upside potential of ${int(max_roi * 1.3):,}. This projection considers your budget constraints, team readiness, and implementation complexity. The analysis incorporates industry benchmarks for {industry} companies of your size and accounts for the phased implementation approach."
+        
+        # Generate ROI breakdown with realistic explanations
         roi_breakdown = {
-            'year_1': int(total_roi_min * 0.3),
-            'year_2': int(total_roi_min * 0.4),
-            'year_3': int(total_roi_min * 0.3),
-            'explanation': f'Year 1 focuses on initial implementation and pilot projects (30% of total ROI). Year 2 represents full deployment and optimization (40% of total ROI). Year 3 reflects mature operations and advanced features (30% of total ROI).'
+            'year_1': int(base_roi * 0.4),  # 40% in first year
+            'year_2': int(base_roi * 0.4),  # 40% in second year
+            'year_3': int(base_roi * 0.2),  # 20% in third year
+            'explanation': f'Year 1 focuses on initial implementation and pilot projects (40% of total ROI). Year 2 represents full deployment and optimization (40% of total ROI). Year 3 reflects mature operations and advanced features (20% of total ROI).'
         }
         
-        # Generate risk factors and assumptions
+        # Generate realistic risk factors and assumptions
         risk_factors = [
             f'Implementation timeline delays could extend payback period by 2-4 months',
             f'Team adoption challenges may reduce initial ROI by 10-15%',
             f'Technology integration complexity could increase implementation costs by 15-20%',
-            f'Market conditions in {industry} sector may impact revenue growth projections'
+            f'Market conditions in {industry} sector may impact revenue growth projections',
+            f'Budget constraints may limit full implementation scope'
         ]
         
         assumptions = [
             f'Full team adoption and training completion within projected timeline',
             f'Successful integration with existing {industry} business processes',
             f'Maintenance of current market conditions and competitive landscape',
-            f'Adequate budget allocation for ongoing support and optimization'
+            f'Adequate budget allocation for ongoing support and optimization',
+            f'Phased implementation approach to manage risk and costs'
         ]
         
         return {
-            'total_roi_min': total_roi_min,
-            'total_roi_max': total_roi_max,
-            'payback_period': f'{payback_months:.0f} months',
-            'annual_savings': int(total_roi_min / 3),  # Assuming 3-year ROI
-            'efficiency_gains': '35%',
-            'cost_reduction': '25%',
+            'total_roi_min': base_roi,
+            'total_roi_max': max_roi,
+            'payback_period': f'{payback_months} months',
+            'annual_savings': int(base_roi / 2),  # Assuming 2-year ROI
+            'efficiency_gains': '25%',
+            'cost_reduction': '20%',
             'roi_explanation': roi_explanation,
             'roi_breakdown': roi_breakdown,
             'risk_factors': risk_factors,

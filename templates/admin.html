@@ -98,7 +98,85 @@
         border-radius: 4px;
         font-size: 11px;
         font-weight: 600;
+    }
+    
+    .form-source-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-source-assessment {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .form-source-strategy {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .form-source-complete {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .form-source-incomplete {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .action-btn {
         cursor: pointer;
+    }
+    
+    /* Database View Color-Coded Headers */
+    .db-header-assessment {
+        background: #dbeafe !important;
+        color: #1e40af !important;
+        font-weight: 700;
+    }
+    
+    .db-header-strategy {
+        background: #fef3c7 !important;
+        color: #d97706 !important;
+        font-weight: 700;
+    }
+    
+    .db-header-common {
+        background: #f3f4f6 !important;
+        color: #374151 !important;
+        font-weight: 700;
+    }
+    
+    .db-view-legend {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 16px;
+        font-size: 12px;
+    }
+    
+    .db-view-legend-item {
+        display: inline-block;
+        margin-right: 20px;
+        font-weight: 600;
+    }
+    
+    .db-view-legend-assessment {
+        color: #1e40af;
+    }
+    
+    .db-view-legend-strategy {
+        color: #d97706;
+    }
+    
+    .db-view-legend-common {
+        color: #374151;
     }
     
     .btn-view {
@@ -528,6 +606,7 @@
                         <th>Industry</th>
                         <th>AI Score</th>
                         <th>Created</th>
+                        <th>Form Source</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -544,7 +623,13 @@
                 <button class="dbview-toggle" onclick="toggleDbView()" id="dbViewToggle">Show</button>
             </div>
             <div id="dbViewContent" style="display:none;">
-                <div class="dbview-category">Assessment</div>
+                <div class="db-view-legend">
+                    <strong>📋 Database View Legend:</strong>
+                    <span class="db-view-legend-item db-view-legend-assessment">🔵 Assessment Form Fields</span>
+                    <span class="db-view-legend-item db-view-legend-strategy">🟠 Strategy Blueprint Fields</span>
+                    <span class="db-view-legend-item db-view-legend-common">⚫ Common/Shared Fields</span>
+                </div>
+
                 <div class="dbview-scroll">
                     <table class="dbview-table" id="dbViewTable">
                         <thead id="dbViewHead"></thead>
@@ -1504,6 +1589,44 @@ function renderDbError(msg) {
     tbody.innerHTML = `<tr><td style="padding:10px; color:#b91c1c;">Error: ${msg}</td></tr>`;
 }
 
+// Field mapping for form source identification
+function getFieldFormSource(fieldName) {
+    const assessmentFields = [
+        'company_name', 'industry', 'company_size', 'role', 'website',
+        'first_name', 'last_name', 'email', 'phone',
+        'challenges', 'current_tech', 'ai_experience', 'budget', 'timeline',
+        'current_tools', 'tool_preferences', 'implementation_priority',
+        'team_availability', 'change_management_experience', 'data_governance',
+        'security_requirements', 'compliance_needs', 'integration_requirements',
+        'success_metrics', 'expected_roi', 'payback_period', 'risk_factors',
+        'mitigation_strategies', 'implementation_phases', 'resource_requirements',
+        'training_needs', 'vendor_criteria', 'pilot_project',
+        'scalability_requirements', 'maintenance_plan', 'ai_score', 'opportunities'
+    ];
+    
+    const strategyFields = [
+        'competitors', 'competitive_advantages', 'market_position',
+        'vendor_features', 'risk_tolerance', 'risk_concerns',
+        'org_structure', 'decision_process', 'team_size', 'skill_gaps',
+        'budget_allocation', 'roi_timeline', 'current_kpis', 'improvement_goals'
+    ];
+    
+    const commonFields = [
+        'id', 'created_at', 'form_source', 'assessment_completed_at', 
+        'strategy_completed_at'
+    ];
+    
+    if (assessmentFields.includes(fieldName)) {
+        return 'assessment';
+    } else if (strategyFields.includes(fieldName)) {
+        return 'strategy';
+    } else if (commonFields.includes(fieldName)) {
+        return 'common';
+    } else {
+        return 'common'; // Default to common for unknown fields
+    }
+}
+
 function renderDbTable(rows, columns) {
     const thead = document.getElementById('dbViewHead');
     const tbody = document.getElementById('dbViewBody');
@@ -1515,7 +1638,14 @@ function renderDbTable(rows, columns) {
         return;
     }
 
-    thead.innerHTML = `<tr>${columns.map(c => `<th title="Click cells to expand/collapse">${c}</th>`).join('')}</tr>`;
+    // Create headers with color coding based on form source
+    const headerCells = columns.map(column => {
+        const formSource = getFieldFormSource(column);
+        const cssClass = `db-header-${formSource}`;
+        return `<th class="${cssClass}" title="Click cells to expand/collapse">${column}</th>`;
+    });
+    
+    thead.innerHTML = `<tr>${headerCells.join('')}</tr>`;
 
     if (!rows || rows.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${columns.length}" style="padding:10px; color:#6b7280;">Database is empty</td></tr>`;
@@ -1615,6 +1745,43 @@ function computeOrderedColumns(rows) {
     return ordered;
 }
 
+// Helper functions for form source display
+function getFormSourceClass(assessment) {
+    if (assessment.assessment_completed_at && assessment.strategy_completed_at) {
+        return 'form-source-complete';
+    } else if (assessment.assessment_completed_at) {
+        return 'form-source-assessment';
+    } else if (assessment.strategy_completed_at) {
+        return 'form-source-strategy';
+    } else {
+        return 'form-source-incomplete';
+    }
+}
+
+function getFormSourceText(assessment) {
+    if (assessment.assessment_completed_at && assessment.strategy_completed_at) {
+        return 'Complete';
+    } else if (assessment.assessment_completed_at) {
+        return 'Assessment';
+    } else if (assessment.strategy_completed_at) {
+        return 'Strategy';
+    } else {
+        return 'Incomplete';
+    }
+}
+
+function getFormSourceTooltip(assessment) {
+    if (assessment.assessment_completed_at && assessment.strategy_completed_at) {
+        return `Both forms completed\nAssessment: ${new Date(assessment.assessment_completed_at).toLocaleDateString()}\nStrategy: ${new Date(assessment.strategy_completed_at).toLocaleDateString()}`;
+    } else if (assessment.assessment_completed_at) {
+        return `Assessment form completed on ${new Date(assessment.assessment_completed_at).toLocaleDateString()}`;
+    } else if (assessment.strategy_completed_at) {
+        return `Strategy form completed on ${new Date(assessment.strategy_completed_at).toLocaleDateString()}`;
+    } else {
+        return 'No forms completed yet';
+    }
+}
+
 function displayAssessments(assessmentList) {
     console.log('displayAssessments called with:', assessmentList);
     const tbody = document.getElementById('assessmentsTableBody');
@@ -1623,7 +1790,7 @@ function displayAssessments(assessmentList) {
     
     if (assessmentList.length === 0) {
         console.log('No assessments to display');
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #6b7280;">No assessments found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 2rem; color: #6b7280;">No assessments found</td></tr>';
         return;
     }
     
@@ -1642,6 +1809,11 @@ function displayAssessments(assessmentList) {
         <td>${assessment.industry}</td>
         <td><span class="score-badge">${assessment.ai_score}%</span></td>
         <td>${createdDate}</td>
+        <td>
+            <span class="form-source-badge ${getFormSourceClass(assessment)}" title="${getFormSourceTooltip(assessment)}">
+                ${getFormSourceText(assessment)}
+            </span>
+        </td>
         <td>
             <div class="action-buttons">
                 <button class="action-btn btn-view" onclick="viewAssessment(${assessment.id})" title="View Details">👁️</button>
@@ -1790,8 +1962,11 @@ function viewAssessment(id) {
                                     <button onclick="viewExistingReports(${assessment.id})" style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
                                         📋 View Existing Reports
                                     </button>
-                                    <button onclick="generateReportFromView(${assessment.id})" style="background: #4f46e5; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
-                                        📄 Generate New Report
+                                    <button onclick="generateAssessmentReportFromView(${assessment.id})" style="background: #4f46e5; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
+                                        📊 Generate Assessment Report
+                                    </button>
+                                    <button onclick="generateStrategyReportFromView(${assessment.id})" style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
+                                        🎯 Generate Strategic Blueprint Report
                                     </button>
                                     <button onclick="editAssessmentFromView(${assessment.id})" style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
                                         ✏️ Edit Assessment
@@ -2123,375 +2298,396 @@ function addSampleData() {
 
 function editAssessment(id) {
     console.log('editAssessment called with id:', id);
-    const assessment = assessments.find(a => a.id === id);
-    console.log('Found assessment:', assessment);
-    if (!assessment) {
-        console.log('No assessment found');
-        return;
-    }
     
-    // Populate form fields
-    document.getElementById('editId').value = assessment.id;
-    document.getElementById('editCompanyName').value = assessment.company_name || '';
-    document.getElementById('editIndustry').value = assessment.industry || '';
-    document.getElementById('editCompanySize').value = assessment.company_size || '';
-    document.getElementById('editRole').value = assessment.role || '';
-    document.getElementById('editWebsite').value = assessment.website || '';
-    document.getElementById('editFirstName').value = assessment.first_name || '';
-    document.getElementById('editLastName').value = assessment.last_name || '';
-    document.getElementById('editEmail').value = assessment.email || '';
-    document.getElementById('editPhone').value = assessment.phone || '';
-    // Handle challenges checkboxes
-    let challenges = [];
-    try {
-        challenges = assessment.challenges ? JSON.parse(assessment.challenges) : [];
-    } catch (e) {
-        console.log('Error parsing challenges:', e);
-        // If it's a string, split by comma
-        if (typeof assessment.challenges === 'string') {
-            challenges = assessment.challenges.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editChallenge"]').forEach(checkbox => {
-        checkbox.checked = challenges.includes(checkbox.value);
-    });
-    document.getElementById('editChallengesOther').value = assessment.challenges_other || '';
-    
-    // Handle current tools checkboxes
-    let currentTools = [];
-    try {
-        currentTools = assessment.current_tools ? JSON.parse(assessment.current_tools) : [];
-    } catch (e) {
-        console.log('Error parsing current_tools:', e);
-        if (typeof assessment.current_tools === 'string') {
-            currentTools = assessment.current_tools.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editTool"]').forEach(checkbox => {
-        checkbox.checked = currentTools.includes(checkbox.value);
-    });
-    document.getElementById('editCurrentToolsOther').value = assessment.current_tools_other || '';
-    
-    // Handle tool preferences checkboxes
-    let toolPreferences = [];
-    try {
-        toolPreferences = assessment.tool_preferences ? JSON.parse(assessment.tool_preferences) : [];
-    } catch (e) {
-        console.log('Error parsing tool_preferences:', e);
-        if (typeof assessment.tool_preferences === 'string') {
-            toolPreferences = assessment.tool_preferences.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editPref"]').forEach(checkbox => {
-        checkbox.checked = toolPreferences.includes(checkbox.value);
-    });
-    document.getElementById('editToolPreferencesOther').value = assessment.tool_preferences_other || '';
-    
-    document.getElementById('editCurrentTech').value = assessment.current_tech || '';
-    document.getElementById('editAiExperience').value = assessment.ai_experience || '';
-    document.getElementById('editBudget').value = assessment.budget || '';
-    document.getElementById('editTimeline').value = assessment.timeline || '';
-    document.getElementById('editImplementationPriority').value = assessment.implementation_priority || '';
-    document.getElementById('editTeamAvailability').value = assessment.team_availability || '';
-    document.getElementById('editChangeManagementExperience').value = assessment.change_management_experience || '';
-    
-    // Handle data governance checkboxes
-    let dataGovernance = [];
-    try {
-        dataGovernance = assessment.data_governance ? JSON.parse(assessment.data_governance) : [];
-    } catch (e) {
-        console.log('Error parsing data_governance:', e);
-        if (typeof assessment.data_governance === 'string') {
-            dataGovernance = assessment.data_governance.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editDataGov"]').forEach(checkbox => {
-        checkbox.checked = dataGovernance.includes(checkbox.value);
-    });
-    document.getElementById('editDataGovernanceOther').value = assessment.data_governance_other || '';
-    
-    // Handle security requirements checkboxes
-    let securityRequirements = [];
-    try {
-        securityRequirements = assessment.security_requirements ? JSON.parse(assessment.security_requirements) : [];
-    } catch (e) {
-        console.log('Error parsing security_requirements:', e);
-        if (typeof assessment.security_requirements === 'string') {
-            securityRequirements = assessment.security_requirements.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editSec"]').forEach(checkbox => {
-        checkbox.checked = securityRequirements.includes(checkbox.value);
-    });
-    document.getElementById('editSecurityRequirementsOther').value = assessment.security_requirements_other || '';
-    
-    // Handle compliance needs checkboxes
-    let complianceNeeds = [];
-    try {
-        complianceNeeds = assessment.compliance_needs ? JSON.parse(assessment.compliance_needs) : [];
-    } catch (e) {
-        console.log('Error parsing compliance_needs:', e);
-        if (typeof assessment.compliance_needs === 'string') {
-            complianceNeeds = assessment.compliance_needs.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editComp"]').forEach(checkbox => {
-        checkbox.checked = complianceNeeds.includes(checkbox.value);
-    });
-    document.getElementById('editComplianceNeedsOther').value = assessment.compliance_needs_other || '';
-    
-    // Handle integration requirements checkboxes
-    let integrationRequirements = [];
-    try {
-        integrationRequirements = assessment.integration_requirements ? JSON.parse(assessment.integration_requirements) : [];
-    } catch (e) {
-        console.log('Error parsing integration_requirements:', e);
-        if (typeof assessment.integration_requirements === 'string') {
-            integrationRequirements = assessment.integration_requirements.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editInt"]').forEach(checkbox => {
-        checkbox.checked = integrationRequirements.includes(checkbox.value);
-    });
-    document.getElementById('editIntegrationRequirementsOther').value = assessment.integration_requirements_other || '';
-    
-    // Handle success metrics checkboxes
-    let successMetrics = [];
-    try {
-        successMetrics = assessment.success_metrics ? JSON.parse(assessment.success_metrics) : [];
-    } catch (e) {
-        console.log('Error parsing success_metrics:', e);
-        if (typeof assessment.success_metrics === 'string') {
-            successMetrics = assessment.success_metrics.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editMetric"]').forEach(checkbox => {
-        checkbox.checked = successMetrics.includes(checkbox.value);
-    });
-    document.getElementById('editSuccessMetricsOther').value = assessment.success_metrics_other || '';
-    
-    document.getElementById('editExpectedRoi').value = assessment.expected_roi || '';
-    document.getElementById('editPaybackPeriod').value = assessment.payback_period || '';
-    
-    // Handle risk factors checkboxes
-    let riskFactors = [];
-    try {
-        riskFactors = assessment.risk_factors ? JSON.parse(assessment.risk_factors) : [];
-    } catch (e) {
-        console.log('Error parsing risk_factors:', e);
-        if (typeof assessment.risk_factors === 'string') {
-            riskFactors = assessment.risk_factors.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editRisk"]').forEach(checkbox => {
-        checkbox.checked = riskFactors.includes(checkbox.value);
-    });
-    document.getElementById('editRiskFactorsOther').value = assessment.risk_factors_other || '';
-    
-    // Handle mitigation strategies checkboxes
-    let mitigationStrategies = [];
-    try {
-        mitigationStrategies = assessment.mitigation_strategies ? JSON.parse(assessment.mitigation_strategies) : [];
-    } catch (e) {
-        console.log('Error parsing mitigation_strategies:', e);
-        if (typeof assessment.mitigation_strategies === 'string') {
-            mitigationStrategies = assessment.mitigation_strategies.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editMit"]').forEach(checkbox => {
-        checkbox.checked = mitigationStrategies.includes(checkbox.value);
-    });
-    document.getElementById('editMitigationStrategiesOther').value = assessment.mitigation_strategies_other || '';
-    
-    // Handle implementation phases checkboxes
-    let implementationPhases = [];
-    try {
-        implementationPhases = assessment.implementation_phases ? JSON.parse(assessment.implementation_phases) : [];
-    } catch (e) {
-        console.log('Error parsing implementation_phases:', e);
-        if (typeof assessment.implementation_phases === 'string') {
-            implementationPhases = assessment.implementation_phases.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editPhase"]').forEach(checkbox => {
-        checkbox.checked = implementationPhases.includes(checkbox.value);
-    });
-    document.getElementById('editImplementationPhasesOther').value = assessment.implementation_phases_other || '';
-    
-    // Handle resource requirements checkboxes
-    let resourceRequirements = [];
-    try {
-        resourceRequirements = assessment.resource_requirements ? JSON.parse(assessment.resource_requirements) : [];
-    } catch (e) {
-        console.log('Error parsing resource_requirements:', e);
-        if (typeof assessment.resource_requirements === 'string') {
-            resourceRequirements = assessment.resource_requirements.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editRes"]').forEach(checkbox => {
-        checkbox.checked = resourceRequirements.includes(checkbox.value);
-    });
-    document.getElementById('editResourceRequirementsOther').value = assessment.resource_requirements_other || '';
-    
-    // Handle training needs checkboxes
-    let trainingNeeds = [];
-    try {
-        trainingNeeds = assessment.training_needs ? JSON.parse(assessment.training_needs) : [];
-    } catch (e) {
-        console.log('Error parsing training_needs:', e);
-        if (typeof assessment.training_needs === 'string') {
-            trainingNeeds = assessment.training_needs.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editTrain"]').forEach(checkbox => {
-        checkbox.checked = trainingNeeds.includes(checkbox.value);
-    });
-    document.getElementById('editTrainingNeedsOther').value = assessment.training_needs_other || '';
-    
-    // Handle vendor criteria checkboxes
-    let vendorCriteria = [];
-    try {
-        vendorCriteria = assessment.vendor_criteria ? JSON.parse(assessment.vendor_criteria) : [];
-    } catch (e) {
-        console.log('Error parsing vendor_criteria:', e);
-        if (typeof assessment.vendor_criteria === 'string') {
-            vendorCriteria = assessment.vendor_criteria.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editVendor"]').forEach(checkbox => {
-        checkbox.checked = vendorCriteria.includes(checkbox.value);
-    });
-    document.getElementById('editVendorCriteriaOther').value = assessment.vendor_criteria_other || '';
-    
-    // Handle competitors checkboxes
-    let competitors = [];
-    try {
-        competitors = assessment.competitors ? JSON.parse(assessment.competitors) : [];
-    } catch (e) {
-        console.log('Error parsing competitors:', e);
-        if (typeof assessment.competitors === 'string') {
-            competitors = assessment.competitors.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editCompetitor"]').forEach(checkbox => {
-        checkbox.checked = competitors.includes(checkbox.value);
-    });
-    document.getElementById('editCompetitorsOther').value = assessment.competitors_other || '';
-    
-    // Handle competitive advantages checkboxes
-    let competitiveAdvantages = [];
-    try {
-        competitiveAdvantages = assessment.competitive_advantages ? JSON.parse(assessment.competitive_advantages) : [];
-    } catch (e) {
-        console.log('Error parsing competitive_advantages:', e);
-        if (typeof assessment.competitive_advantages === 'string') {
-            competitiveAdvantages = assessment.competitive_advantages.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editAdv"]').forEach(checkbox => {
-        checkbox.checked = competitiveAdvantages.includes(checkbox.value);
-    });
-    document.getElementById('editCompetitiveAdvantagesOther').value = assessment.competitive_advantages_other || '';
-    
-    document.getElementById('editMarketPosition').value = assessment.market_position || '';
-    
-    // Handle vendor features checkboxes
-    let vendorFeatures = [];
-    try {
-        vendorFeatures = assessment.vendor_features ? JSON.parse(assessment.vendor_features) : [];
-    } catch (e) {
-        console.log('Error parsing vendor_features:', e);
-        if (typeof assessment.vendor_features === 'string') {
-            vendorFeatures = assessment.vendor_features.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editVendorFeat"]').forEach(checkbox => {
-        checkbox.checked = vendorFeatures.includes(checkbox.value);
-    });
-    document.getElementById('editVendorFeaturesOther').value = assessment.vendor_features_other || '';
-    
-    document.getElementById('editRiskTolerance').value = assessment.risk_tolerance || '';
-    
-    // Handle risk concerns checkboxes
-    let riskConcerns = [];
-    try {
-        riskConcerns = assessment.risk_concerns ? JSON.parse(assessment.risk_concerns) : [];
-    } catch (e) {
-        console.log('Error parsing risk_concerns:', e);
-        if (typeof assessment.risk_concerns === 'string') {
-            riskConcerns = assessment.risk_concerns.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editRiskConcern"]').forEach(checkbox => {
-        checkbox.checked = riskConcerns.includes(checkbox.value);
-    });
-    document.getElementById('editRiskConcernsOther').value = assessment.risk_concerns_other || '';
-    
-    document.getElementById('editOrgStructure').value = assessment.org_structure || '';
-    document.getElementById('editDecisionProcess').value = assessment.decision_process || '';
-    document.getElementById('editTeamSize').value = assessment.team_size || '';
-    
-    // Handle skill gaps checkboxes
-    let skillGaps = [];
-    try {
-        skillGaps = assessment.skill_gaps ? JSON.parse(assessment.skill_gaps) : [];
-    } catch (e) {
-        console.log('Error parsing skill_gaps:', e);
-        if (typeof assessment.skill_gaps === 'string') {
-            skillGaps = assessment.skill_gaps.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editSkillGap"]').forEach(checkbox => {
-        checkbox.checked = skillGaps.includes(checkbox.value);
-    });
-    document.getElementById('editSkillGapsOther').value = assessment.skill_gaps_other || '';
-    
-    document.getElementById('editBudgetAllocation').value = assessment.budget_allocation || '';
-    document.getElementById('editRoiTimeline').value = assessment.roi_timeline || '';
-    
-    // Handle current KPIs checkboxes
-    let currentKpis = [];
-    try {
-        currentKpis = assessment.current_kpis ? JSON.parse(assessment.current_kpis) : [];
-    } catch (e) {
-        console.log('Error parsing current_kpis:', e);
-        if (typeof assessment.current_kpis === 'string') {
-            currentKpis = assessment.current_kpis.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editKpi"]').forEach(checkbox => {
-        checkbox.checked = currentKpis.includes(checkbox.value);
-    });
-    document.getElementById('editCurrentKpisOther').value = assessment.current_kpis_other || '';
-    
-    // Handle improvement goals checkboxes
-    let improvementGoals = [];
-    try {
-        improvementGoals = assessment.improvement_goals ? JSON.parse(assessment.improvement_goals) : [];
-    } catch (e) {
-        console.log('Error parsing improvement_goals:', e);
-        if (typeof assessment.improvement_goals === 'string') {
-            improvementGoals = assessment.improvement_goals.split(',').map(item => item.trim()).filter(item => item);
-        }
-    }
-    document.querySelectorAll('[id^="editGoal"]').forEach(checkbox => {
-        checkbox.checked = improvementGoals.includes(checkbox.value);
-    });
-    document.getElementById('editImprovementGoalsOther').value = assessment.improvement_goals_other || '';
-    document.getElementById('editAiScore').value = assessment.ai_score || '';
-    document.getElementById('editReportType').value = assessment.report_type || 'assessment';
-    document.getElementById('editOpportunities').value = assessment.opportunities || '';
-    
-    // Show modal
-    console.log('Showing edit modal');
-    const modal = document.getElementById('editModal');
-    console.log('Modal element:', modal);
-    if (modal) {
-        modal.style.display = 'block';
-        console.log('Modal display set to block');
-    } else {
-        console.log('Modal element not found!');
-    }
+    // Fetch complete assessment data from API
+    fetch(`/api/assessment/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Error fetching assessment:', data.error);
+                alert('Error loading assessment data: ' + data.error);
+                return;
+            }
+            
+            const assessment = data.assessment;
+            console.log('Found assessment:', assessment);
+            
+            // Populate basic form fields
+            document.getElementById('editId').value = assessment.id;
+            document.getElementById('editCompanyName').value = assessment.company_name || '';
+            document.getElementById('editIndustry').value = assessment.industry || '';
+            document.getElementById('editCompanySize').value = assessment.company_size || '';
+            document.getElementById('editRole').value = assessment.role || '';
+            document.getElementById('editWebsite').value = assessment.website || '';
+            document.getElementById('editFirstName').value = assessment.first_name || '';
+            document.getElementById('editLastName').value = assessment.last_name || '';
+            document.getElementById('editEmail').value = assessment.email || '';
+            document.getElementById('editPhone').value = assessment.phone || '';
+            document.getElementById('editCurrentTech').value = assessment.current_tech || '';
+            document.getElementById('editAiExperience').value = assessment.ai_experience || '';
+            document.getElementById('editBudget').value = assessment.budget || '';
+            document.getElementById('editTimeline').value = assessment.timeline || '';
+            document.getElementById('editImplementationPriority').value = assessment.implementation_priority || '';
+            document.getElementById('editTeamAvailability').value = assessment.team_availability || '';
+            document.getElementById('editChangeManagementExperience').value = assessment.change_management_experience || '';
+            document.getElementById('editAiScore').value = assessment.ai_score || '';
+            document.getElementById('editReportType').value = assessment.report_type || 'assessment';
+            
+            // Handle challenges checkboxes - database values now match form values exactly
+            let challenges = [];
+            if (Array.isArray(assessment.challenges)) {
+                challenges = assessment.challenges;
+            } else if (typeof assessment.challenges === 'string') {
+                try {
+                    challenges = JSON.parse(assessment.challenges);
+                } catch (e) {
+                    challenges = assessment.challenges.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            
+            document.querySelectorAll('[id^="editChallenge"]').forEach(checkbox => {
+                checkbox.checked = challenges.includes(checkbox.value);
+            });
+            
+            // Handle current tools checkboxes - database values now match form values exactly
+            let currentTools = [];
+            if (Array.isArray(assessment.current_tools)) {
+                currentTools = assessment.current_tools;
+            } else if (typeof assessment.current_tools === 'string') {
+                try {
+                    currentTools = JSON.parse(assessment.current_tools);
+                } catch (e) {
+                    currentTools = assessment.current_tools.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            
+            document.querySelectorAll('[id^="editTool"]').forEach(checkbox => {
+                checkbox.checked = currentTools.includes(checkbox.value);
+            });
+            
+            // Handle tool preferences checkboxes - database values now match form values exactly
+            let toolPreferences = [];
+            if (Array.isArray(assessment.tool_preferences)) {
+                toolPreferences = assessment.tool_preferences;
+            } else if (typeof assessment.tool_preferences === 'string') {
+                try {
+                    toolPreferences = JSON.parse(assessment.tool_preferences);
+                } catch (e) {
+                    toolPreferences = assessment.tool_preferences.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            
+            document.querySelectorAll('[id^="editPref"]').forEach(checkbox => {
+                checkbox.checked = toolPreferences.includes(checkbox.value);
+            });
+            
+            // Handle data governance checkboxes - database values now match form values exactly
+            let dataGovernance = [];
+            if (Array.isArray(assessment.data_governance)) {
+                dataGovernance = assessment.data_governance;
+            } else if (typeof assessment.data_governance === 'string') {
+                try {
+                    dataGovernance = JSON.parse(assessment.data_governance);
+                } catch (e) {
+                    dataGovernance = assessment.data_governance.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editDataGov"]').forEach(checkbox => {
+                checkbox.checked = dataGovernance.includes(checkbox.value);
+            });
+            
+            // Handle security requirements checkboxes - database values now match form values exactly
+            let securityRequirements = [];
+            if (Array.isArray(assessment.security_requirements)) {
+                securityRequirements = assessment.security_requirements;
+            } else if (typeof assessment.security_requirements === 'string') {
+                try {
+                    securityRequirements = JSON.parse(assessment.security_requirements);
+                } catch (e) {
+                    securityRequirements = assessment.security_requirements.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editSec"]').forEach(checkbox => {
+                checkbox.checked = securityRequirements.includes(checkbox.value);
+            });
+            
+            // Handle compliance needs checkboxes - database values now match form values exactly
+            let complianceNeeds = [];
+            if (Array.isArray(assessment.compliance_needs)) {
+                complianceNeeds = assessment.compliance_needs;
+            } else if (typeof assessment.compliance_needs === 'string') {
+                try {
+                    complianceNeeds = JSON.parse(assessment.compliance_needs);
+                } catch (e) {
+                    complianceNeeds = assessment.compliance_needs.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editComp"]').forEach(checkbox => {
+                checkbox.checked = complianceNeeds.includes(checkbox.value);
+            });
+            
+            // Handle integration requirements checkboxes - database values now match form values exactly
+            let integrationRequirements = [];
+            if (Array.isArray(assessment.integration_requirements)) {
+                integrationRequirements = assessment.integration_requirements;
+            } else if (typeof assessment.integration_requirements === 'string') {
+                try {
+                    integrationRequirements = JSON.parse(assessment.integration_requirements);
+                } catch (e) {
+                    integrationRequirements = assessment.integration_requirements.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editInt"]').forEach(checkbox => {
+                checkbox.checked = integrationRequirements.includes(checkbox.value);
+            });
+            
+            // Handle success metrics checkboxes - database values now match form values exactly
+            let successMetrics = [];
+            if (Array.isArray(assessment.success_metrics)) {
+                successMetrics = assessment.success_metrics;
+            } else if (typeof assessment.success_metrics === 'string') {
+                try {
+                    successMetrics = JSON.parse(assessment.success_metrics);
+                } catch (e) {
+                    successMetrics = assessment.success_metrics.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editMetric"]').forEach(checkbox => {
+                checkbox.checked = successMetrics.includes(checkbox.value);
+            });
+            
+            document.getElementById('editExpectedRoi').value = assessment.expected_roi || '';
+            document.getElementById('editPaybackPeriod').value = assessment.payback_period || '';
+            
+            // Handle risk factors checkboxes - database values now match form values exactly
+            let riskFactors = [];
+            if (Array.isArray(assessment.risk_factors)) {
+                riskFactors = assessment.risk_factors;
+            } else if (typeof assessment.risk_factors === 'string') {
+                try {
+                    riskFactors = JSON.parse(assessment.risk_factors);
+                } catch (e) {
+                    riskFactors = assessment.risk_factors.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editRisk"]').forEach(checkbox => {
+                checkbox.checked = riskFactors.includes(checkbox.value);
+            });
+            
+            // Handle mitigation strategies checkboxes - database values now match form values exactly
+            let mitigationStrategies = [];
+            if (Array.isArray(assessment.mitigation_strategies)) {
+                mitigationStrategies = assessment.mitigation_strategies;
+            } else if (typeof assessment.mitigation_strategies === 'string') {
+                try {
+                    mitigationStrategies = JSON.parse(assessment.mitigation_strategies);
+                } catch (e) {
+                    mitigationStrategies = assessment.mitigation_strategies.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editMit"]').forEach(checkbox => {
+                checkbox.checked = mitigationStrategies.includes(checkbox.value);
+            });
+            
+            // Handle implementation phases checkboxes - database values now match form values exactly
+            let implementationPhases = [];
+            if (Array.isArray(assessment.implementation_phases)) {
+                implementationPhases = assessment.implementation_phases;
+            } else if (typeof assessment.implementation_phases === 'string') {
+                try {
+                    implementationPhases = JSON.parse(assessment.implementation_phases);
+                } catch (e) {
+                    implementationPhases = assessment.implementation_phases.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editPhase"]').forEach(checkbox => {
+                checkbox.checked = implementationPhases.includes(checkbox.value);
+            });
+            
+            // Handle resource requirements checkboxes - database values now match form values exactly
+            let resourceRequirements = [];
+            if (Array.isArray(assessment.resource_requirements)) {
+                resourceRequirements = assessment.resource_requirements;
+            } else if (typeof assessment.resource_requirements === 'string') {
+                try {
+                    resourceRequirements = JSON.parse(assessment.resource_requirements);
+                } catch (e) {
+                    resourceRequirements = assessment.resource_requirements.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editRes"]').forEach(checkbox => {
+                checkbox.checked = resourceRequirements.includes(checkbox.value);
+            });
+            
+            // Handle training needs checkboxes - database values now match form values exactly
+            let trainingNeeds = [];
+            if (Array.isArray(assessment.training_needs)) {
+                trainingNeeds = assessment.training_needs;
+            } else if (typeof assessment.training_needs === 'string') {
+                try {
+                    trainingNeeds = JSON.parse(assessment.training_needs);
+                } catch (e) {
+                    trainingNeeds = assessment.training_needs.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editTrain"]').forEach(checkbox => {
+                checkbox.checked = trainingNeeds.includes(checkbox.value);
+            });
+            
+            // Handle vendor criteria checkboxes - database values now match form values exactly
+            let vendorCriteria = [];
+            if (Array.isArray(assessment.vendor_criteria)) {
+                vendorCriteria = assessment.vendor_criteria;
+            } else if (typeof assessment.vendor_criteria === 'string') {
+                try {
+                    vendorCriteria = JSON.parse(assessment.vendor_criteria);
+                } catch (e) {
+                    vendorCriteria = assessment.vendor_criteria.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editVendor"]').forEach(checkbox => {
+                checkbox.checked = vendorCriteria.includes(checkbox.value);
+            });
+            
+            // Handle competitor analysis checkboxes - database values now match form values exactly
+            let competitors = [];
+            if (Array.isArray(assessment.competitors)) {
+                competitors = assessment.competitors;
+            } else if (typeof assessment.competitors === 'string') {
+                try {
+                    competitors = JSON.parse(assessment.competitors);
+                } catch (e) {
+                    competitors = assessment.competitors.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editCompetitor"]').forEach(checkbox => {
+                checkbox.checked = competitors.includes(checkbox.value);
+            });
+            
+            // Handle opportunities field
+            document.getElementById('editOpportunities').value = JSON.stringify(assessment.opportunities || [], null, 2);
+            
+            // Handle Strategy Blueprint fields
+            // Competitive Analysis - this is a checkbox group with "Other" input
+            let competitiveAdvantages = [];
+            if (Array.isArray(assessment.competitive_advantages)) {
+                competitiveAdvantages = assessment.competitive_advantages;
+            } else if (typeof assessment.competitive_advantages === 'string') {
+                try {
+                    competitiveAdvantages = JSON.parse(assessment.competitive_advantages);
+                } catch (e) {
+                    competitiveAdvantages = assessment.competitive_advantages.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editAdv"]').forEach(checkbox => {
+                checkbox.checked = competitiveAdvantages.includes(checkbox.value);
+            });
+            document.getElementById('editCompetitiveAdvantagesOther').value = '';
+            
+            document.getElementById('editMarketPosition').value = assessment.market_position || '';
+            
+            // Vendor Evaluation
+            let vendorFeatures = [];
+            if (Array.isArray(assessment.vendor_features)) {
+                vendorFeatures = assessment.vendor_features;
+            } else if (typeof assessment.vendor_features === 'string') {
+                try {
+                    vendorFeatures = JSON.parse(assessment.vendor_features);
+                } catch (e) {
+                    vendorFeatures = assessment.vendor_features.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editVendorFeat"]').forEach(checkbox => {
+                checkbox.checked = vendorFeatures.includes(checkbox.value);
+            });
+            
+            // Risk Assessment
+            document.getElementById('editRiskTolerance').value = assessment.risk_tolerance || '';
+            let riskConcerns = [];
+            if (Array.isArray(assessment.risk_concerns)) {
+                riskConcerns = assessment.risk_concerns;
+            } else if (typeof assessment.risk_concerns === 'string') {
+                try {
+                    riskConcerns = JSON.parse(assessment.risk_concerns);
+                } catch (e) {
+                    riskConcerns = assessment.risk_concerns.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editRiskConcern"]').forEach(checkbox => {
+                checkbox.checked = riskConcerns.includes(checkbox.value);
+            });
+            
+            // Change Management
+            document.getElementById('editOrgStructure').value = assessment.org_structure || '';
+            document.getElementById('editDecisionProcess').value = assessment.decision_process || '';
+            
+            // Team & Hiring
+            document.getElementById('editTeamSize').value = assessment.team_size || '';
+            
+            // Skill Gaps - this is a checkbox group with "Other" input
+            let skillGaps = [];
+            if (Array.isArray(assessment.skill_gaps)) {
+                skillGaps = assessment.skill_gaps;
+            } else if (typeof assessment.skill_gaps === 'string') {
+                try {
+                    skillGaps = JSON.parse(assessment.skill_gaps);
+                } catch (e) {
+                    skillGaps = assessment.skill_gaps.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editSkillGap"]').forEach(checkbox => {
+                checkbox.checked = skillGaps.includes(checkbox.value);
+            });
+            document.getElementById('editSkillGapsOther').value = '';
+            
+            // Budget Planning
+            document.getElementById('editBudgetAllocation').value = assessment.budget_allocation || '';
+            document.getElementById('editRoiTimeline').value = assessment.roi_timeline || '';
+            
+            // Success Metrics
+            // Current KPIs - this is a checkbox group with "Other" input
+            let currentKpis = [];
+            if (Array.isArray(assessment.current_kpis)) {
+                currentKpis = assessment.current_kpis;
+            } else if (typeof assessment.current_kpis === 'string') {
+                try {
+                    currentKpis = JSON.parse(assessment.current_kpis);
+                } catch (e) {
+                    currentKpis = assessment.current_kpis.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editKpi"]').forEach(checkbox => {
+                checkbox.checked = currentKpis.includes(checkbox.value);
+            });
+            document.getElementById('editCurrentKpisOther').value = '';
+            
+            let improvementGoals = [];
+            if (Array.isArray(assessment.improvement_goals)) {
+                improvementGoals = assessment.improvement_goals;
+            } else if (typeof assessment.improvement_goals === 'string') {
+                try {
+                    improvementGoals = JSON.parse(assessment.improvement_goals);
+                } catch (e) {
+                    improvementGoals = assessment.improvement_goals.split(',').map(item => item.trim()).filter(item => item);
+                }
+            }
+            document.querySelectorAll('[id^="editGoal"]').forEach(checkbox => {
+                checkbox.checked = improvementGoals.includes(checkbox.value);
+            });
+            
+            // Show modal
+            console.log('Showing edit modal');
+            const modal = document.getElementById('editModal');
+            if (modal) {
+                modal.style.display = 'block';
+            } else {
+                console.log('Modal element not found!');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching assessment details:', error);
+            alert('Error loading assessment details. Please try again.');
+        });
 }
 
 function saveAssessment() {
@@ -2676,6 +2872,88 @@ function toggleSelectAll() {
     }
 
     toggleBatchDeleteButton();
+}
+
+function generateAssessmentReportFromView(assessmentId) {
+    if (!confirm('Generate an Assessment Report for this client?')) {
+        return;
+    }
+    
+    // Show generating status
+    const button = event.target;
+    const originalText = button.textContent;
+    button.textContent = '⏳ Generating Assessment Report...';
+    button.disabled = true;
+    
+    // Generate the Assessment Report
+    fetch('/generate_report_from_assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            assessment_id: assessmentId,
+            report_type: 'assessment'
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // Open the report in a new window
+            window.open(result.view_url, '_blank');
+            alert('Assessment Report generated successfully!');
+        } else {
+            alert('Error generating Assessment Report: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error generating Assessment Report');
+    })
+    .finally(() => {
+        // Restore button
+        button.textContent = originalText;
+        button.disabled = false;
+    });
+}
+
+function generateStrategyReportFromView(assessmentId) {
+    if (!confirm('Generate a Strategic Blueprint Report for this client?')) {
+        return;
+    }
+    
+    // Show generating status
+    const button = event.target;
+    const originalText = button.textContent;
+    button.textContent = '⏳ Generating Strategic Blueprint...';
+    button.disabled = true;
+    
+    // Generate the Strategic Blueprint Report
+    fetch('/generate_report_from_assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            assessment_id: assessmentId,
+            report_type: 'strategy'
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // Open the report in a new window
+            window.open(result.view_url, '_blank');
+            alert('Strategic Blueprint Report generated successfully!');
+        } else {
+            alert('Error generating Strategic Blueprint Report: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error generating Strategic Blueprint Report');
+    })
+    .finally(() => {
+        // Restore button
+        button.textContent = originalText;
+        button.disabled = false;
+    });
 }
 </script>
 

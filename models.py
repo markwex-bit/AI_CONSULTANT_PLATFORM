@@ -53,6 +53,9 @@ class DatabaseManager:
                     ai_score INTEGER,
                     opportunities TEXT,
                     report_type TEXT DEFAULT 'assessment',
+                    form_source TEXT DEFAULT 'assessment',  -- Tracks which form(s) provided data
+                    assessment_completed_at TIMESTAMP,      -- When assessment form was completed
+                    strategy_completed_at TIMESTAMP,        -- When strategy form was completed
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 '''
@@ -65,7 +68,12 @@ class DatabaseManager:
                 except sqlite3.OperationalError:
                     pass  # already exists
 
-            # Strategy blueprint related
+            # Add form tracking columns if they don't exist
+            add_column('form_source TEXT DEFAULT "assessment"')
+            add_column('assessment_completed_at TIMESTAMP')
+            add_column('strategy_completed_at TIMESTAMP')
+
+            # Strategy blueprint related (S_ prefix in views)
             add_column('competitors TEXT')
             add_column('competitive_advantages TEXT')
             add_column('market_position TEXT')
@@ -81,7 +89,7 @@ class DatabaseManager:
             add_column('current_kpis TEXT')
             add_column('improvement_goals TEXT')
 
-            # Enhanced assessment fields
+            # Enhanced assessment fields (A_ prefix in views)
             add_column('current_tools TEXT')
             add_column('tool_preferences TEXT')
             add_column('implementation_priority TEXT')
@@ -135,8 +143,9 @@ class DatabaseManager:
                 '''
             )
 
-            # Create labeled views to simplify analytics/admin queries
+            # Create enhanced views for better data source identification
             self._create_labeled_views(cursor)
+            self._create_form_source_views(cursor)
 
             conn.commit()
 
@@ -281,6 +290,148 @@ class DatabaseManager:
             '''
         )
 
+    def _create_form_source_views(self, cursor) -> None:
+        """Create views that clearly identify which form provided which data"""
+        try:
+            cursor.execute('DROP VIEW IF EXISTS form_data_summary')
+            cursor.execute('DROP VIEW IF EXISTS assessment_only_data')
+            cursor.execute('DROP VIEW IF EXISTS strategy_only_data')
+            cursor.execute('DROP VIEW IF EXISTS complete_data')
+        except Exception:
+            pass
+
+        # View showing which forms have been completed for each assessment
+        cursor.execute(
+            '''
+            CREATE VIEW IF NOT EXISTS form_data_summary AS
+            SELECT
+                id,
+                company_name,
+                email,
+                form_source,
+                assessment_completed_at,
+                strategy_completed_at,
+                CASE 
+                    WHEN assessment_completed_at IS NOT NULL AND strategy_completed_at IS NOT NULL 
+                    THEN 'Complete (Both Forms)'
+                    WHEN assessment_completed_at IS NOT NULL 
+                    THEN 'Assessment Only'
+                    WHEN strategy_completed_at IS NOT NULL 
+                    THEN 'Strategy Only'
+                    ELSE 'Incomplete'
+                END as completion_status,
+                created_at
+            FROM assessments
+            '''
+        )
+
+        # View showing only assessment form data
+        cursor.execute(
+            '''
+            CREATE VIEW IF NOT EXISTS assessment_only_data AS
+            SELECT
+                id,
+                company_name,
+                industry,
+                company_size,
+                role,
+                website,
+                challenges,
+                current_tech,
+                ai_experience,
+                budget,
+                timeline,
+                first_name,
+                last_name,
+                email,
+                phone,
+                current_tools,
+                tool_preferences,
+                implementation_priority,
+                team_availability,
+                change_management_experience,
+                data_governance,
+                security_requirements,
+                compliance_needs,
+                integration_requirements,
+                success_metrics,
+                expected_roi,
+                payback_period,
+                risk_factors,
+                mitigation_strategies,
+                implementation_phases,
+                resource_requirements,
+                training_needs,
+                vendor_criteria,
+                pilot_project,
+                scalability_requirements,
+                maintenance_plan,
+                assessment_completed_at
+            FROM assessments
+            WHERE assessment_completed_at IS NOT NULL
+            '''
+        )
+
+        # View showing only strategy form data
+        cursor.execute(
+            '''
+            CREATE VIEW IF NOT EXISTS strategy_only_data AS
+            SELECT
+                id,
+                company_name,
+                email,
+                competitors,
+                competitive_advantages,
+                market_position,
+                vendor_features,
+                risk_tolerance,
+                risk_concerns,
+                org_structure,
+                decision_process,
+                team_size,
+                skill_gaps,
+                budget_allocation,
+                roi_timeline,
+                current_kpis,
+                improvement_goals,
+                strategy_completed_at
+            FROM assessments
+            WHERE strategy_completed_at IS NOT NULL
+            '''
+        )
+
+        # View showing complete data (both forms)
+        cursor.execute(
+            '''
+            CREATE VIEW IF NOT EXISTS complete_data AS
+            SELECT
+                id,
+                company_name,
+                email,
+                form_source,
+                assessment_completed_at,
+                strategy_completed_at,
+                -- Assessment fields
+                industry, company_size, role, website, challenges,
+                current_tech, ai_experience, budget, timeline,
+                first_name, last_name, phone,
+                current_tools, tool_preferences, implementation_priority,
+                team_availability, change_management_experience, data_governance,
+                security_requirements, compliance_needs, integration_requirements,
+                success_metrics, expected_roi, payback_period, risk_factors,
+                mitigation_strategies, implementation_phases, resource_requirements,
+                training_needs, vendor_criteria, pilot_project,
+                scalability_requirements, maintenance_plan,
+                -- Strategy fields
+                competitors, competitive_advantages, market_position,
+                vendor_features, risk_tolerance, risk_concerns, org_structure,
+                decision_process, team_size, skill_gaps, budget_allocation,
+                roi_timeline, current_kpis, improvement_goals
+            FROM assessments
+            WHERE assessment_completed_at IS NOT NULL AND strategy_completed_at IS NOT NULL
+            '''
+        )
+
     # ---------- Writes ----------
     def save_assessment(self, assessment_data: dict, ai_score: int, opportunities: list) -> int:
         """Insert a new assessment with all enhanced fields populated."""
@@ -327,8 +478,8 @@ class DatabaseManager:
                     compliance_needs, integration_requirements, success_metrics, expected_roi,
                     payback_period, risk_factors, mitigation_strategies, implementation_phases,
                     resource_requirements, training_needs, vendor_criteria, pilot_project,
-                    scalability_requirements, maintenance_plan
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    scalability_requirements, maintenance_plan, form_source, assessment_completed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''',
                 (
                     assessment_data.get('company_name'),
@@ -369,6 +520,8 @@ class DatabaseManager:
                     pilot_project_val,
                     scalability_requirements_val,
                     maintenance_plan_val,
+                    assessment_data.get('form_source', 'assessment'),
+                    assessment_data.get('assessment_completed_at'),
                 ),
             )
 
@@ -439,7 +592,8 @@ class DatabaseManager:
                     roi_timeline = ?,
                     current_kpis = ?,
                     improvement_goals = ?,
-                    report_type = 'strategy_blueprint'
+                    report_type = 'strategy_blueprint',
+                    strategy_completed_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 ''',
                 (
