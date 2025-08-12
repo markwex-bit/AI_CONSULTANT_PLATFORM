@@ -74,26 +74,36 @@ class DynamicFormGenerator:
             html = []
             step_number = 1
             
-            for section_name, fields in sections.items():
-                # Sort fields by sort_order
-                fields.sort(key=lambda x: x.get('sort_order', 0))
+            # Sort sections by section_step
+            sorted_section_names = sorted(sections.keys(), key=lambda k: sections[k][0].get('section_step', 0))
+            
+            for section_name in sorted_section_names:
+                fields = sorted(sections[section_name], key=lambda f: (f.get('step_number', 0), f.get('sort_order', 0)))
+                
+                # Only include visible fields in the step
+                visible_fields = [f for f in fields if f.get('is_visible', True)]
+                if not visible_fields:
+                    continue # Skip section if no visible fields
                 
                 html.append(f'<div class="step" id="step{step_number}">')
+                html.append(f'<div class="form-card">')
+                html.append(f'<div class="card-header">')
                 html.append(f'<h3>{section_name}</h3>')
+                html.append(f'</div>')
+                html.append(f'<div class="card-body">')
                 
-                # Group fields into rows (2 columns for most, 3 for contact info)
+                # Generate fields based on section type
                 if section_name == "Contact & Company Information":
-                    html.extend(self._generate_contact_section(fields))
+                    html.extend(self._generate_contact_section(visible_fields))
                 else:
-                    html.extend(self._generate_generic_section(fields))
+                    html.extend(self._generate_generic_section(visible_fields))
                 
-                html.append('</div>')
+                html.append(f'</div>')  # Close card-body
+                html.append(f'</div>')  # Close form-card
+                html.append('</div>')   # Close step
                 step_number += 1
             
             # Add step navigation
-            html.append('</div>')  # Close the last step
-            
-            # Add step navigation buttons
             html.append('''
             <div class="step-navigation">
                 <button type="button" class="btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">Previous</button>
@@ -114,52 +124,64 @@ class DynamicFormGenerator:
         # First row: First Name, Last Name
         name_fields = [f for f in fields if f['field_name'] in ['first_name', 'last_name']]
         if name_fields:
-            html.append('<div class="form-grid-2">')
+            html.append('<div class="form-row">')
             for field in name_fields:
+                html.append('<div class="form-col">')
                 html.extend(self._generate_field_html(field))
+                html.append('</div>')
             html.append('</div>')
         
         # Second row: Email, Phone, Website
         contact_fields = [f for f in fields if f['field_name'] in ['email', 'phone', 'website']]
         if contact_fields:
-            html.append('<div class="form-grid-3">')
+            html.append('<div class="form-row">')
             for field in contact_fields:
+                html.append('<div class="form-col">')
                 html.extend(self._generate_field_html(field))
+                html.append('</div>')
             html.append('</div>')
         
         # Third row: Company Name, Role
         company_fields = [f for f in fields if f['field_name'] in ['company_name', 'role']]
         if company_fields:
-            html.append('<div class="form-grid-2">')
+            html.append('<div class="form-row">')
             for field in company_fields:
+                html.append('<div class="form-col">')
                 html.extend(self._generate_field_html(field))
+                html.append('</div>')
             html.append('</div>')
         
         # Fourth row: Industry, Company Size
         business_fields = [f for f in fields if f['field_name'] in ['industry', 'company_size']]
         if business_fields:
-            html.append('<div class="form-grid-2">')
+            html.append('<div class="form-row">')
             for field in business_fields:
+                html.append('<div class="form-col">')
                 html.extend(self._generate_field_html(field))
+                html.append('</div>')
             html.append('</div>')
         
         return html
     
     def _generate_generic_section(self, fields: List[Dict]) -> List[str]:
-        """Generate generic section with 2-column layout"""
+        """Generate generic section with responsive layout"""
         html = []
         
-        # Group fields into pairs
+        # Group fields into pairs for better layout
         for i in range(0, len(fields), 2):
-            html.append('<div class="form-grid-2">')
+            html.append('<div class="form-row">')
             
             # First field in pair
             if i < len(fields):
+                html.append('<div class="form-col">')
                 html.extend(self._generate_field_html(fields[i]))
+                html.append('</div>')
             
             # Second field in pair (if exists)
             if i + 1 < len(fields):
+                html.append('<div class="form-col">')
                 html.extend(self._generate_field_html(fields[i + 1]))
+                html.append('</div>')
             
             html.append('</div>')
         
@@ -183,22 +205,22 @@ class DynamicFormGenerator:
         label_text = field_label
         
         html.append('<div class="form-group">')
-        html.append(f'<label>{label_text}</label>')
+        html.append(f'<label class="field-label">{label_text}</label>')
         
         if field_type == 'text':
-            html.append(f'<input type="text" name="{field_name}">')
+            html.append(f'<input type="text" name="{field_name}" class="form-control" placeholder="Enter {field_label.lower()}">')
         
         elif field_type == 'email':
-            html.append(f'<input type="email" name="{field_name}">')
+            html.append(f'<input type="email" name="{field_name}" class="form-control" placeholder="Enter your email">')
         
         elif field_type == 'tel':
-            html.append(f'<input type="tel" name="{field_name}">')
+            html.append(f'<input type="tel" name="{field_name}" class="form-control" placeholder="Enter phone number">')
         
         elif field_type == 'url':
-            html.append(f'<input type="url" name="{field_name}" placeholder="https://example.com">')
+            html.append(f'<input type="url" name="{field_name}" class="form-control" placeholder="https://example.com">')
         
         elif field_type == 'select':
-            html.append(f'<select name="{field_name}">')
+            html.append(f'<select name="{field_name}" class="form-control">')
             html.append('<option value="">Select an option</option>')
             
             # Get dropdown options for this field
@@ -214,16 +236,17 @@ class DynamicFormGenerator:
             html.append('<div class="checkbox-group">')
             for option in options:
                 html.append(f'<label class="checkbox-option">')
-                html.append(f'<input type="checkbox" name="{field_name}" value="{option["option_value"]}"> {option["option_label"]}')
+                html.append(f'<input type="checkbox" name="{field_name}" value="{option["option_value"]}" class="checkbox-input">')
+                html.append(f'<span class="checkbox-label">{option["option_label"]}</span>')
                 html.append('</label>')
             html.append('</div>')
         
         elif field_type == 'textarea':
-            html.append(f'<textarea name="{field_name}" rows="4"></textarea>')
+            html.append(f'<textarea name="{field_name}" rows="4" class="form-control" placeholder="Enter {field_label.lower()}"></textarea>')
         
         else:
             # Default to text input
-            html.append(f'<input type="text" name="{field_name}">')
+            html.append(f'<input type="text" name="{field_name}" class="form-control" placeholder="Enter {field_label.lower()}">')
         
         html.append('</div>')
         
