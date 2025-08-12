@@ -1,0 +1,79 @@
+{
+  "section_name": "contact_company",
+  "form_flag": "A",
+  "exported_at": "2025-08-12T13:45:03.629686",
+  "fields": [
+    {
+      "field_name": "company_name",
+      "field_label": "Company Name",
+      "field_step": 1,
+      "field_order": 0,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    },
+    {
+      "field_name": "company_size",
+      "field_label": "Company Size",
+      "field_step": 1,
+      "field_order": 0,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    },
+    {
+      "field_name": "email",
+      "field_label": "Email Address",
+      "field_step": 1,
+      "field_order": 0,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    },
+    {
+      "field_name": "first_name",
+      "field_label": "First Name",
+      "field_step": 1,
+      "field_order": 0,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    },
+    {
+      "field_name": "industry",
+      "field_label": "Industry",
+      "field_step": 1,
+      "field_order": 0,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    },
+    {
+      "field_name": "last_name",
+      "field_label": "Last Name",
+      "field_step": 1,
+      "field_order": 0,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    },
+    {
+      "field_name": "phone",
+      "field_label": "Phone Number",
+      "field_step": 1,
+      "field_order": 0,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    },
+    {
+      "field_name": "role",
+      "field_label": "Your Role",
+      "field_step": 1,
+      "field_order": 0,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    },
+    {
+      "field_name": "website",
+      "field_label": "Website",
+      "field_step": 1,
+      "field_order": 6,
+      "card_step": 1,
+      "section_title": "Contact & Company Information"
+    }
+  ]
+}
