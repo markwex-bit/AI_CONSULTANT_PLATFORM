@@ -1089,25 +1089,31 @@ class DatabaseManager:
             
             # Default models to insert (Updated to current versions as of August 2024)
             default_models = [
-                # OpenAI Models (Current as of August 2024)
-                ('OpenAI', 'gpt-3.5-turbo', 'GPT-3.5 Turbo', 'openai', None, 1, 2000, 0.7, 0.002, 1, 1, 
-                 'Fast and cost-effective model for general AI tasks', '["text-generation", "business-analysis"]'),
+                # OpenAI Models (Current as of August 2025 - Verified via API)
+                ('OpenAI', 'gpt-5', 'GPT-5 (Latest)', 'openai', None, 1, 4000, 0.7, 0.01, 1, 0, 
+                 'Latest GPT-5 model - August 2025', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
+                ('OpenAI', 'gpt-5-nano', 'GPT-5 Nano (Latest)', 'openai', None, 1, 4000, 0.7, 0.002, 1, 0, 
+                 'Fast GPT-5 Nano model - August 2025', '["text-generation", "business-analysis"]'),
+                ('OpenAI', 'gpt-5-mini', 'GPT-5 Mini (Latest)', 'openai', None, 1, 4000, 0.7, 0.005, 1, 0, 
+                 'Balanced GPT-5 Mini model - August 2025', '["text-generation", "business-analysis", "complex-reasoning"]'),
                 ('OpenAI', 'gpt-4o', 'GPT-4o', 'openai', None, 1, 4000, 0.7, 0.005, 1, 0, 
                  'Advanced model with better reasoning and accuracy', '["text-generation", "business-analysis", "complex-reasoning"]'),
                 ('OpenAI', 'gpt-4o-mini', 'GPT-4o Mini', 'openai', None, 1, 4000, 0.7, 0.00015, 1, 0, 
                  'Cost-effective GPT-4o variant', '["text-generation", "business-analysis"]'),
                 ('OpenAI', 'gpt-4-turbo', 'GPT-4 Turbo', 'openai', None, 1, 4000, 0.7, 0.01, 1, 0, 
-                 'Latest GPT-4 model with improved performance', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                 'GPT-4 Turbo model with improved performance', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                ('OpenAI', 'gpt-3.5-turbo', 'GPT-3.5 Turbo', 'openai', None, 1, 2000, 0.7, 0.002, 1, 1, 
+                 'Fast and cost-effective model for general AI tasks', '["text-generation", "business-analysis"]'),
                 
-                # Anthropic Models (Claude 4, 3.5, and Legacy versions as of August 2024)
-                ('Anthropic', 'claude-4o', 'Claude 4o (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.005, 1, 0, 
-                 'Latest Claude 4o model - August 2024', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
-                ('Anthropic', 'claude-4o-mini', 'Claude 4o Mini (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.00015, 1, 0, 
-                 'Fast Claude 4o Mini model - August 2024', '["text-generation", "business-analysis"]'),
-                ('Anthropic', 'claude-4-sonnet', 'Claude 4 Sonnet (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
-                 'Latest Claude 4 Sonnet model - August 2024', '["text-generation", "business-analysis", "complex-reasoning"]'),
-                ('Anthropic', 'claude-4-opus', 'Claude 4 Opus (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.015, 1, 0, 
-                 'Latest Claude 4 Opus model - August 2024', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
+                # Anthropic Models (Current as of August 2025 - Verified via API)
+                ('Anthropic', 'claude-opus-4-1-20250805', 'Claude Opus 4.1 (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.015, 1, 0, 
+                 'Latest Claude Opus 4.1 model - August 2025', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
+                ('Anthropic', 'claude-opus-4-20250514', 'Claude Opus 4 (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.015, 1, 0, 
+                 'Latest Claude Opus 4 model - May 2025', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
+                ('Anthropic', 'claude-sonnet-4-20250514', 'Claude Sonnet 4 (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
+                 'Latest Claude Sonnet 4 model - May 2025', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                ('Anthropic', 'claude-3-7-sonnet-20250219', 'Claude 3.7 Sonnet (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
+                 'Latest Claude 3.7 Sonnet model - February 2025', '["text-generation", "business-analysis", "complex-reasoning"]'),
                 ('Anthropic', 'claude-3-5-sonnet-20241022', 'Claude 3.5 Sonnet', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
                  'Claude 3.5 Sonnet model - June 2024', '["text-generation", "business-analysis", "complex-reasoning"]'),
                 ('Anthropic', 'claude-3-5-haiku-20241022', 'Claude 3.5 Haiku', 'anthropic', None, 1, 2000, 0.7, 0.00025, 1, 0, 
