@@ -927,6 +927,121 @@ class DatabaseManager:
                 VALUES (?, ?, ?, ?, ?)
             ''', option)
 
+    # ---------- Dynamic Form Builder CRUD Methods ----------
+    def update_section_configuration(self, section_name: str, data: dict) -> bool:
+        """Update a section configuration"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            set_clauses = []
+            values = []
+            
+            if 'section_title' in data:
+                set_clauses.append('section_title = ?')
+                values.append(data['section_title'])
+            
+            if 'step_number' in data:
+                set_clauses.append('step_number = ?')
+                values.append(data['step_number'])
+            
+            if 'is_required' in data:
+                set_clauses.append('is_required = ?')
+                values.append(data['is_required'])
+            
+            if 'is_visible' in data:
+                set_clauses.append('is_visible = ?')
+                values.append(data['is_visible'])
+            
+            if 'description' in data:
+                set_clauses.append('description = ?')
+                values.append(data['description'])
+            
+            if not set_clauses:
+                return True
+            
+            values.append(section_name)
+            
+            cursor.execute(f'''
+                UPDATE section_configurations 
+                SET {', '.join(set_clauses)}
+                WHERE section_name = ?
+            ''', values)
+            
+            conn.commit()
+            return True
+
+    def delete_section_configuration(self, section_name: str) -> bool:
+        """Delete a section configuration and update related fields"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            # First, update all fields that reference this section to have NULL section_name
+            cursor.execute('''
+                UPDATE field_configurations 
+                SET section_name = NULL 
+                WHERE section_name = ?
+            ''', (section_name,))
+            
+            # Then delete the section
+            cursor.execute('''
+                DELETE FROM section_configurations 
+                WHERE section_name = ?
+            ''', (section_name,))
+            
+            conn.commit()
+            return True
+
+    def update_dropdown_option(self, option_id: int, data: dict) -> bool:
+        """Update a dropdown option"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            set_clauses = []
+            values = []
+            
+            if 'field_name' in data:
+                set_clauses.append('field_name = ?')
+                values.append(data['field_name'])
+            
+            if 'option_value' in data:
+                set_clauses.append('option_value = ?')
+                values.append(data['option_value'])
+            
+            if 'option_label' in data:
+                set_clauses.append('option_label = ?')
+                values.append(data['option_label'])
+            
+            if 'sort_order' in data:
+                set_clauses.append('sort_order = ?')
+                values.append(data['sort_order'])
+            
+            if not set_clauses:
+                return True
+            
+            values.append(option_id)
+            
+            cursor.execute(f'''
+                UPDATE dropdown_options 
+                SET {', '.join(set_clauses)}
+                WHERE option_id = ?
+            ''', values)
+            
+            conn.commit()
+            return True
+
+    def delete_dropdown_option(self, option_id: int) -> bool:
+        """Delete a dropdown option"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                DELETE FROM dropdown_options 
+                WHERE option_id = ?
+            ''', (option_id,))
+            
+            conn.commit()
+            return True
+
 
 # Initialize database manager (used by app)
 db_manager = DatabaseManager()

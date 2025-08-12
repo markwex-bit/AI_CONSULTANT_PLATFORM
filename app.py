@@ -2024,7 +2024,7 @@ def get_dropdown_options():
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT option_id, field_name, option_value, option_label, sort_order, form_flag
+            SELECT id, field_name, option_value, option_label, sort_order, form_flag
             FROM dropdown_options
             ORDER BY field_name, sort_order
         ''')
@@ -2035,7 +2035,7 @@ def get_dropdown_options():
         options = []
         for row in rows:
             options.append({
-                'option_id': row[0],
+                'id': row[0],
                 'field_name': row[1],
                 'option_value': row[2],
                 'option_label': row[3],
@@ -2114,27 +2114,8 @@ def update_section_configuration(section_name):
     """Update a section configuration"""
     try:
         data = request.get_json()
-        conn = sqlite3.connect('ai_consultant.db')
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE section_configurations
-            SET section_title = ?, step_number = ?, is_required = ?, is_visible = ?, description = ?
-            WHERE section_name = ?
-        ''', (
-            data.get('section_title'),
-            data.get('step_number'),
-            data.get('is_required', False),
-            data.get('is_visible', True),
-            data.get('description'),
-            section_name
-        ))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'success': True})
-        
+        success = db_manager.update_section_configuration(section_name, data)
+        return jsonify({'success': success})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -2142,24 +2123,8 @@ def update_section_configuration(section_name):
 def delete_section_configuration(section_name):
     """Delete a section configuration"""
     try:
-        conn = sqlite3.connect('ai_consultant.db')
-        cursor = conn.cursor()
-        
-        # First update any fields that reference this section
-        cursor.execute('''
-            UPDATE field_configurations
-            SET section_name = NULL
-            WHERE section_name = ?
-        ''', (section_name,))
-        
-        # Then delete the section
-        cursor.execute('DELETE FROM section_configurations WHERE section_name = ?', (section_name,))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'success': True})
-        
+        success = db_manager.delete_section_configuration(section_name)
+        return jsonify({'success': success})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -2195,36 +2160,8 @@ def update_dropdown_option(option_id):
     """Update a dropdown option"""
     try:
         data = request.get_json()
-        conn = sqlite3.connect('ai_consultant.db')
-        cursor = conn.cursor()
-        
-        # Build dynamic update query
-        update_fields = []
-        values = []
-        
-        if 'option_value' in data:
-            update_fields.append('option_value = ?')
-            values.append(data['option_value'])
-        
-        if 'option_label' in data:
-            update_fields.append('option_label = ?')
-            values.append(data['option_label'])
-        
-        if 'sort_order' in data:
-            update_fields.append('sort_order = ?')
-            values.append(data['sort_order'])
-        
-        if update_fields:
-            values.append(option_id)
-            query = f'UPDATE dropdown_options SET {", ".join(update_fields)} WHERE option_id = ?'
-            cursor.execute(query, values)
-            
-            conn.commit()
-        
-        conn.close()
-        
-        return jsonify({'success': True})
-        
+        success = db_manager.update_dropdown_option(option_id, data)
+        return jsonify({'success': success})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -2232,16 +2169,8 @@ def update_dropdown_option(option_id):
 def delete_dropdown_option(option_id):
     """Delete a dropdown option"""
     try:
-        conn = sqlite3.connect('ai_consultant.db')
-        cursor = conn.cursor()
-        
-        cursor.execute('DELETE FROM dropdown_options WHERE option_id = ?', (option_id,))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'success': True})
-        
+        success = db_manager.delete_dropdown_option(option_id)
+        return jsonify({'success': success})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
