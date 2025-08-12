@@ -1099,13 +1099,17 @@ class DatabaseManager:
                 ('OpenAI', 'gpt-4-turbo', 'GPT-4 Turbo', 'openai', None, 1, 4000, 0.7, 0.01, 1, 0, 
                  'Latest GPT-4 model with improved performance', '["text-generation", "business-analysis", "complex-reasoning"]'),
                 
-                # Anthropic Models (Updated to current versions as of August 2024)
-                ('Anthropic', 'claude-3-5-sonnet-20241022', 'Claude 3.5 Sonnet', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
-                 'Latest Claude 3.5 Sonnet model', '["text-generation", "business-analysis", "complex-reasoning"]'),
-                ('Anthropic', 'claude-3-5-haiku-20241022', 'Claude 3.5 Haiku', 'anthropic', None, 1, 2000, 0.7, 0.00025, 1, 0, 
-                 'Fast and efficient Claude 3.5 Haiku model', '["text-generation", "business-analysis"]'),
-                ('Anthropic', 'claude-3-opus-20240229', 'Claude 3 Opus', 'anthropic', None, 1, 4000, 0.7, 0.015, 1, 0, 
-                 'Most capable Claude model', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
+                # Anthropic Models (Current and Legacy versions as of August 2024)
+                ('Anthropic', 'claude-3-5-sonnet-20241022', 'Claude 3.5 Sonnet (Latest)', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
+                 'Latest Claude 3.5 Sonnet model - June 2024', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                ('Anthropic', 'claude-3-5-haiku-20241022', 'Claude 3.5 Haiku (Latest)', 'anthropic', None, 1, 2000, 0.7, 0.00025, 1, 0, 
+                 'Latest Claude 3.5 Haiku model - June 2024', '["text-generation", "business-analysis"]'),
+                ('Anthropic', 'claude-3-sonnet-20240229', 'Claude 3 Sonnet (Legacy)', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
+                 'Legacy Claude 3 Sonnet model - February 2024', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                ('Anthropic', 'claude-3-haiku-20240307', 'Claude 3 Haiku (Legacy)', 'anthropic', None, 1, 2000, 0.7, 0.00025, 1, 0, 
+                 'Legacy Claude 3 Haiku model - March 2024', '["text-generation", "business-analysis"]'),
+                ('Anthropic', 'claude-3-opus-20240229', 'Claude 3 Opus (Legacy)', 'anthropic', None, 1, 4000, 0.7, 0.015, 1, 0, 
+                 'Legacy Claude 3 Opus model - February 2024', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
                 
                 # Open Source Models (Verified current model names)
                 ('Ollama', 'llama3.1:8b', 'Llama 3.1 8B (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 

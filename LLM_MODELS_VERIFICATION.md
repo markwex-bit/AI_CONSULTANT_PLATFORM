@@ -1,7 +1,7 @@
 # 🤖 LLM Models Verification Report
 
 **Last Updated:** August 12, 2024  
-**Total Models:** 14  
+**Total Models:** 17  
 **Providers:** 4 (OpenAI, Anthropic, Ollama, HuggingFace)
 
 ## 📊 Model Status Summary
@@ -9,7 +9,7 @@
 | Provider | Models | Status | Last Verified |
 |----------|--------|--------|---------------|
 | **OpenAI** | 4 | ✅ Current | August 2024 |
-| **Anthropic** | 3 | ✅ Current | August 2024 |
+| **Anthropic** | 5 | ✅ Current + Legacy | August 2024 |
 | **Ollama** | 4 | ✅ Current | August 2024 |
 | **HuggingFace** | 3 | ✅ Current | August 2024 |
 
@@ -33,16 +33,19 @@
 
 ---
 
-### 🧠 **Anthropic Models** (3 models)
+### 🧠 **Anthropic Models** (5 models)
 
 | Model Name | API Name | Status | Cost/1K Tokens | Max Tokens | Capabilities |
 |------------|----------|--------|----------------|------------|--------------|
-| **Claude 3.5 Sonnet** | `claude-3-5-sonnet-20241022` | ✅ **Current** | $0.003 | 200,000 | Text generation, Business analysis, Complex reasoning |
-| **Claude 3.5 Haiku** | `claude-3-5-haiku-20241022` | ✅ **Current** | $0.00025 | 200,000 | Text generation, Business analysis |
-| **Claude 3 Opus** | `claude-3-opus-20240229` | ✅ **Current** | $0.015 | 200,000 | Text generation, Business analysis, Complex reasoning, Creative writing |
+| **Claude 3.5 Sonnet (Latest)** | `claude-3-5-sonnet-20241022` | ✅ **Current** | $0.003 | 200,000 | Text generation, Business analysis, Complex reasoning |
+| **Claude 3.5 Haiku (Latest)** | `claude-3-5-haiku-20241022` | ✅ **Current** | $0.00025 | 200,000 | Text generation, Business analysis |
+| **Claude 3 Sonnet (Legacy)** | `claude-3-sonnet-20240229` | ✅ **Legacy** | $0.003 | 200,000 | Text generation, Business analysis, Complex reasoning |
+| **Claude 3 Haiku (Legacy)** | `claude-3-haiku-20240307` | ✅ **Legacy** | $0.00025 | 200,000 | Text generation, Business analysis |
+| **Claude 3 Opus (Legacy)** | `claude-3-opus-20240229` | ✅ **Legacy** | $0.015 | 200,000 | Text generation, Business analysis, Complex reasoning, Creative writing |
 
-**✅ Verification:** All models are current as of August 2024
+**✅ Verification:** Both current and legacy models available as of August 2024
 - **Latest Release:** Claude 3.5 Sonnet/Haiku (June 2024)
+- **Legacy Models:** Claude 3.x series (February-March 2024)
 - **API Key Required:** `ANTHROPIC_API_KEY`
 
 ---
