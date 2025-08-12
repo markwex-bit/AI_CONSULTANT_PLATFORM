@@ -143,6 +143,65 @@ class DatabaseManager:
                 '''
             )
 
+            # Create Dynamic Form Builder tables
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS section_configurations (
+                    section_name TEXT PRIMARY KEY,
+                    section_title TEXT NOT NULL,
+                    step_number INTEGER NOT NULL,
+                    is_required BOOLEAN DEFAULT FALSE,
+                    is_visible BOOLEAN DEFAULT TRUE,
+                    description TEXT,
+                    form_flag TEXT NOT NULL CHECK (form_flag IN ('A', 'S'))
+                )
+                '''
+            )
+
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS field_configurations (
+                    field_name TEXT PRIMARY KEY,
+                    field_label TEXT NOT NULL,
+                    field_type TEXT NOT NULL CHECK (field_type IN ('text', 'email', 'select', 'checkbox', 'textarea', 'number')),
+                    section_name TEXT,
+                    is_required BOOLEAN DEFAULT FALSE,
+                    is_visible BOOLEAN DEFAULT TRUE,
+                    form_flag TEXT NOT NULL CHECK (form_flag IN ('A', 'S')),
+                    FOREIGN KEY (section_name) REFERENCES section_configurations (section_name)
+                )
+                '''
+            )
+
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS dropdown_options (
+                    option_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    field_name TEXT NOT NULL,
+                    option_value TEXT NOT NULL,
+                    option_label TEXT NOT NULL,
+                    sort_order INTEGER DEFAULT 0,
+                    form_flag TEXT NOT NULL CHECK (form_flag IN ('A', 'S')),
+                    FOREIGN KEY (field_name) REFERENCES field_configurations (field_name)
+                )
+                '''
+            )
+
+            # Add missing columns to existing Dynamic Form Builder tables
+            def add_column_to_table(table_name: str, column_name: str, column_definition: str):
+                try:
+                    cursor.execute(f'ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}')
+                except sqlite3.OperationalError:
+                    pass  # column already exists
+
+            # Add form_flag column to existing tables if they exist
+            add_column_to_table('section_configurations', 'form_flag', 'TEXT NOT NULL DEFAULT "A" CHECK (form_flag IN ("A", "S"))')
+            add_column_to_table('field_configurations', 'form_flag', 'TEXT NOT NULL DEFAULT "A" CHECK (form_flag IN ("A", "S"))')
+            add_column_to_table('dropdown_options', 'form_flag', 'TEXT NOT NULL DEFAULT "A" CHECK (form_flag IN ("A", "S"))')
+
+            # Initialize default data for Dynamic Form Builder
+            self._initialize_dynamic_form_data(cursor)
+
             # Create enhanced views for better data source identification
             self._create_labeled_views(cursor)
             self._create_form_source_views(cursor)
@@ -646,6 +705,227 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM assessments WHERE id = ?', (assessment_id,))
             return cursor.fetchone()
+
+    def _initialize_dynamic_form_data(self, cursor):
+        """Initialize default data for Dynamic Form Builder"""
+        
+        # Update existing records to have proper form_flag values
+        cursor.execute('UPDATE section_configurations SET form_flag = "A" WHERE form_flag IS NULL OR form_flag = ""')
+        cursor.execute('UPDATE field_configurations SET form_flag = "A" WHERE form_flag IS NULL OR form_flag = ""')
+        cursor.execute('UPDATE dropdown_options SET form_flag = "A" WHERE form_flag IS NULL OR form_flag = ""')
+        
+        # Initialize section configurations
+        section_configs = [
+            # Assessment Form Sections
+            ('contact_company', 'Contact & Company Information', 1, True, True, 'Basic company and contact information', 'A'),
+            ('business_challenges', 'Business Challenges & Goals', 2, True, True, 'Current challenges and AI goals', 'A'),
+            ('current_technology', 'Current Technology Stack', 3, True, True, 'Existing technology infrastructure', 'A'),
+            ('ai_experience', 'AI Experience & Readiness', 4, True, True, 'Team AI experience and readiness assessment', 'A'),
+            ('budget_timeline', 'Budget & Timeline', 5, True, True, 'Budget constraints and implementation timeline', 'A'),
+            ('team_availability', 'Team & Resources', 6, True, True, 'Team availability and resource assessment', 'A'),
+            ('implementation_plan', 'Implementation Planning', 7, True, True, 'Implementation strategy and planning', 'A'),
+            
+            # Strategic Blueprint Sections
+            ('competitive_analysis', 'Competitive Analysis', 1, True, True, 'Market position and competitive landscape', 'S'),
+            ('risk_assessment', 'Risk Assessment & Tolerance', 2, True, True, 'Risk factors and organizational tolerance', 'S'),
+            ('organizational_structure', 'Organizational Structure', 3, True, True, 'Decision-making and team structure', 'S'),
+            ('budget_allocation', 'Budget & ROI Planning', 4, True, True, 'Budget allocation and ROI expectations', 'S'),
+            ('performance_metrics', 'Performance Metrics & KPIs', 5, True, True, 'Current KPIs and improvement goals', 'S')
+        ]
+        
+        for section in section_configs:
+            cursor.execute('''
+                INSERT OR REPLACE INTO section_configurations 
+                (section_name, section_title, step_number, is_required, is_visible, description, form_flag)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', section)
+        
+        # Initialize field configurations
+        field_configs = [
+            # Assessment Form Fields
+            ('company_name', 'Company Name', 'text', 'contact_company', True, True, 'A'),
+            ('industry', 'Industry', 'select', 'contact_company', True, True, 'A'),
+            ('company_size', 'Company Size', 'select', 'contact_company', True, True, 'A'),
+            ('role', 'Your Role', 'select', 'contact_company', True, True, 'A'),
+            ('first_name', 'First Name', 'text', 'contact_company', True, True, 'A'),
+            ('last_name', 'Last Name', 'text', 'contact_company', True, True, 'A'),
+            ('email', 'Email Address', 'email', 'contact_company', True, True, 'A'),
+            ('phone', 'Phone Number', 'text', 'contact_company', False, True, 'A'),
+            ('challenges', 'Current Challenges', 'checkbox', 'business_challenges', True, True, 'A'),
+            ('current_tech', 'Current Technology Stack', 'checkbox', 'current_technology', True, True, 'A'),
+            ('ai_experience', 'AI Experience Level', 'select', 'ai_experience', True, True, 'A'),
+            ('current_tools', 'Current AI Tools', 'checkbox', 'current_technology', False, True, 'A'),
+            ('budget', 'Budget Range', 'select', 'budget_timeline', True, True, 'A'),
+            ('timeline', 'Implementation Timeline', 'select', 'budget_timeline', True, True, 'A'),
+            ('team_availability', 'Team Availability', 'select', 'team_availability', True, True, 'A'),
+            ('change_management_experience', 'Change Management Experience', 'select', 'team_availability', False, True, 'A'),
+            ('data_governance', 'Data Governance Maturity', 'select', 'current_technology', False, True, 'A'),
+            ('security_requirements', 'Security Requirements', 'checkbox', 'current_technology', False, True, 'A'),
+            ('compliance_needs', 'Compliance Needs', 'checkbox', 'current_technology', False, True, 'A'),
+            ('integration_requirements', 'Integration Requirements', 'checkbox', 'current_technology', False, True, 'A'),
+            ('success_metrics', 'Success Metrics', 'checkbox', 'implementation_plan', False, True, 'A'),
+            ('expected_roi', 'Expected ROI', 'select', 'budget_timeline', False, True, 'A'),
+            ('payback_period', 'Payback Period', 'select', 'budget_timeline', False, True, 'A'),
+            ('risk_factors', 'Risk Factors', 'checkbox', 'implementation_plan', False, True, 'A'),
+            ('mitigation_strategies', 'Mitigation Strategies', 'checkbox', 'implementation_plan', False, True, 'A'),
+            ('implementation_phases', 'Implementation Phases', 'checkbox', 'implementation_plan', False, True, 'A'),
+            ('resource_requirements', 'Resource Requirements', 'checkbox', 'implementation_plan', False, True, 'A'),
+            ('training_needs', 'Training Needs', 'checkbox', 'implementation_plan', False, True, 'A'),
+            ('vendor_criteria', 'Vendor Criteria', 'checkbox', 'implementation_plan', False, True, 'A'),
+            ('pilot_project', 'Pilot Project', 'select', 'implementation_plan', False, True, 'A'),
+            ('scalability_requirements', 'Scalability Requirements', 'checkbox', 'implementation_plan', False, True, 'A'),
+            ('maintenance_plan', 'Maintenance Plan', 'select', 'implementation_plan', False, True, 'A'),
+            
+            # Strategic Blueprint Fields
+            ('competitors', 'Key Competitors', 'textarea', 'competitive_analysis', True, True, 'S'),
+            ('competitive_advantages', 'Competitive Advantages', 'textarea', 'competitive_analysis', True, True, 'S'),
+            ('market_position', 'Market Position', 'select', 'competitive_analysis', True, True, 'S'),
+            ('vendor_features', 'Vendor Features', 'checkbox', 'competitive_analysis', False, True, 'S'),
+            ('risk_tolerance', 'Risk Tolerance', 'select', 'risk_assessment', True, True, 'S'),
+            ('risk_concerns', 'Risk Concerns', 'checkbox', 'risk_assessment', False, True, 'S'),
+            ('org_structure', 'Organizational Structure', 'select', 'organizational_structure', True, True, 'S'),
+            ('decision_process', 'Decision Process', 'select', 'organizational_structure', True, True, 'S'),
+            ('team_size', 'Team Size', 'select', 'organizational_structure', True, True, 'S'),
+            ('skill_gaps', 'Skill Gaps', 'checkbox', 'organizational_structure', False, True, 'S'),
+            ('budget_allocation', 'Budget Allocation', 'select', 'budget_allocation', True, True, 'S'),
+            ('roi_timeline', 'ROI Timeline', 'select', 'budget_allocation', True, True, 'S'),
+            ('current_kpis', 'Current KPIs', 'checkbox', 'performance_metrics', False, True, 'S'),
+            ('improvement_goals', 'Improvement Goals', 'checkbox', 'performance_metrics', True, True, 'S')
+        ]
+        
+        for field in field_configs:
+            cursor.execute('''
+                INSERT OR REPLACE INTO field_configurations 
+                (field_name, field_label, field_type, section_name, is_required, is_visible, form_flag)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', field)
+        
+        # Initialize dropdown options
+        dropdown_options = [
+            # Industry options
+            ('industry', 'technology', 'Technology', 1, 'A'),
+            ('industry', 'healthcare', 'Healthcare', 2, 'A'),
+            ('industry', 'finance', 'Finance', 3, 'A'),
+            ('industry', 'manufacturing', 'Manufacturing', 4, 'A'),
+            ('industry', 'retail', 'Retail', 5, 'A'),
+            ('industry', 'education', 'Education', 6, 'A'),
+            ('industry', 'consulting', 'Consulting', 7, 'A'),
+            ('industry', 'other', 'Other', 8, 'A'),
+            
+            # Company size options
+            ('company_size', '1-10', '1-10 employees', 1, 'A'),
+            ('company_size', '11-50', '11-50 employees', 2, 'A'),
+            ('company_size', '51-200', '51-200 employees', 3, 'A'),
+            ('company_size', '201-1000', '201-1000 employees', 4, 'A'),
+            ('company_size', '1000+', '1000+ employees', 5, 'A'),
+            
+            # Role options
+            ('role', 'executive', 'C-Level Executive', 1, 'A'),
+            ('role', 'director', 'Director/VP', 2, 'A'),
+            ('role', 'manager', 'Manager', 3, 'A'),
+            ('role', 'individual', 'Individual Contributor', 4, 'A'),
+            ('role', 'consultant', 'Consultant', 5, 'A'),
+            
+            # AI Experience options
+            ('ai_experience', 'none', 'No experience', 1, 'A'),
+            ('ai_experience', 'basic', 'Basic understanding', 2, 'A'),
+            ('ai_experience', 'intermediate', 'Some implementation', 3, 'A'),
+            ('ai_experience', 'advanced', 'Advanced implementation', 4, 'A'),
+            ('ai_experience', 'expert', 'Expert level', 5, 'A'),
+            
+            # Budget options
+            ('budget', 'under_10k', 'Under $10,000', 1, 'A'),
+            ('budget', '10k_50k', '$10,000 - $50,000', 2, 'A'),
+            ('budget', '50k_100k', '$50,000 - $100,000', 3, 'A'),
+            ('budget', '100k_500k', '$100,000 - $500,000', 4, 'A'),
+            ('budget', '500k_plus', '$500,000+', 5, 'A'),
+            
+            # Timeline options
+            ('timeline', 'immediate', 'Immediate (0-3 months)', 1, 'A'),
+            ('timeline', 'short_term', 'Short term (3-6 months)', 2, 'A'),
+            ('timeline', 'medium_term', 'Medium term (6-12 months)', 3, 'A'),
+            ('timeline', 'long_term', 'Long term (1+ years)', 4, 'A'),
+            
+            # Team availability options
+            ('team_availability', 'full_time', 'Full-time dedicated team', 1, 'A'),
+            ('team_availability', 'part_time', 'Part-time availability', 2, 'A'),
+            ('team_availability', 'limited', 'Limited availability', 3, 'A'),
+            ('team_availability', 'external', 'External resources needed', 4, 'A'),
+            
+            # Change management experience options
+            ('change_management_experience', 'none', 'No experience', 1, 'A'),
+            ('change_management_experience', 'basic', 'Basic experience', 2, 'A'),
+            ('change_management_experience', 'moderate', 'Moderate experience', 3, 'A'),
+            ('change_management_experience', 'extensive', 'Extensive experience', 4, 'A'),
+            
+            # Data governance options
+            ('data_governance', 'none', 'No formal governance', 1, 'A'),
+            ('data_governance', 'basic', 'Basic policies', 2, 'A'),
+            ('data_governance', 'moderate', 'Moderate governance', 3, 'A'),
+            ('data_governance', 'advanced', 'Advanced governance', 4, 'A'),
+            
+            # Expected ROI options
+            ('expected_roi', 'under_20', 'Under 20%', 1, 'A'),
+            ('expected_roi', '20_50', '20-50%', 2, 'A'),
+            ('expected_roi', '50_100', '50-100%', 3, 'A'),
+            ('expected_roi', '100_plus', '100%+', 4, 'A'),
+            
+            # Payback period options
+            ('payback_period', 'under_6', 'Under 6 months', 1, 'A'),
+            ('payback_period', '6_12', '6-12 months', 2, 'A'),
+            ('payback_period', '12_24', '12-24 months', 3, 'A'),
+            ('payback_period', '24_plus', '24+ months', 4, 'A'),
+            
+            # Pilot project options
+            ('pilot_project', 'yes', 'Yes, we want to start with a pilot', 1, 'A'),
+            ('pilot_project', 'no', 'No, we want full implementation', 2, 'A'),
+            ('pilot_project', 'maybe', 'Maybe, depending on recommendations', 3, 'A'),
+            
+            # Maintenance plan options
+            ('maintenance_plan', 'internal', 'Internal team', 1, 'A'),
+            ('maintenance_plan', 'external', 'External vendor', 2, 'A'),
+            ('maintenance_plan', 'hybrid', 'Hybrid approach', 3, 'A'),
+            ('maintenance_plan', 'undecided', 'Not decided yet', 4, 'A'),
+            
+            # Strategic Blueprint options
+            ('market_position', 'leader', 'Market Leader', 1, 'S'),
+            ('market_position', 'challenger', 'Market Challenger', 2, 'S'),
+            ('market_position', 'follower', 'Market Follower', 3, 'S'),
+            ('market_position', 'niche', 'Niche Player', 4, 'S'),
+            
+            ('risk_tolerance', 'low', 'Low Risk Tolerance', 1, 'S'),
+            ('risk_tolerance', 'moderate', 'Moderate Risk Tolerance', 2, 'S'),
+            ('risk_tolerance', 'high', 'High Risk Tolerance', 3, 'S'),
+            
+            ('org_structure', 'centralized', 'Centralized', 1, 'S'),
+            ('org_structure', 'decentralized', 'Decentralized', 2, 'S'),
+            ('org_structure', 'matrix', 'Matrix', 3, 'S'),
+            ('org_structure', 'hybrid', 'Hybrid', 4, 'S'),
+            
+            ('decision_process', 'autocratic', 'Autocratic', 1, 'S'),
+            ('decision_process', 'consensus', 'Consensus-based', 2, 'S'),
+            ('decision_process', 'committee', 'Committee-based', 3, 'S'),
+            ('decision_process', 'democratic', 'Democratic', 4, 'S'),
+            
+            ('team_size', 'small', 'Small (1-5 people)', 1, 'S'),
+            ('team_size', 'medium', 'Medium (6-15 people)', 2, 'S'),
+            ('team_size', 'large', 'Large (16+ people)', 3, 'S'),
+            
+            ('budget_allocation', 'conservative', 'Conservative (10-20% of revenue)', 1, 'S'),
+            ('budget_allocation', 'moderate', 'Moderate (20-30% of revenue)', 2, 'S'),
+            ('budget_allocation', 'aggressive', 'Aggressive (30%+ of revenue)', 3, 'S'),
+            
+            ('roi_timeline', 'short', 'Short term (6-12 months)', 1, 'S'),
+            ('roi_timeline', 'medium', 'Medium term (1-2 years)', 2, 'S'),
+            ('roi_timeline', 'long', 'Long term (2+ years)', 3, 'S')
+        ]
+        
+        for option in dropdown_options:
+            cursor.execute('''
+                INSERT OR REPLACE INTO dropdown_options 
+                (field_name, option_value, option_label, sort_order, form_flag)
+                VALUES (?, ?, ?, ?, ?)
+            ''', option)
 
 
 # Initialize database manager (used by app)

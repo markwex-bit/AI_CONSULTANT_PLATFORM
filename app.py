@@ -1935,6 +1935,316 @@ def send_appointment_confirmation(data):
         
     except Exception as e:
         print(f"Email sending failed: {e}")
+
+# Dynamic Form Builder API Endpoints
+@app.route('/api/section_configurations')
+def get_section_configurations():
+    """Get all section configurations"""
+    try:
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT section_name, section_title, step_number, is_required, is_visible, description, form_flag
+            FROM section_configurations
+            ORDER BY step_number, section_name
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        configurations = []
+        for row in rows:
+            configurations.append({
+                'section_name': row[0],
+                'section_title': row[1],
+                'step_number': row[2],
+                'is_required': bool(row[3]),
+                'is_visible': bool(row[4]),
+                'description': row[5],
+                'form_flag': row[6]
+            })
+        
+        return jsonify({
+            'success': True,
+            'configurations': configurations
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/field_configurations')
+def get_field_configurations():
+    """Get all field configurations"""
+    try:
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        form_flag = request.args.get('form_flag')
+        
+        query = '''
+            SELECT field_name, field_label, field_type, section_name, is_required, is_visible, form_flag
+            FROM field_configurations
+        '''
+        
+        if form_flag:
+            query += ' WHERE form_flag = ?'
+            cursor.execute(query, (form_flag,))
+        else:
+            cursor.execute(query)
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        configurations = []
+        for row in rows:
+            configurations.append({
+                'field_name': row[0],
+                'field_label': row[1],
+                'field_type': row[2],
+                'section_name': row[3],
+                'is_required': bool(row[4]),
+                'is_visible': bool(row[5]),
+                'form_flag': row[6]
+            })
+        
+        return jsonify({
+            'success': True,
+            'configurations': configurations
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/dropdown_options')
+def get_dropdown_options():
+    """Get all dropdown options"""
+    try:
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT option_id, field_name, option_value, option_label, sort_order, form_flag
+            FROM dropdown_options
+            ORDER BY field_name, sort_order
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        options = []
+        for row in rows:
+            options.append({
+                'option_id': row[0],
+                'field_name': row[1],
+                'option_value': row[2],
+                'option_label': row[3],
+                'sort_order': row[4],
+                'form_flag': row[5]
+            })
+        
+        return jsonify({
+            'success': True,
+            'options': options
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/field_configurations/<field_name>', methods=['PUT'])
+def update_field_configuration(field_name):
+    """Update a field configuration"""
+    try:
+        data = request.get_json()
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE field_configurations
+            SET field_label = ?, field_type = ?, section_name = ?, is_required = ?, is_visible = ?
+            WHERE field_name = ?
+        ''', (
+            data.get('field_label'),
+            data.get('field_type'),
+            data.get('section_name'),
+            data.get('is_required', False),
+            data.get('is_visible', True),
+            field_name
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/section_configurations', methods=['POST'])
+def add_section_configuration():
+    """Add a new section configuration"""
+    try:
+        data = request.get_json()
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO section_configurations (section_name, section_title, step_number, is_required, is_visible, description, form_flag)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            data.get('section_name'),
+            data.get('section_title'),
+            data.get('step_number'),
+            data.get('is_required', False),
+            data.get('is_visible', True),
+            data.get('description'),
+            data.get('form_flag')
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/section_configurations/<section_name>', methods=['PUT'])
+def update_section_configuration(section_name):
+    """Update a section configuration"""
+    try:
+        data = request.get_json()
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE section_configurations
+            SET section_title = ?, step_number = ?, is_required = ?, is_visible = ?, description = ?
+            WHERE section_name = ?
+        ''', (
+            data.get('section_title'),
+            data.get('step_number'),
+            data.get('is_required', False),
+            data.get('is_visible', True),
+            data.get('description'),
+            section_name
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/section_configurations/<section_name>', methods=['DELETE'])
+def delete_section_configuration(section_name):
+    """Delete a section configuration"""
+    try:
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        # First update any fields that reference this section
+        cursor.execute('''
+            UPDATE field_configurations
+            SET section_name = NULL
+            WHERE section_name = ?
+        ''', (section_name,))
+        
+        # Then delete the section
+        cursor.execute('DELETE FROM section_configurations WHERE section_name = ?', (section_name,))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/dropdown_options', methods=['POST'])
+def add_dropdown_option():
+    """Add a new dropdown option"""
+    try:
+        data = request.get_json()
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO dropdown_options (field_name, option_value, option_label, sort_order, form_flag)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            data.get('field_name'),
+            data.get('option_value'),
+            data.get('option_label'),
+            data.get('sort_order', 0),
+            data.get('form_flag')
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/dropdown_options/<int:option_id>', methods=['PUT'])
+def update_dropdown_option(option_id):
+    """Update a dropdown option"""
+    try:
+        data = request.get_json()
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        # Build dynamic update query
+        update_fields = []
+        values = []
+        
+        if 'option_value' in data:
+            update_fields.append('option_value = ?')
+            values.append(data['option_value'])
+        
+        if 'option_label' in data:
+            update_fields.append('option_label = ?')
+            values.append(data['option_label'])
+        
+        if 'sort_order' in data:
+            update_fields.append('sort_order = ?')
+            values.append(data['sort_order'])
+        
+        if update_fields:
+            values.append(option_id)
+            query = f'UPDATE dropdown_options SET {", ".join(update_fields)} WHERE option_id = ?'
+            cursor.execute(query, values)
+            
+            conn.commit()
+        
+        conn.close()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/dropdown_options/<int:option_id>', methods=['DELETE'])
+def delete_dropdown_option(option_id):
+    """Delete a dropdown option"""
+    try:
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM dropdown_options WHERE option_id = ?', (option_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)
