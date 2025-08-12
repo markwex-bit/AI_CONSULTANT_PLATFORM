@@ -591,6 +591,15 @@
                             {% if current_tools %}
                             <p><strong>Current Tools:</strong> {{ current_tools|join(', ') }}</p>
                             {% endif %}
+                            {% if deployment_preference %}
+                            <p><strong>Deployment Preference:</strong> {{ deployment_preference|title }}</p>
+                            {% endif %}
+                            {% if solution_preference %}
+                            <p><strong>Solution Preference:</strong> {{ solution_preference|title }}</p>
+                            {% endif %}
+                            {% if technical_expertise %}
+                            <p><strong>Technical Expertise:</strong> {{ technical_expertise|title }}</p>
+                            {% endif %}
                         </div>
                         
                         <div class="data-summary-card">

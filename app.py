@@ -1935,6 +1935,110 @@ def send_appointment_confirmation(data):
         
     except Exception as e:
         print(f"Email sending failed: {e}")
+# ---------- Field Configuration API Endpoints ----------
+@app.route('/api/field_configurations', methods=['GET'])
+def get_field_configurations():
+    """Get all field configurations"""
+    try:
+        form_flag = request.args.get('form_flag')
+        configs = db_manager.get_field_configurations(form_flag)
+        return jsonify({'success': True, 'configurations': configs})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/field_configurations/<field_name>', methods=['PUT'])
+def update_field_configuration(field_name):
+    """Update a field configuration"""
+    try:
+        data = request.get_json()
+        success = db_manager.update_field_configuration(field_name, data)
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/field_configurations/initialize', methods=['POST'])
+def initialize_field_configurations():
+    """Initialize default field configurations"""
+    try:
+        db_manager.initialize_field_configurations()
+        return jsonify({'success': True, 'message': 'Field configurations initialized'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/required_fields', methods=['GET'])
+def get_required_fields():
+    """Get list of required field names"""
+    try:
+        required_fields = db_manager.get_required_fields()
+        return jsonify({'success': True, 'required_fields': required_fields})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# ---------- Section Configuration API Endpoints ----------
+@app.route('/api/section_configurations', methods=['GET'])
+def get_section_configurations():
+    """Get all section configurations"""
+    try:
+        configs = db_manager.get_section_configurations()
+        return jsonify({'success': True, 'configurations': configs})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/section_configurations/<section_name>', methods=['PUT'])
+def update_section_configuration(section_name):
+    """Update a section configuration"""
+    try:
+        data = request.get_json()
+        success = db_manager.update_section_configuration(section_name, data)
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# ---------- Dropdown Options API Endpoints ----------
+@app.route('/api/dropdown_options', methods=['GET'])
+def get_dropdown_options():
+    """Get dropdown options for all fields or a specific field"""
+    try:
+        field_name = request.args.get('field_name')
+        options = db_manager.get_dropdown_options(field_name)
+        return jsonify({'success': True, 'options': options})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/dropdown_options', methods=['POST'])
+def add_dropdown_option():
+    """Add a new dropdown option"""
+    try:
+        data = request.get_json()
+        success = db_manager.add_dropdown_option(
+            data.get('field_name'),
+            data.get('option_value'),
+            data.get('option_label'),
+            data.get('sort_order', 0)
+        )
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/dropdown_options/<int:option_id>', methods=['PUT'])
+def update_dropdown_option(option_id):
+    """Update a dropdown option"""
+    try:
+        data = request.get_json()
+        success = db_manager.update_dropdown_option(option_id, data)
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/dropdown_options/<int:option_id>', methods=['DELETE'])
+def delete_dropdown_option(option_id):
+    """Delete a dropdown option"""
+    try:
+        success = db_manager.delete_dropdown_option(option_id)
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)

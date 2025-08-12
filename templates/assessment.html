@@ -1,2010 +1,619 @@
 {% extends "base.html" %}
-{% block title %}AI Assessment & Reports - AI Strategy Consultant{% endblock %}
+{% block title %}AI Strategy Assessment - Dynamic Form{% endblock %}
 {% block extra_head %}
 <style>
     .assessment-container {
-        max-width: 1200px;
+        max-width: 800px;
         margin: 2rem auto;
         background: white;
         border-radius: 12px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
         overflow: hidden;
     }
+    
     .assessment-header {
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
         color: white;
-        padding: 4rem 2rem;
-        text-align: center;
-    }
-    .assessment-header h1 {
-        font-size: 3.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        line-height: 1.2;
-    }
-    .assessment-header .subtitle {
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
-        opacity: 0.9;
-    }
-    .hero-benefits {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-top: 3rem;
-    }
-    .hero-benefit {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 1.5rem;
-        border-radius: 12px;
-        backdrop-filter: blur(10px);
-    }
-    .hero-benefit h3 {
-        font-size: 1.2rem;
-        margin-bottom: 0.5rem;
-        color: #fbbf24;
-    }
-    .hero-benefit p {
-        font-size: 0.95rem;
-        opacity: 0.9;
-    }
-    .assessment-body {
-        padding: 3rem 2rem;
-    }
-    /* Removed sales/marketing sections for assessment pages */
-    .sales-section h2 {
-        font-size: 2.5rem;
-        color: #1f2937;
-        margin-bottom: 1rem;
-    }
-    .sales-section .subtitle {
-        font-size: 1.2rem;
-        color: #6b7280;
-        margin-bottom: 2rem;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .problem-solution {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 3rem;
-        margin: 3rem 0;
-        align-items: center;
-    }
-    .problem-box, .solution-box {
         padding: 2rem;
-        border-radius: 12px;
         text-align: center;
     }
-    .problem-box {
-        background: #fef2f2;
-        border: 2px solid #fecaca;
+    
+    .assessment-progress {
+        background: #f8fafc;
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
     }
-    .problem-box h3 {
-        color: #dc2626;
-        margin-bottom: 1rem;
-    }
-    .solution-box {
-        background: #f0fdf4;
-        border: 2px solid #bbf7d0;
-    }
-    .solution-box h3 {
-        color: #16a34a;
-        margin-bottom: 1rem;
-    }
-    .reports-section {
-        margin-bottom: 4rem;
-    }
-    .reports-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-    .report-card {
-        background: white;
-        border: 2px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 2.5rem;
-        transition: all 0.3s ease;
-        position: relative;
+    
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
         overflow: hidden;
     }
-    .report-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        border-color: #4f46e5;
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981, #059669);
+        transition: width 0.3s ease;
     }
-    .report-card.featured {
-        border-color: #f59e0b;
-        background: linear-gradient(135deg, #fef3c7, #fef7ed);
-        transform: scale(1.02);
-    }
-    .report-card.featured:hover {
-        transform: scale(1.02) translateY(-8px);
-    }
-    .report-badge {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: #f59e0b;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 25px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .report-title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-    }
-    .report-subtitle {
-        font-size: 1.2rem;
-        color: #6b7280;
-        margin-bottom: 1.5rem;
-        font-style: italic;
-    }
-    .report-price {
-        font-size: 3rem;
-        font-weight: 700;
-        color: #4f46e5;
-        margin-bottom: 1.5rem;
-    }
-    .report-price .original {
-        font-size: 1.5rem;
-        text-decoration: line-through;
-        color: #9ca3af;
-        margin-right: 1rem;
-    }
-    .report-features {
-        list-style: none;
-        padding: 0;
-        margin-bottom: 2rem;
-    }
-    .report-features li {
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #f3f4f6;
+    
+    .step-indicators {
         display: flex;
-        align-items: center;
-        font-size: 1rem;
+        justify-content: space-between;
+        margin-top: 1rem;
     }
-    .report-features li:last-child {
-        border-bottom: none;
-    }
-    .report-features li::before {
-        content: "✓";
-        background: #10b981;
-        color: white;
+    
+    .step-indicator {
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
-        width: 24px;
-        height: 24px;
+        background: #e5e7eb;
+        color: #6b7280;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-right: 1rem;
-        font-size: 0.9rem;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
-    .sample-report-btn {
-        background: #f3f4f6;
-        color: #374151;
-        border: 2px solid #d1d5db;
-        padding: 1rem 2rem;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 16px;
         font-weight: 600;
-        margin-bottom: 1.5rem;
-        width: 100%;
-        transition: all 0.3s ease;
+        font-size: 14px;
+        transition: all 0.3s;
     }
-    .sample-report-btn:hover {
-        background: #e5e7eb;
-        border-color: #9ca3af;
-        transform: translateY(-2px);
-    }
-    .purchase-btn {
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    
+    .step-indicator.active {
+        background: #10b981;
         color: white;
-        border: none;
-        padding: 1.25rem 2rem;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 18px;
-        font-weight: 700;
-        width: 100%;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
-    .purchase-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 35px rgba(79, 70, 229, 0.4);
-    }
-    .urgency-banner {
-        background: linear-gradient(135deg, #dc2626, #b91c1c);
+    
+    .step-indicator.completed {
+        background: #059669;
         color: white;
-        padding: 1rem 2rem;
-        text-align: center;
-        margin-bottom: 2rem;
-        border-radius: 10px;
-        font-weight: 600;
     }
-    .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-    .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    @media (max-width: 768px) {
-        .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
-    }
-    .social-proof h3 {
-        font-size: 2rem;
-        color: #1f2937;
-        margin-bottom: 2rem;
-    }
-    .testimonials {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-    .testimonial {
-        background: white;
+    
+    .form-content {
         padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        text-align: left;
     }
-    .testimonial .quote {
-        font-style: italic;
-        margin-bottom: 1rem;
-        color: #4b5563;
-        line-height: 1.6;
-    }
-    .testimonial .author {
-        font-weight: 600;
-        color: #1f2937;
-    }
-    .testimonial .company {
-        color: #6b7280;
-        font-size: 0.9rem;
-    }
-    .guarantee {
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-        padding: 2rem;
-        border-radius: 16px;
-        text-align: center;
-        margin: 3rem 0;
-    }
-    .guarantee h3 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-    }
-    .guarantee p {
-        font-size: 1.1rem;
-        opacity: 0.9;
-    }
-    .assessment-form {
-        display: none;
-        background: #f8fafc;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 2rem;
-        margin-top: 2rem;
-    }
-    .assessment-form.active {
-        display: block;
-    }
-    .form-header {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .selected-report {
-        background: #dbeafe;
-        color: #1e40af;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-        text-align: center;
-        font-weight: 600;
-    }
-    .progress-bar {
-        background: #e5e7eb;
-        border-radius: 10px;
-        overflow: hidden;
-        margin-bottom: 2rem;
-        height: 8px;
-    }
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
-        border-radius: 10px;
-        transition: width 0.3s ease;
-        width: 0%;
-    }
-    .step {
+    
+    .form-step {
         display: none;
     }
-    .step.active {
+    
+    .form-step.active {
         display: block;
     }
+    
     .form-group {
         margin-bottom: 1.5rem;
     }
-    .form-group label {
+    
+    .form-label {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 600;
         color: #374151;
     }
-    .help-text {
-        display: block;
-        font-size: 0.8rem;
-        color: #6b7280;
-        margin: 0.2rem 0 0.5rem 0;
-    }
-    .form-group input,
-    .form-group select {
+    
+    .form-input {
         width: 100%;
         padding: 12px;
         border: 2px solid #e5e7eb;
-        border-radius: 8px;
+        border-radius: 6px;
         font-size: 16px;
+        transition: border-color 0.3s;
     }
-    .challenge-option {
-        display: flex;
-        align-items: center;
-        padding: 1rem;
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+    
+    .form-select {
+        width: 100%;
+        padding: 12px;
         border: 2px solid #e5e7eb;
-        border-radius: 8px;
+        border-radius: 6px;
+        font-size: 16px;
+        background: white;
         cursor: pointer;
-        margin-bottom: 1rem;
     }
-    .challenge-option.selected {
-        border-color: #4f46e5;
-        background: #f0f9ff;
+    
+    .form-select:focus {
+        outline: none;
+        border-color: #3b82f6;
     }
+    
     .checkbox-group {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.75rem 1rem;
-        align-items: start;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.5rem;
+        margin-top: 0.5rem;
     }
-    .checkbox-option {
+    
+    .checkbox-item {
         display: flex;
-        align-items: flex-start;
-        padding: 1rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
         cursor: pointer;
-        transition: all 0.3s ease;
-        background: white;
+        transition: background-color 0.2s;
     }
-    .checkbox-option:hover {
-        border-color: #d1d5db;
-        background: #f9fafb;
+    
+    .checkbox-item:hover {
+        background: #f8fafc;
     }
-    .checkbox-option input[type="checkbox"] {
-        margin-right: 0.75rem;
-        margin-top: 0; /* fix click alignment */
-        width: auto;
+    
+    .checkbox-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
     }
-    .checkbox-option input[type="checkbox"]:checked + span {
-        color: #4f46e5;
-        font-weight: 600;
-    }
-    .step-navigation {
+    
+    .form-buttons {
         display: flex;
         justify-content: space-between;
         margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
     }
-    .btn-secondary {
+    
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-prev {
         background: #6b7280;
         color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
     }
-    .cta-button {
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    
+    .btn-next {
+        background: #10b981;
         color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
+    }
+    
+    .btn-submit {
+        background: #dc2626;
+        color: white;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .help-text {
+        font-size: 14px;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .error-message {
+        color: #dc2626;
+        font-size: 14px;
+        margin-top: 0.25rem;
+    }
+    
+    .section-header {
+        background: #f8fafc;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 6px;
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .section-title {
+        font-size: 18px;
         font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
     }
-    .cta-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+    
+    .section-description {
+        color: #6b7280;
+        font-size: 14px;
     }
-    .results-container {
+    
+    .loading {
         text-align: center;
         padding: 2rem;
+        color: #6b7280;
     }
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
+    
+    .spinner {
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
     }
-    .modal-content {
-        background-color: white;
-        margin: 5% auto;
-        padding: 2rem;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 800px;
-        max-height: 80vh;
-        overflow-y: auto;
-    }
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .close:hover {
-        color: #000;
-    }
-    .sample-report-content {
-        line-height: 1.6;
-    }
-    .sample-report-content h2 {
-        color: #1f2937;
-        margin-bottom: 1rem;
-    }
-    .sample-report-content h3 {
-        color: #374151;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-    }
-    .sample-report-content p {
-        margin-bottom: 1rem;
-        color: #4b5563;
-    }
-    .sample-report-content ul {
-        margin-bottom: 1rem;
-        padding-left: 1.5rem;
-    }
-    .sample-report-content li {
-        margin-bottom: 0.5rem;
-        color: #4b5563;
-    }
-    @media (max-width: 768px) {
-        .assessment-header h1 {
-            font-size: 2.5rem;
-        }
-        .problem-solution {
-            grid-template-columns: 1fr;
-        }
-        .reports-grid {
-            grid-template-columns: 1fr;
-        }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-    <div class="assessment-container">
-        <div class="assessment-header">
-        <h1>Transform Your Business with AI</h1>
-        <div class="subtitle">Get a personalized roadmap to implement AI that drives real results</div>
-        
-        <div class="hero-benefits">
-            <div class="hero-benefit">
-                <h3>🚀 300-500% ROI</h3>
-                <p>Average return on AI investments within 12 months</p>
-            </div>
-            <div class="hero-benefit">
-                <h3>⏰ 24-Hour Delivery</h3>
-                <p>Get your comprehensive report within one business day</p>
-            </div>
-            <div class="hero-benefit">
-                <h3>🎯 Proven Results</h3>
-                <p>Used by 500+ companies to implement successful AI strategies</p>
-            </div>
+<div class="assessment-container">
+    <div class="assessment-header">
+        <h1>🤖 AI Strategy Assessment</h1>
+        <p>Complete this assessment to receive your personalized AI strategy report</p>
+    </div>
+    
+    <div class="assessment-progress">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
         </div>
+        <div class="step-indicators" id="stepIndicators">
+            <!-- Step indicators will be generated dynamically -->
+        </div>
+    </div>
+    
+    <div class="form-content">
+        <div id="loadingMessage" class="loading">
+            <div class="spinner"></div>
+            <p>Loading form configuration...</p>
         </div>
         
-        <div class="assessment-body">
-        <!-- Removed marketing sections for form-focused page -->
-
-        <!-- Reports Selection Section -->
-        <div class="reports-section" id="reportsSection">
-            <h2 style="text-align: center; margin-bottom: 1rem; color: #1f2937;">Choose Your AI Transformation Path</h2>
-            <p style="text-align: center; color: #6b7280; margin-bottom: 2rem; font-size: 1.1rem;">
-                Both reports include personalized recommendations, implementation timelines, and ROI projections
-            </p>
-            
-            <div class="reports-grid">
-                <!-- Assessment Report Card -->
-                <div class="report-card">
-                    <div class="report-title">Assessment Report</div>
-                    <div class="report-subtitle">"What AI opportunities exist for us?"</div>
-                    <div class="report-price">
-                        <span class="original">$950</span>$750
-                    </div>
-                    <ul class="report-features">
-                        <li>Comprehensive AI readiness assessment</li>
-                        <li>3-5 specific opportunity identification</li>
-                        <li>Curated tool recommendations with pricing</li>
-                        <li>6-month implementation roadmap</li>
-                        <li>Detailed ROI projections and payback periods</li>
-                        <li>Risk assessment and mitigation strategies</li>
-                        <li>Priority support for 30 days</li>
-                    </ul>
-                    <button class="sample-report-btn" onclick="showSampleReport('assessment')">📄 View Sample Report</button>
-                    <button class="purchase-btn" onclick="selectReport('assessment', 750)">Get Assessment Report - $750</button>
-                </div>
-                
-                <!-- Strategy Blueprint Card -->
-                <div class="report-card featured">
-                    <div class="report-badge">Most Popular</div>
-                    <div class="report-title">Strategy Blueprint</div>
-                    <div class="report-subtitle">"How do we get there strategically?"</div>
-                    <div class="report-price">
-                        <span class="original">$1,900</span>$1,500
-                    </div>
-                    <ul class="report-features">
-                        <li>Everything from Assessment Report</li>
-                        <li>Detailed competitive analysis and positioning</li>
-                        <li>Comprehensive vendor evaluation matrix (15+ vendors)</li>
-                        <li>Advanced risk assessment & mitigation strategies</li>
-                        <li>Complete change management framework</li>
-                        <li>Team training and hiring recommendations</li>
-                        <li>Quarterly budget planning breakdown</li>
-                        <li>Custom KPI dashboard design</li>
-                        <li>90-day implementation support</li>
-                    </ul>
-                    <button class="sample-report-btn" onclick="showSampleReport('strategy')">📄 View Sample Report</button>
-                    <button class="purchase-btn" onclick="selectReport('strategy', 1500)">Get Strategy Blueprint - $1,500</button>
-                </div>
-            </div>
-        </div>
-
-        
-
-        <!-- Assessment Form (Hidden until payment) -->
-        <div class="assessment-form" id="assessmentForm">
-            <div class="form-header">
-                <h2>Complete Your Assessment</h2>
-                <p>Please provide the following information to generate your personalized report</p>
+        <form id="dynamicAssessmentForm" style="display: none;">
+            <div id="formSteps">
+                <!-- Form steps will be generated dynamically -->
             </div>
             
-            <!-- Selected report info removed per requirements -->
-            
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressBar"></div>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-prev" id="prevBtn" onclick="previousStep()" style="display: none;">← Previous</button>
+                <button type="button" class="btn btn-next" id="nextBtn" onclick="nextStep()" style="display: none;">Next →</button>
+                <button type="submit" class="btn btn-submit" id="submitBtn" style="display: none;">Generate Report</button>
             </div>
-            
-            <form id="assessmentFormElement">
-                <input type="hidden" id="selectedReportType" name="report_type">
-                <input type="hidden" id="selectedReportPrice" name="report_price">
-                
-                <!-- Step 1: Contact & Company Information -->
-    <div class="step active" id="step1">
-                    <h3>Contact & Company Information</h3>
-                    <div class="form-grid-2">
-                        <div class="form-group">
-                            <label>First Name *</label>
-                            <input type="text" name="first_name" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Last Name *</label>
-                            <input type="text" name="last_name" required>
-                        </div>
-                    </div>
-                    <div class="form-grid-3">
-                        <div class="form-group">
-                            <label>Email *</label>
-                            <input type="email" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Phone Number *</label>
-                            <input type="tel" name="phone" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Company Website *</label>
-                            <input type="url" name="website" placeholder="https://example.com" required>
-                        </div>
-                    </div>
-                    <div class="form-grid-2">
-        <div class="form-group">
-            <label>Company Name *</label>
-            <input type="text" name="company_name" required>
-        </div>
-                        <div class="form-group">
-                            <label>Your Role *</label>
-                            <select name="role" required>
-                                <option value="">Select your role</option>
-                                <option value="ceo">CEO/Owner</option>
-                                <option value="coo">COO</option>
-                                <option value="it-director">IT Director</option>
-                                <option value="ops-manager">Operations Manager</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-grid-2">
-        <div class="form-group">
-            <label>Industry *</label>
-            <select name="industry" required>
-                <option value="">Select industry</option>
-                <option value="automotive">Automotive</option>
-                <option value="healthcare">Healthcare</option>
-                <option value="publishing">Publishing/Media</option>
-                <option value="manufacturing">Manufacturing</option>
-                <option value="retail">Retail</option>
-                <option value="professional-services">Professional Services</option>
-                <option value="technology">Technology</option>
-                <option value="other">Other</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Company Size *</label>
-            <select name="company_size" required>
-                <option value="">Select company size</option>
-                <option value="1-10">1-10 employees</option>
-                <option value="11-50">11-50 employees</option>
-                <option value="51-100">51-100 employees</option>
-                <option value="101-250">101-250 employees</option>
-                <option value="251-500">251-500 employees</option>
-                <option value="500+">500+ employees</option>
-            </select>
-        </div>
-        </div>
-    </div>
-    
-                <!-- Step 2: (Skipped) -->
-                <div class="step skip-step" id="step2" data-skip="true">
-                    <!-- Intentionally skipped to avoid duplicate company details -->
-                </div>
-    
-                <!-- Step 3: Business Challenges -->
-                <div class="step" id="step3">
-        <h3>Your Biggest Business Challenges</h3>
-                    <p class="help-text">Select all that apply. This helps us map opportunities to the highest-impact areas.</p>
-        <p>Select all that apply:</p>
-        
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="customer-service">
-            <div style="margin-left: 1rem;">
-                <strong>Customer service bottlenecks</strong><br>
-                <small>Long response times, overwhelmed support team</small>
-            </div>
-        </div>
-        
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="manual-processes">
-            <div style="margin-left: 1rem;">
-                <strong>Too many manual processes</strong><br>
-                <small>Repetitive tasks eating up time</small>
-            </div>
-        </div>
-        
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="data-analysis">
-            <div style="margin-left: 1rem;">
-                <strong>Difficult data analysis</strong><br>
-                <small>Hard to get insights from business data</small>
-            </div>
-        </div>
-        
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="document-processing">
-            <div style="margin-left: 1rem;">
-                <strong>Document processing</strong><br>
-                <small>Managing invoices, contracts, forms manually</small>
-            </div>
-        </div>
-
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="supply-chain-delays">
-            <div style="margin-left: 1rem;">
-                <strong>Supply chain delays</strong><br>
-                <small>Late shipments, stockouts, capacity constraints</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="low-website-conversion">
-            <div style="margin-left: 1rem;">
-                <strong>Low website conversion</strong><br>
-                <small>Traffic not converting to leads or sales</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="lead-quality">
-            <div style="margin-left: 1rem;">
-                <strong>Poor lead quality</strong><br>
-                <small>Low intent leads, low close rates</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="customer-churn">
-            <div style="margin-left: 1rem;">
-                <strong>Customer churn</strong><br>
-                <small>High cancellations, low retention</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="manual-reporting">
-            <div style="margin-left: 1rem;">
-                <strong>Manual reporting</strong><br>
-                <small>Slow, error-prone, not real-time</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="data-silos">
-            <div style="margin-left: 1rem;">
-                <strong>Data silos</strong><br>
-                <small>Disconnected systems, duplicate data</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="handoff-errors">
-            <div style="margin-left: 1rem;">
-                <strong>Process handoff errors</strong><br>
-                <small>Breakdowns between teams and systems</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="forecasting-accuracy">
-            <div style="margin-left: 1rem;">
-                <strong>Forecasting accuracy</strong><br>
-                <small>Unreliable demand or revenue forecasts</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="inventory-management">
-            <div style="margin-left: 1rem;">
-                <strong>Inventory management</strong><br>
-                <small>Overstock, stockouts, carrying costs</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="onboarding-time">
-            <div style="margin-left: 1rem;">
-                <strong>Slow onboarding</strong><br>
-                <small>Time to productivity for new hires or clients</small>
-            </div>
-        </div>
-        <div class="challenge-option" onclick="toggleChallenge(this)">
-            <input type="checkbox" name="challenges" value="no-show-appointments">
-            <div style="margin-left: 1rem;">
-                <strong>No-show appointments</strong><br>
-                <small>Missed bookings, wasted capacity</small>
-            </div>
-        </div>
-
-        <!-- Other challenge (free text) -->
-        <div class="form-group">
-            <label>Other challenge</label>
-            <input type="text" id="challenges_other_text" data-other-for="challenges" placeholder="Describe your challenge">
-        </div>
-    </div>
-    
-                <!-- Step 4: AI Readiness & Current Tools -->
-                <div class="step" id="step4">
-                    <h3>AI Readiness & Current Technology</h3>
-                    <p class="help-text">Tell us where you are today. Use your best estimate—no wrong answers. Current tools and AI experience help us tailor recommendations.</p>
-        
-        <div class="form-group">
-            <label>Current Technology Level</label>
-            <select name="current_tech">
-                <option value="basic">Basic - Mostly manual processes, basic software</option>
-                <option value="intermediate">Intermediate - Some digital tools, basic automation</option>
-                <option value="advanced">Advanced - Well-integrated systems, some AI</option>
-            </select>
-        </div>
-        
-                        <div class="form-group">
-            <label>AI Experience</label>
-            <select name="ai_experience">
-                <option value="none">None - No AI experience</option>
-                <option value="exploring">Exploring - Learning about AI possibilities</option>
-                            <option value="piloting">Piloting - Running limited pilots</option>
-                <option value="implementing">Implementing - Currently using some AI tools</option>
-                            <option value="scaling">Scaling - Expanding AI across teams</option>
-                        </select>
-                    </div>
-                        <!-- Removed other free-text for dropdown per requirements -->
-                    
-                    <div class="form-group">
-                        <label>Current Tools & Software</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="current_tools" value="crm"> CRM (Salesforce, HubSpot, etc.)
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="current_tools" value="erp"> ERP (SAP, Oracle, etc.)
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="current_tools" value="analytics"> Analytics (Google Analytics, Tableau, etc.)
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="current_tools" value="automation"> Automation (Zapier, IFTTT, etc.)
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="current_tools" value="communication"> Communication (Slack, Teams, etc.)
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="current_tools" value="project-management"> Project Management (Asana, Jira, etc.)
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="current_tools" value="accounting"> Accounting (QuickBooks, Xero, etc.)
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="current_tools" value="marketing"> Marketing (Mailchimp, Hootsuite, etc.)
-                            </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="current_tools" placeholder="Other tool(s), specify here">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Tool Preferences (What's most important to you?)</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="tool_preferences" value="ease-of-use"> Ease of use and user adoption
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="tool_preferences" value="integration"> Integration with existing systems
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="tool_preferences" value="cost-effectiveness"> Cost-effectiveness and ROI
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="tool_preferences" value="scalability"> Scalability and growth potential
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="tool_preferences" value="support"> Customer support and training
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="tool_preferences" value="security"> Security and compliance
-                            </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="tool_preferences" placeholder="Other preference, specify here">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 5: Implementation & Resources -->
-                <div class="step" id="step5">
-                    <h3>Implementation Planning & Resources</h3>
-                    <p class="help-text">Tell us your priorities and available resources so we can propose a realistic plan.</p>
-                    
-                    <div class="form-group">
-                        <label>Implementation Priority</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_priority" value="customer-service"> Customer service automation
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_priority" value="data-analytics"> Data analytics and insights
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_priority" value="process-automation"> Process automation
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_priority" value="marketing"> Marketing and lead generation
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_priority" value="operations"> Operations optimization
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_priority" value="product-development"> Product development
-                            </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="implementation_priority" placeholder="Other priority, specify here">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Team Availability for Implementation</label>
-                            <select name="team_availability">
-                            <option value="dedicated">Dedicated team available full-time</option>
-                            <option value="part-time">Part-time team members available</option>
-                            <option value="limited">Limited availability, need external support</option>
-                            <option value="consultant">Prefer consultant-led implementation</option>
-                        </select>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="team_availability" placeholder="If other, specify here">
-                            </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Change Management Experience</label>
-                            <select name="change_management_experience">
-                            <option value="none">None - First major technology change</option>
-                            <option value="some">Some - Previous software implementations</option>
-                            <option value="experienced">Experienced - Multiple successful changes</option>
-                            <option value="expert">Expert - Well-established change processes</option>
-            </select>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="change_management_experience" placeholder="If other, specify here">
-                            </div>
-        </div>
-        
-        <div class="form-group">
-            <label>Estimated AI Budget (Annual)</label>
-            <select name="budget">
-                <option value="under-25k">Under $25,000</option>
-                <option value="25k-50k">$25,000 - $50,000</option>
-                <option value="50k-100k">$50,000 - $100,000</option>
-                <option value="over-100k">Over $100,000</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label>Implementation Timeline</label>
-            <select name="timeline">
-                <option value="3-months">3 months</option>
-                <option value="6-months">6 months</option>
-                <option value="12-months">12 months</option>
-                <option value="flexible">Flexible</option>
-            </select>
-        </div>
-    </div>
-    
-                <!-- Step 6: Data & Security -->
-                <div class="step" id="step6">
-                    <h3>Data Governance & Security</h3>
-                    <p class="help-text">Security and compliance guide vendor selection and solution design. Choose what applies.</p>
-                    
-        <div class="form-group">
-                        <label>Data Governance Maturity</label>
-                        <select name="data_governance">
-                            <option value="none">None - No formal data governance</option>
-                            <option value="basic">Basic - Some data policies in place</option>
-                            <option value="intermediate">Intermediate - Well-defined data processes</option>
-                            <option value="advanced">Advanced - Comprehensive data governance</option>
-                        </select>
-        </div>
-                    
-        <div class="form-group">
-                        <label>Security Requirements</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="security_requirements" value="soc2"> SOC 2 Compliance
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="security_requirements" value="gdpr"> GDPR Compliance
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="security_requirements" value="hipaa"> HIPAA Compliance
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="security_requirements" value="pci"> PCI DSS Compliance
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="security_requirements" value="iso27001"> ISO 27001
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="security_requirements" value="basic"> Basic security requirements
-                            </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="security_requirements" placeholder="Other security requirement, specify here">
-                            </div>
-        </div>
-                    </div>
-                    
-        <div class="form-group">
-                        <label>Compliance Needs</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="compliance_needs" value="financial"> Financial services regulations
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="compliance_needs" value="healthcare"> Healthcare regulations
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="compliance_needs" value="government"> Government contracts
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="compliance_needs" value="international"> International data laws
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="compliance_needs" value="industry"> Industry-specific regulations
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="compliance_needs" value="none"> No specific compliance needs
-                            </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="compliance_needs" placeholder="Other compliance need, specify here">
-                            </div>
-        </div>
-                    </div>
-                    
-        <div class="form-group">
-                        <label>Integration Requirements</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="integration_requirements" value="api"> API integrations</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="integration_requirements" value="database"> Database connections</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="integration_requirements" value="cloud"> Cloud platform integration</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="integration_requirements" value="legacy"> Legacy system integration</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="integration_requirements" value="mobile"> Mobile app integration</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="integration_requirements" value="none"> No specific integration needs</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="integration_requirements" placeholder="Other integration requirement, specify here">
-                            </div>
-                        </div>
-        </div>
-    </div>
-    
-                <!-- Step 7: Success Metrics & ROI -->
-                <div class="step" id="step7">
-                    <h3>Success Metrics & ROI Expectations</h3>
-                    <p class="help-text">Pick how you measure success and the ROI/payback you expect so we can size the business case.</p>
-                    
-                    <div class="form-group">
-                        <label>Success Metrics</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="success_metrics" value="cost-reduction"> Cost reduction</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="success_metrics" value="efficiency"> Efficiency improvement</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="success_metrics" value="customer-satisfaction"> Customer satisfaction</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="success_metrics" value="revenue-growth"> Revenue growth</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="success_metrics" value="time-savings"> Time savings</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="success_metrics" value="accuracy"> Improved accuracy</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="success_metrics" value="scalability"> Scalability</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="success_metrics" value="innovation"> Innovation capabilities</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="success_metrics" placeholder="Other success metric, specify here">
-                            </div>
-        </div>
-    </div>
-                    
-                    <div class="form-group">
-                        <label>Expected ROI Range</label>
-                        <select name="expected_roi">
-                            <option value="100-200">100-200%</option>
-                            <option value="200-300">200-300%</option>
-                            <option value="300-500">300-500%</option>
-                            <option value="500-1000">500-1000%</option>
-                            <option value="1000+">1000%+</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Expected Payback Period</label>
-                        <select name="payback_period">
-                            <option value="3-6-months">3-6 months</option>
-                            <option value="6-12-months">6-12 months</option>
-                            <option value="12-18-months">12-18 months</option>
-                            <option value="18-24-months">18-24 months</option>
-                            <option value="24+months">24+ months</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Risk Factors</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="risk_factors" value="budget-constraints"> Budget constraints</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="risk_factors" value="time-constraints"> Time constraints</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="risk_factors" value="skill-gaps"> Skill gaps</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="risk_factors" value="resistance"> Employee resistance</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="risk_factors" value="data-quality"> Data quality issues</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="risk_factors" value="integration"> Integration challenges</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="risk_factors" value="vendor-lockin"> Vendor lock-in concerns</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="risk_factors" value="security"> Security concerns</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="risk_factors" placeholder="Other risk factor, specify here">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Mitigation Strategies</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="mitigation_strategies" value="phased-approach"> Phased implementation approach</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="mitigation_strategies" value="pilot-projects"> Pilot projects</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="mitigation_strategies" value="training"> Comprehensive training</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="mitigation_strategies" value="change-management"> Change management program</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="mitigation_strategies" value="vendor-evaluation"> Thorough vendor evaluation</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="mitigation_strategies" value="data-audit"> Data quality audit</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="mitigation_strategies" value="security-review"> Security review</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="mitigation_strategies" value="consultant-support"> Consultant support</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="mitigation_strategies" placeholder="Other mitigation strategy, specify here">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 8: Implementation Details -->
-                <div class="step" id="step8">
-                    <h3>Implementation & Resource Planning</h3>
-                    <p class="help-text">Your preferred pilot focus, scaling needs, and maintenance approach inform timeline and budget.</p>
-                    
-                    <div class="form-group">
-                        <label>Implementation Phases (Select all that apply)</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_phases" value="assessment"> Assessment and planning</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_phases" value="pilot"> Pilot project</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_phases" value="core"> Core implementation</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_phases" value="integration"> System integration</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_phases" value="training"> Training and adoption</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="implementation_phases" value="optimization"> Optimization and scaling</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="implementation_phases" placeholder="Other implementation phase, specify here">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Resource Requirements (Select all that apply)</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="resource_requirements" value="technical-lead"> Technical lead</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="resource_requirements" value="project-manager"> Project manager</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="resource_requirements" value="data-analyst"> Data analyst</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="resource_requirements" value="change-manager"> Change manager</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="resource_requirements" value="end-users"> End user representatives</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="resource_requirements" value="external-consultant"> External consultant</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="resource_requirements" placeholder="Other resource requirement, specify here">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Training Needs (Select all that apply)</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="training_needs" value="technical"> Technical training</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="training_needs" value="user"> End user training</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="training_needs" value="management"> Management training</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="training_needs" value="change-management"> Change management training</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="training_needs" value="ongoing"> Ongoing support and training</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="training_needs" placeholder="Other training need, specify here">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Vendor Criteria (Select all that apply)</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="vendor_criteria" value="reputation"> Strong reputation and track record</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="vendor_criteria" value="support"> Excellent customer support</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="vendor_criteria" value="pricing"> Competitive pricing</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="vendor_criteria" value="integration"> Easy integration</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="vendor_criteria" value="scalability"> Scalable solutions</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="vendor_criteria" value="security"> Strong security features</label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="vendor_criteria" value="compliance"> Compliance certifications</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="vendor_criteria" placeholder="Other vendor criteria, specify here">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Pilot Project Preference</label>
-                        <select name="pilot_project">
-                            <option value="customer-service">Customer service automation</option>
-                            <option value="data-analytics">Data analytics dashboard</option>
-                            <option value="process-automation">Process automation</option>
-                            <option value="marketing">Marketing automation</option>
-                            <option value="document-processing">Document processing</option>
-                            <option value="other">Other (specify in comments)</option>
-                        </select>
-                        <div class="form-group" style="margin-top:0.5rem;">
-                            <input type="text" data-other-for="pilot_project" placeholder="If other, specify here">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Scalability Requirements</label>
-                        <select name="scalability_requirements">
-                            <option value="low">Low - Current team size</option>
-                            <option value="medium">Medium - 2-3x growth expected</option>
-                            <option value="high">High - 5-10x growth expected</option>
-                            <option value="enterprise">Enterprise - Unlimited scaling</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Maintenance Plan Preference</label>
-                        <select name="maintenance_plan">
-                            <option value="self-managed">Self-managed with vendor support</option>
-                            <option value="vendor-managed">Vendor-managed maintenance</option>
-                            <option value="hybrid">Hybrid approach</option>
-                            <option value="consultant">Consultant-managed</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <!-- Step 9: Results -->
-                <div class="step" id="step9">
-                    <h3>Your Report is Ready!</h3>
-        <div class="results-container" id="resultsContainer"></div>
-    </div>
-    
-    
-    <div class="step-navigation">
-        <button type="button" class="btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">Previous</button>
-        <button type="button" class="cta-button" id="nextBtn" onclick="changeStep(1)">Next</button>
-    </div>
-</form>
-</div>
-</div>
-</div>
-
-<!-- Sample Report Modal -->
-<div id="sampleModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeSampleModal()">&times;</span>
-        <div id="sampleReportContent" class="sample-report-content">
-            <!-- Sample report content will be loaded here -->
-        </div>
+        </form>
     </div>
 </div>
 
 <script>
-let currentStep = 1;
-const totalSteps = 9;
-let selectedReportType = '';
-let selectedReportPrice = 0;
+let formConfig = {
+    sections: [],
+    fields: [],
+    currentStep: 1,
+    totalSteps: 0
+};
 
-function selectReport(type, price) {
-    selectedReportType = type;
-    selectedReportPrice = price;
-    
-    // Simulate payment success (in real implementation, this would be after actual payment)
-    alert(`Payment successful! You've purchased the ${type === 'assessment' ? 'Assessment Report' : 'Strategy Blueprint'} for $${price.toLocaleString()}.`);
-    
-    // Show assessment form
-    document.getElementById('reportsSection').style.display = 'none';
-    document.getElementById('assessmentForm').classList.add('active');
-    // Reset wizard state
-    sessionStorage.removeItem('assessment_id');
-    currentStep = 1;
-    showStep(currentStep);
-    
-    // Set hidden form values
-    document.getElementById('selectedReportType').value = type;
-    document.getElementById('selectedReportPrice').value = price;
-}
+let formData = {};
 
-function showSampleReport(type) {
-    const modal = document.getElementById('sampleModal');
-    const content = document.getElementById('sampleReportContent');
-    
-    if (type === 'assessment') {
-        content.innerHTML = `
-            <div style="max-width: 800px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-                <!-- Header -->
-                <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 2rem; border-radius: 12px 12px 0 0; text-align: center;">
-                    <h1 style="margin: 0; font-size: 2.5rem; font-weight: 700;">AI Assessment Report</h1>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.9;">TechCorp Inc. - Technology Sector</p>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 1rem; opacity: 0.8;">Generated: ${new Date().toLocaleDateString()}</p>
-                </div>
-
-                <!-- Executive Summary -->
-                <div style="background: #f8fafc; padding: 2rem; border-left: 4px solid #4f46e5;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Executive Summary</h2>
-                    <p style="font-size: 1.1rem; line-height: 1.6; color: #374151;">
-                        Based on our comprehensive analysis of TechCorp Inc., we've identified <strong>significant AI opportunities</strong> that could drive substantial business value. 
-                        Your organization demonstrates <strong>strong readiness for AI implementation</strong> with an overall score of <span style="color: #059669; font-weight: 700; font-size: 1.2rem;">85%</span>.
-                    </p>
-                    <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h3 style="color: #4f46e5; margin-top: 0;">Key Highlights</h3>
-                        <ul style="list-style: none; padding: 0; margin: 0;">
-                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
-                                <span style="font-weight: 600; color: #1f2937;">🎯 Primary Opportunities:</span> Customer service automation, data analysis enhancement, process optimization
-                            </li>
-                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
-                                <span style="font-weight: 600; color: #1f2937;">💰 Estimated ROI:</span> <span style="color: #059669; font-weight: 700;">300-500% within 12 months</span>
-                            </li>
-                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
-                                <span style="font-weight: 600; color: #1f2937;">⏱️ Implementation Timeline:</span> 6-9 months with phased approach
-                            </li>
-                            <li style="padding: 0.5rem 0;">
-                                <span style="font-weight: 600; color: #1f2937;">🎯 Risk Profile:</span> <span style="color: #d97706;">Low to moderate</span> with proper planning
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- AI Readiness Breakdown -->
-                <div style="background: white; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">AI Readiness Assessment</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                        <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #0ea5e9;">
-                            <h4 style="margin: 0 0 0.5rem 0; color: #0c4a6e;">Technology Infrastructure</h4>
-                            <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">92%</div>
-                            <p style="margin: 0.5rem 0 0 0; color: #0369a1; font-size: 0.9rem;">Excellent cloud infrastructure and API readiness</p>
-                        </div>
-                        <div style="background: #f0fdf4; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
-                            <h4 style="margin: 0 0 0.5rem 0; color: #166534;">Data Quality</h4>
-                            <div style="font-size: 2rem; font-weight: 700; color: #22c55e;">88%</div>
-                            <p style="margin: 0.5rem 0 0 0; color: #15803d; font-size: 0.9rem;">Well-structured data with good governance</p>
-                        </div>
-                        <div style="background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                            <h4 style="margin: 0 0 0.5rem 0; color: #92400e;">Team Skills</h4>
-                            <div style="font-size: 2rem; font-weight: 700; color: #f59e0b;">75%</div>
-                            <p style="margin: 0.5rem 0 0 0; color: #a16207; font-size: 0.9rem;">Good foundation, training recommended</p>
-                        </div>
-                        <div style="background: #fef2f2; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ef4444;">
-                            <h4 style="margin: 0 0 0.5rem 0; color: #991b1b;">Change Management</h4>
-                            <div style="font-size: 2rem; font-weight: 700; color: #ef4444;">65%</div>
-                            <p style="margin: 0.5rem 0 0 0; color: #dc2626; font-size: 0.9rem;">Needs structured change management plan</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recommended Solutions -->
-                <div style="background: #f8fafc; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Recommended AI Solutions</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <h4 style="margin: 0 0 1rem 0; color: #4f46e5;">🤖 Customer Service AI</h4>
-                            <p style="margin: 0 0 1rem 0; color: #374151;">Automate 70% of customer inquiries with intelligent chatbots</p>
-                            <div style="background: #f0f9ff; padding: 1rem; border-radius: 6px;">
-                                <strong>Recommended:</strong> Intercom AI + Zendesk<br>
-                                <strong>Cost:</strong> $199/month<br>
-                                <strong>ROI:</strong> 400% within 6 months
-                            </div>
-                        </div>
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <h4 style="margin: 0 0 1rem 0; color: #4f46e5;">📊 Data Analytics AI</h4>
-                            <p style="margin: 0 0 1rem 0; color: #374151;">Transform raw data into actionable business insights</p>
-                            <div style="background: #f0f9ff; padding: 1rem; border-radius: 6px;">
-                                <strong>Recommended:</strong> Tableau + Power BI<br>
-                                <strong>Cost:</strong> $140/month<br>
-                                <strong>ROI:</strong> 350% within 8 months
-                            </div>
-                        </div>
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <h4 style="margin: 0 0 1rem 0; color: #4f46e5;">⚡ Process Automation</h4>
-                            <p style="margin: 0 0 1rem 0; color: #374151;">Automate repetitive tasks and workflows</p>
-                            <div style="background: #f0f9ff; padding: 1rem; border-radius: 6px;">
-                                <strong>Recommended:</strong> Zapier + n8n<br>
-                                <strong>Cost:</strong> $40/month<br>
-                                <strong>ROI:</strong> 500% within 4 months
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Implementation Roadmap -->
-                <div style="background: white; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">12-Month Implementation Roadmap</h2>
-                    <div style="margin-top: 1rem;">
-                        <div style="display: flex; align-items: center; margin-bottom: 1.5rem; padding: 1rem; background: #f0f9ff; border-radius: 8px;">
-                            <div style="background: #0ea5e9; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 1rem;">1</div>
-                            <div>
-                                <h4 style="margin: 0 0 0.5rem 0; color: #0c4a6e;">Months 1-3: Foundation & Planning</h4>
-                                <p style="margin: 0; color: #0369a1;">Data audit, stakeholder alignment, pilot project selection</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; margin-bottom: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px;">
-                            <div style="background: #22c55e; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 1rem;">2</div>
-                            <div>
-                                <h4 style="margin: 0 0 0.5rem 0; color: #166534;">Months 4-6: Pilot Implementation</h4>
-                                <p style="margin: 0; color: #15803d;">Customer service automation, team training, initial metrics</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; margin-bottom: 1.5rem; padding: 1rem; background: #fef3c7; border-radius: 8px;">
-                            <div style="background: #f59e0b; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 1rem;">3</div>
-                            <div>
-                                <h4 style="margin: 0 0 0.5rem 0; color: #92400e;">Months 7-9: Scale & Optimize</h4>
-                                <p style="margin: 0; color: #a16207;">Data analytics implementation, process automation, optimization</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; padding: 1rem; background: #fef2f2; border-radius: 8px;">
-                            <div style="background: #ef4444; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 1rem;">4</div>
-                            <div>
-                                <h4 style="margin: 0 0 0.5rem 0; color: #991b1b;">Months 10-12: Full Integration</h4>
-                                <p style="margin: 0; color: #dc2626;">Advanced AI features, performance optimization, future planning</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div style="background: #1f2937; color: white; padding: 2rem; border-radius: 0 0 12px 12px; text-align: center; margin-top: 1rem;">
-                    <h3 style="margin: 0 0 1rem 0;">Ready to Transform Your Business with AI?</h3>
-                    <p style="margin: 0; opacity: 0.9;">This is a sample report. Your personalized report will include detailed analysis specific to your business needs and industry.</p>
-                </div>
-            </div>
-        `;
-    } else {
-        content.innerHTML = `
-            <div style="max-width: 900px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-                <!-- Header -->
-                <div style="background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; padding: 2rem; border-radius: 12px 12px 0 0; text-align: center;">
-                    <h1 style="margin: 0; font-size: 2.5rem; font-weight: 700;">AI Strategy Blueprint</h1>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.9;">TechCorp Inc. - Complete Strategic Roadmap</p>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 1rem; opacity: 0.8;">Generated: ${new Date().toLocaleDateString()}</p>
-                </div>
-
-                <!-- Executive Summary -->
-                <div style="background: #f8fafc; padding: 2rem; border-left: 4px solid #7c3aed;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Executive Summary</h2>
-                    <p style="font-size: 1.1rem; line-height: 1.6; color: #374151;">
-                        This comprehensive strategic analysis provides TechCorp Inc. with a <strong>complete roadmap for AI transformation</strong>, 
-                        including competitive positioning, vendor selection, and change management strategies. Our analysis reveals 
-                        <span style="color: #059669; font-weight: 700; font-size: 1.2rem;">$2.4M in potential value</span> over 3 years.
-                    </p>
-                    <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h3 style="color: #7c3aed; margin-top: 0;">Strategic Value Proposition</h3>
-                        <ul style="list-style: none; padding: 0; margin: 0;">
-                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
-                                <span style="font-weight: 600; color: #1f2937;">🎯 Market Position:</span> <span style="color: #059669;">Challenger</span> in mid-market technology sector
-                            </li>
-                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
-                                <span style="font-weight: 600; color: #1f2937;">💰 Investment Required:</span> <span style="color: #dc2626; font-weight: 700;">$150,000 over 12 months</span>
-                            </li>
-                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
-                                <span style="font-weight: 600; color: #1f2937;">📈 Expected ROI:</span> <span style="color: #059669; font-weight: 700;">1,600% over 3 years</span>
-                            </li>
-                            <li style="padding: 0.5rem 0;">
-                                <span style="font-weight: 600; color: #1f2937;">⏱️ Time to Value:</span> <span style="color: #d97706;">6-9 months</span> with phased approach
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Competitive Analysis -->
-                <div style="background: white; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Competitive Analysis & Market Position</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                        <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #0ea5e9;">
-                            <h4 style="margin: 0 0 1rem 0; color: #0c4a6e;">🏆 Market Leaders</h4>
-                            <ul style="margin: 0; padding-left: 1.5rem; color: #0369a1;">
-                                <li><strong>Competitor A:</strong> 35% market share, enterprise focus</li>
-                                <li><strong>Competitor B:</strong> 28% market share, innovation leader</li>
-                            </ul>
-                        </div>
-                        <div style="background: #f0fdf4; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
-                            <h4 style="margin: 0 0 1rem 0; color: #166534;">🎯 Your Position</h4>
-                            <ul style="margin: 0; padding-left: 1.5rem; color: #15803d;">
-                                <li><strong>Market Share:</strong> 12% (growing)</li>
-                                <li><strong>Strengths:</strong> Customer service, innovation</li>
-                                <li><strong>Opportunity:</strong> AI differentiation</li>
-                            </ul>
-                        </div>
-                        <div style="background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                            <h4 style="margin: 0 0 1rem 0; color: #92400e;">⚡ Competitive Advantages</h4>
-                            <ul style="margin: 0; padding-left: 1.5rem; color: #a16207;">
-                                <li>Superior customer experience</li>
-                                <li>Agile development process</li>
-                                <li>Strong technical team</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Vendor Evaluation Matrix -->
-                <div style="background: #f8fafc; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Comprehensive Vendor Evaluation Matrix</h2>
-                    <p style="color: #374151; margin-bottom: 1.5rem;">Analysis of 15+ vendors across multiple criteria including features, pricing, support, and integration capabilities.</p>
-                    
-                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h4 style="margin: 0 0 1rem 0; color: #7c3aed;">🏆 Top Recommended Vendors</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-                            <div style="border: 2px solid #22c55e; border-radius: 8px; padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #166534;">🥇 Intercom</h5>
-                                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #374151;">Customer Service AI</p>
-                                <div style="font-size: 0.9rem; color: #059669;">
-                                    <strong>Score:</strong> 9.2/10<br>
-                                    <strong>Cost:</strong> $99/month<br>
-                                    <strong>Best for:</strong> Enterprise support
-                                </div>
-                            </div>
-                            <div style="border: 2px solid #0ea5e9; border-radius: 8px; padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #0c4a6e;">🥈 Zapier</h5>
-                                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #374151;">Process Automation</p>
-                                <div style="font-size: 0.9rem; color: #0369a1;">
-                                    <strong>Score:</strong> 8.8/10<br>
-                                    <strong>Cost:</strong> $20/month<br>
-                                    <strong>Best for:</strong> Workflow automation
-                                </div>
-                            </div>
-                            <div style="border: 2px solid #f59e0b; border-radius: 8px; padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #92400e;">🥉 Tableau</h5>
-                                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #374151;">Data Analytics</p>
-                                <div style="font-size: 0.9rem; color: #a16207;">
-                                    <strong>Score:</strong> 8.5/10<br>
-                                    <strong>Cost:</strong> $70/month<br>
-                                    <strong>Best for:</strong> Business intelligence
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Risk Assessment -->
-                <div style="background: white; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Risk Assessment & Mitigation Strategies</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                        <div style="background: #fef2f2; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ef4444;">
-                            <h4 style="margin: 0 0 1rem 0; color: #991b1b;">🔒 Data Security (High Priority)</h4>
-                            <p style="margin: 0 0 1rem 0; color: #dc2626;"><strong>Risk:</strong> Data breaches, compliance issues</p>
-                            <p style="margin: 0; color: #374151;"><strong>Mitigation:</strong> Implement encryption, access controls, regular audits</p>
-                        </div>
-                        <div style="background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                            <h4 style="margin: 0 0 1rem 0; color: #92400e;">👥 Change Management (Medium Priority)</h4>
-                            <p style="margin: 0 0 1rem 0; color: #a16207;"><strong>Risk:</strong> Employee resistance, adoption challenges</p>
-                            <p style="margin: 0; color: #374151;"><strong>Mitigation:</strong> Comprehensive training, communication plan</p>
-                        </div>
-                        <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #0ea5e9;">
-                            <h4 style="margin: 0 0 1rem 0; color: #0c4a6e;">🔧 Integration Complexity (Medium Priority)</h4>
-                            <p style="margin: 0 0 1rem 0; color: #0369a1;"><strong>Risk:</strong> Technical challenges, timeline delays</p>
-                            <p style="margin: 0; color: #374151;"><strong>Mitigation:</strong> Phased implementation, expert consultation</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Budget Planning -->
-                <div style="background: #f8fafc; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Quarterly Budget Planning</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <h4 style="margin: 0 0 0.5rem 0; color: #0c4a6e;">Q1</h4>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #0ea5e9;">$25,000</div>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #374151;">Initial setup, training, pilot projects</p>
-                        </div>
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <h4 style="margin: 0 0 0.5rem 0; color: #166534;">Q2</h4>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #22c55e;">$15,000</div>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #374151;">Tool implementation, integration</p>
-                        </div>
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <h4 style="margin: 0 0 0.5rem 0; color: #92400e;">Q3</h4>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">$10,000</div>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #374151;">Optimization, scaling, advanced features</p>
-                        </div>
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <h4 style="margin: 0 0 0.5rem 0; color: #991b1b;">Q4</h4>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">$5,000</div>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #374151;">Maintenance, updates, future planning</p>
-                        </div>
-                    </div>
-                    <div style="background: #f0fdf4; padding: 1rem; border-radius: 8px; margin-top: 1rem; text-align: center;">
-                        <strong style="color: #166534;">Total Investment: $55,000 | Expected 3-Year Value: $2.4M</strong>
-                    </div>
-                </div>
-
-                <!-- Success Metrics -->
-                <div style="background: white; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Success Metrics & KPI Dashboard</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                        <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; text-align: center;">
-                            <h4 style="margin: 0 0 1rem 0; color: #0c4a6e;">Customer Satisfaction</h4>
-                            <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">85% → 90%</div>
-                            <p style="margin: 0.5rem 0 0 0; color: #0369a1;">Target improvement</p>
-                        </div>
-                        <div style="background: #f0fdf4; padding: 1.5rem; border-radius: 8px; text-align: center;">
-                            <h4 style="margin: 0 0 1rem 0; color: #166534;">Response Time</h4>
-                            <div style="font-size: 2rem; font-weight: 700; color: #22c55e;">4h → 2h</div>
-                            <p style="margin: 0.5rem 0 0 0; color: #15803d;">50% improvement</p>
-                        </div>
-                        <div style="background: #fef3c7; padding: 1.5rem; border-radius: 8px; text-align: center;">
-                            <h4 style="margin: 0 0 1rem 0; color: #92400e;">Operational Efficiency</h4>
-                            <div style="font-size: 2rem; font-weight: 700; color: #f59e0b;">70% → 85%</div>
-                            <p style="margin: 0.5rem 0 0 0; color: #a16207;">21% improvement</p>
-                        </div>
-                        <div style="background: #fef2f2; padding: 1.5rem; border-radius: 8px; text-align: center;">
-                            <h4 style="margin: 0 0 1rem 0; color: #991b1b;">Cost Reduction</h4>
-                            <div style="font-size: 2rem; font-weight: 700; color: #ef4444;">$0 → $180K</div>
-                            <p style="margin: 0.5rem 0 0 0; color: #dc2626;">Annual savings</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div style="background: #1f2937; color: white; padding: 2rem; border-radius: 0 0 12px 12px; text-align: center; margin-top: 1rem;">
-                    <h3 style="margin: 0 0 1rem 0;">Ready to Execute Your AI Strategy?</h3>
-                    <p style="margin: 0; opacity: 0.9;">This is a sample report. Your personalized Strategy Blueprint will include detailed competitive analysis, vendor recommendations, and implementation strategies specific to your business.</p>
-                </div>
-            </div>
-        `;
-    }
-    
-    modal.style.display = 'block';
-}
-
-function closeSampleModal() {
-    document.getElementById('sampleModal').style.display = 'none';
-}
-
-function showStep(step) {
-    // Resolve skipped steps
-    let resolved = step;
-    let stepEl = document.getElementById(`step${resolved}`);
-    // If step is marked to skip, move forward (or backward if at end)
-    while (stepEl && stepEl.dataset && stepEl.dataset.skip === 'true') {
-        resolved = resolved < totalSteps ? resolved + 1 : Math.max(1, resolved - 1);
-        stepEl = document.getElementById(`step${resolved}`);
-    }
-
-    // Hide all steps
-    for (let i = 1; i <= totalSteps; i++) {
-        const el = document.getElementById(`step${i}`);
-        if (el) el.classList.remove('active');
-    }
-    
-    // Show resolved step
-    if (stepEl) stepEl.classList.add('active');
-    currentStep = resolved;
-    
-    // Update progress bar
-    const progress = ((step - 1) / (totalSteps - 1)) * 100;
-    document.getElementById('progressBar').style.width = progress + '%';
-    
-    // Update navigation buttons
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    if (step === 1) {
-        prevBtn.style.display = 'none';
-    } else {
-        prevBtn.style.display = 'block';
-    }
-    
-    if (step === totalSteps) {
-        nextBtn.textContent = 'Create AI Assessment Report';
-        nextBtn.onclick = submitAssessment;
-    } else {
-        nextBtn.textContent = 'Next';
-        nextBtn.onclick = () => changeStep(1);
-    }
-}
-
-function changeStep(direction) {
-    const newStep = currentStep + direction;
-    
-    if (newStep >= 1 && newStep <= totalSteps) {
-        // Always save current data, regardless of validation
-        progressiveSave()
-            .catch(() => {/* non-blocking */})
-            .finally(() => {
-                // Validate current step before allowing navigation forward
-                if (direction > 0 && !validateCurrentStep()) {
-                    alert('Please complete all required fields before continuing.');
-                    return;
-                }
-                currentStep = newStep;
-                showStep(currentStep);
-                // Clear results content unless we're on results step
-                if (currentStep !== totalSteps) {
-                    const results = document.getElementById('resultsContainer');
-                    if (results) results.innerHTML = '';
-                }
-            });
-    }
-}
-
-function submitAssessment() {
-    // Validate all steps before submit
-    for (let step = 1; step <= totalSteps; step++) {
-        if (!validateStep(step)) {
-            showStep(step);
-            alert('Please complete all required fields before submitting.');
-            return;
-        }
-    }
-    const formData = collectFormData();
-    // Attach assessment_id if we have one
-    const existingId = sessionStorage.getItem('assessment_id');
-    if (existingId) formData.assessment_id = parseInt(existingId, 10);
-    
-    // Add report type to form data
-    formData.report_type = selectedReportType;
-    
-    fetch('/submit_assessment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
+// Load dynamic form configuration
+async function loadFormConfiguration() {
+    try {
+        const response = await fetch('/api/dynamic_form_config');
+        const data = await response.json();
+        
         if (data.success) {
-            if (data.assessment_id) {
-                sessionStorage.setItem('assessment_id', data.assessment_id);
-            }
-            // Store assessment data for later use
-            const assessmentData = data;
-            // Generate the enhanced report immediately
-            const typeParam = encodeURIComponent(selectedReportType || formData.report_type || 'assessment');
-            return fetch(`/generate_enhanced_report/${data.assessment_id}?report_type=${typeParam}`)
-                .then(response => response.json())
-                .then(reportData => {
-                    if (reportData.success) {
-                        // Move to results step explicitly
-                        currentStep = totalSteps;
-                        showStep(currentStep);
-            document.getElementById('resultsContainer').innerHTML = `
-                <h4>Assessment Submitted Successfully!</h4>
-                            <p>Your AI readiness score: <strong>${assessmentData.ai_score}%</strong></p>
-                            <p>We've identified <strong>${assessmentData.opportunities.length}</strong> AI opportunities for your business.</p>
-                            <p>Your ${selectedReportType === 'assessment' ? 'Assessment Report' : 'Strategy Blueprint'} has been generated successfully!</p>
-                            <p><a href="${reportData.download_url}" class="cta-button" style="display: inline-block; margin-top: 1rem;">Download Report</a></p>
-                            <p><small>Your report has also been sent to your email address.</small></p>
-                            <p>Thank you for your purchase!</p>
-            `;
-        } else {
-                        throw new Error(reportData.error);
-                    }
-                });
+            formConfig.sections = data.sections.filter(s => s.is_visible);
+            formConfig.fields = data.fields.filter(f => f.is_visible);
+            formConfig.totalSteps = Math.max(...formConfig.sections.map(s => s.step_number));
+            
+            generateForm();
+            updateProgress();
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('dynamicAssessmentForm').style.display = 'block';
         } else {
             throw new Error(data.error);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+    } catch (error) {
+        console.error('Error loading form configuration:', error);
+        document.getElementById('loadingMessage').innerHTML = `
+            <div class="error-message">
+                <p>Error loading form configuration. Please refresh the page.</p>
+                <button onclick="location.reload()" class="btn btn-next">Refresh Page</button>
+            </div>
+        `;
+    }
+}
+
+function generateForm() {
+    const formSteps = document.getElementById('formSteps');
+    const stepIndicators = document.getElementById('stepIndicators');
+    
+    // Generate step indicators
+    stepIndicators.innerHTML = '';
+    for (let i = 1; i <= formConfig.totalSteps; i++) {
+        const indicator = document.createElement('div');
+        indicator.className = 'step-indicator';
+        indicator.textContent = i;
+        indicator.id = `stepIndicator${i}`;
+        stepIndicators.appendChild(indicator);
+    }
+    
+    // Generate form steps
+    formSteps.innerHTML = '';
+    for (let step = 1; step <= formConfig.totalSteps; step++) {
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'form-step';
+        stepDiv.id = `step${step}`;
+        
+        const sectionsInStep = formConfig.sections.filter(s => s.step_number === step);
+        
+        sectionsInStep.forEach(section => {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'section-header';
+            sectionDiv.innerHTML = `
+                <div class="section-title">${section.section_title}</div>
+                ${section.description ? `<div class="section-description">${section.description}</div>` : ''}
+            `;
+            stepDiv.appendChild(sectionDiv);
+            
+            const fieldsInSection = formConfig.fields.filter(f => f.section_name === section.section_name);
+            fieldsInSection.sort((a, b) => a.sort_order - b.sort_order);
+            
+            fieldsInSection.forEach(field => {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'form-group';
+                fieldDiv.innerHTML = generateFieldHTML(field);
+                stepDiv.appendChild(fieldDiv);
+            });
+        });
+        
+        formSteps.appendChild(stepDiv);
+    }
+    
+    showStep(1);
+}
+
+function generateFieldHTML(field) {
+    const required = field.is_required ? 'required' : '';
+    const requiredClass = field.is_required ? 'required' : '';
+    
+    let fieldHTML = `
+        <label class="form-label ${requiredClass}" for="${field.field_name}">
+            ${field.field_label}
+            ${field.is_required ? '<span style="color: #dc2626;">*</span>' : ''}
+        </label>
+    `;
+    
+    switch (field.field_type) {
+        case 'text':
+        case 'email':
+        case 'tel':
+        case 'url':
+            fieldHTML += `
+                <input type="${field.field_type}" 
+                       id="${field.field_name}" 
+                       name="${field.field_name}" 
+                       class="form-input" 
+                       ${required}
+                       ${field.default_value ? `value="${field.default_value}"` : ''}
+                       ${field.help_text ? `placeholder="${field.help_text}"` : ''}>
+            `;
+            break;
+            
+        case 'select':
+            fieldHTML += `<select id="${field.field_name}" name="${field.field_name}" class="form-select" ${required}>`;
+            fieldHTML += '<option value="">Select an option...</option>';
+            
+            if (field.dropdown_options) {
+                field.dropdown_options
+                    .filter(option => option.is_active)
+                    .sort((a, b) => a.sort_order - b.sort_order)
+                    .forEach(option => {
+                        fieldHTML += `<option value="${option.option_value}">${option.option_label}</option>`;
+                    });
+            }
+            
+            fieldHTML += '</select>';
+            break;
+            
+        case 'checkbox':
+            if (field.dropdown_options) {
+                fieldHTML += '<div class="checkbox-group">';
+                field.dropdown_options
+                    .filter(option => option.is_active)
+                    .sort((a, b) => a.sort_order - b.sort_order)
+                    .forEach(option => {
+                        fieldHTML += `
+                            <label class="checkbox-item">
+                                <input type="checkbox" 
+                                       name="${field.field_name}" 
+                                       value="${option.option_value}">
+                                <span>${option.option_label}</span>
+                            </label>
+                        `;
+                    });
+                fieldHTML += '</div>';
+            } else {
+                fieldHTML += `
+                    <label class="checkbox-item">
+                        <input type="checkbox" 
+                               id="${field.field_name}" 
+                               name="${field.field_name}">
+                        <span>${field.field_label}</span>
+                    </label>
+                `;
+            }
+            break;
+    }
+    
+    if (field.help_text) {
+        fieldHTML += `<div class="help-text">${field.help_text}</div>`;
+    }
+    
+    fieldHTML += `<div class="error-message" id="error_${field.field_name}"></div>`;
+    
+    return fieldHTML;
+}
+
+function showStep(step) {
+    // Hide all steps
+    document.querySelectorAll('.form-step').forEach(stepDiv => {
+        stepDiv.classList.remove('active');
     });
+    
+    // Show current step
+    const currentStepDiv = document.getElementById(`step${step}`);
+    if (currentStepDiv) {
+        currentStepDiv.classList.add('active');
+    }
+    
+    // Update step indicators
+    document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+        indicator.classList.remove('active', 'completed');
+        if (index + 1 < step) {
+            indicator.classList.add('completed');
+        } else if (index + 1 === step) {
+            indicator.classList.add('active');
+        }
+    });
+    
+    // Update buttons
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    prevBtn.style.display = step > 1 ? 'block' : 'none';
+    nextBtn.style.display = step < formConfig.totalSteps ? 'block' : 'none';
+    submitBtn.style.display = step === formConfig.totalSteps ? 'block' : 'none';
+    
+    formConfig.currentStep = step;
+    updateProgress();
+}
+
+function updateProgress() {
+    const progress = (formConfig.currentStep / formConfig.totalSteps) * 100;
+    document.getElementById('progressFill').style.width = `${progress}%`;
+}
+
+function nextStep() {
+    if (validateCurrentStep()) {
+        if (formConfig.currentStep < formConfig.totalSteps) {
+            showStep(formConfig.currentStep + 1);
+        }
+    }
+}
+
+function previousStep() {
+    if (formConfig.currentStep > 1) {
+        showStep(formConfig.currentStep - 1);
+    }
 }
 
 function validateCurrentStep() {
-    return validateStep(currentStep);
-}
-
-function validateStep(stepIdx) {
-    const stepEl = document.getElementById(`step${stepIdx}`);
-    if (!stepEl) return true;
-    let valid = true;
-    // Required inputs/selects
-    const requiredInputs = stepEl.querySelectorAll('input[required], select[required]');
-    requiredInputs.forEach(el => {
-        if (!el.value || (el.tagName === 'SELECT' && el.value === '')) {
-            valid = false;
-        }
-    });
-    // Checkbox groups: ensure at least one if group present
-    const checkboxGroups = [
-        'challenges','current_tools','tool_preferences','implementation_priority',
-        'security_requirements','compliance_needs','integration_requirements',
-        'success_metrics','risk_factors','mitigation_strategies','implementation_phases',
-        'resource_requirements','training_needs','vendor_criteria'
-    ];
-    checkboxGroups.forEach(name => {
-        const groupBoxes = stepEl.querySelectorAll(`input[type="checkbox"][name="${name}"]`);
-        const otherText = stepEl.querySelector(`input[data-other-for="${name}"]`);
-        if (groupBoxes.length > 0 || otherText) {
-            const anyChecked = Array.from(groupBoxes).some(cb => cb.checked);
-            const hasOtherText = !!(otherText && otherText.value && otherText.value.trim().length > 0);
-            if (!anyChecked && !hasOtherText) valid = false;
-        }
-    });
-    return valid;
-}
-
-function progressiveSave() {
-    // Only save fields from the CURRENT step to avoid pre-filling later-step defaults
-    const payload = collectFormDataForStep(currentStep);
-    // Always include report_type if available
-    const rt = document.getElementById('selectedReportType');
-    if (rt && rt.value) payload.report_type = rt.value;
-    const existingId = sessionStorage.getItem('assessment_id');
-    if (existingId) payload.assessment_id = parseInt(existingId, 10);
-    return fetch('/save_assessment_progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(d => {
-        if (d && d.success && d.assessment_id) {
-            sessionStorage.setItem('assessment_id', d.assessment_id);
-        }
-        return d;
-    });
-}
-
-function collectFormData() {
-    const formData = {};
-    const form = document.getElementById('assessmentFormElement');
-    const inputs = form.querySelectorAll('input, select');
+    const currentStepDiv = document.getElementById(`step${formConfig.currentStep}`);
+    const requiredFields = currentStepDiv.querySelectorAll('[required]');
+    let isValid = true;
     
-    // Initialize arrays for checkbox groups
-    const checkboxGroups = [
-        'challenges', 'current_tools', 'tool_preferences', 'implementation_priority',
-        'security_requirements', 'compliance_needs', 'integration_requirements',
-        'success_metrics', 'risk_factors', 'mitigation_strategies',
-        'implementation_phases', 'resource_requirements', 'training_needs', 'vendor_criteria'
-    ];
-    
-    checkboxGroups.forEach(group => {
-        formData[group] = [];
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(error => {
+        error.textContent = '';
     });
     
-    inputs.forEach(input => {
-        if (input.type === 'checkbox') {
-            if (checkboxGroups.includes(input.name)) {
-                if (input.checked) {
-                    formData[input.name].push(input.value);
-                }
-            }
-        } else {
-            formData[input.name] = input.value;
-        }
-    });
-
-    // Include free-text "Other" entries for groups and scalars
-    const otherInputs = form.querySelectorAll('input[data-other-for]');
-    const arrayGroups = new Set(checkboxGroups);
-    otherInputs.forEach(oi => {
-        const target = oi.getAttribute('data-other-for');
-        const text = (oi.value || '').trim();
-        if (!text) return;
-        if (arrayGroups.has(target)) {
-            if (!Array.isArray(formData[target])) formData[target] = [];
-            formData[target].push(text);
-        } else {
-            formData[target] = text;
-        }
-    });
-    
-    return formData;
-}
-
-// Collect data ONLY for the currently visible step
-function collectFormDataForStep(stepIdx) {
-    const formData = {};
-    const stepEl = document.getElementById(`step${stepIdx}`);
-    if (!stepEl) return formData;
-
-    const inputs = stepEl.querySelectorAll('input, select');
-    console.log(`Step ${stepIdx} inputs:`, inputs.length);
-    
-    // Known checkbox groups across steps
-    const checkboxGroups = new Set([
-        'challenges', 'current_tools', 'tool_preferences', 'implementation_priority',
-        'security_requirements', 'compliance_needs', 'integration_requirements',
-        'success_metrics', 'risk_factors', 'mitigation_strategies',
-        'implementation_phases', 'resource_requirements', 'training_needs', 'vendor_criteria'
-    ]);
-
-    // Initialize arrays for any groups present on this step
-    stepEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        if (checkboxGroups.has(cb.name) && !Array.isArray(formData[cb.name])) {
-            formData[cb.name] = [];
-        }
-    });
-
-    inputs.forEach(input => {
-        // Skip inputs without a name attribute (like "other" fields that use data-other-for)
-        if (!input.name) {
-            return;
-        }
+    requiredFields.forEach(field => {
+        const errorDiv = document.getElementById(`error_${field.name}`);
         
-        if (input.type === 'checkbox') {
-            if (checkboxGroups.has(input.name)) {
-                if (input.checked) {
-                    formData[input.name].push(input.value);
-                }
+        if (field.type === 'checkbox') {
+            // For checkbox groups, check if at least one is selected
+            const checkboxes = currentStepDiv.querySelectorAll(`input[name="${field.name}"]`);
+            const checked = Array.from(checkboxes).some(cb => cb.checked);
+            
+            if (!checked) {
+                errorDiv.textContent = 'Please select at least one option';
+                isValid = false;
             }
         } else {
-            formData[input.name] = input.value;
+            if (!field.value.trim()) {
+                errorDiv.textContent = 'This field is required';
+                isValid = false;
+            }
         }
     });
-
-    // Include free-text "Other" entries that belong to this step only
-    const otherInputs = stepEl.querySelectorAll('input[data-other-for]');
-    otherInputs.forEach(oi => {
-        const target = oi.getAttribute('data-other-for');
-        const text = (oi.value || '').trim();
-        if (!text) return;
-        if (checkboxGroups.has(target)) {
-            if (!Array.isArray(formData[target])) formData[target] = [];
-            formData[target].push(text);
-        } else {
-            formData[target] = text;
-        }
-    });
-    return formData;
-}
-
-function toggleChallenge(element) {
-    const checkbox = element.querySelector('input[type="checkbox"]');
-    checkbox.checked = !checkbox.checked;
     
-    if (checkbox.checked) {
-        element.classList.add('selected');
-    } else {
-        element.classList.remove('selected');
-    }
+    return isValid;
 }
 
-// Handle checkbox groups
-document.addEventListener('DOMContentLoaded', function() {
-    const checkboxOptions = document.querySelectorAll('.checkbox-option');
-    checkboxOptions.forEach(option => {
-        option.addEventListener('click', function(e) {
-            if (e.target.type !== 'checkbox') {
-                const checkbox = this.querySelector('input[type="checkbox"]');
-                checkbox.checked = !checkbox.checked;
+function validateForm() {
+    const requiredFields = document.querySelectorAll('[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        const errorDiv = document.getElementById(`error_${field.name}`);
+        
+        if (field.type === 'checkbox') {
+            const checkboxes = document.querySelectorAll(`input[name="${field.name}"]`);
+            const checked = Array.from(checkboxes).some(cb => cb.checked);
+            
+            if (!checked) {
+                errorDiv.textContent = 'Please select at least one option';
+                isValid = false;
             }
-            this.classList.toggle('selected', this.querySelector('input[type="checkbox"]').checked);
-        });
+        } else {
+            if (!field.value.trim()) {
+                errorDiv.textContent = 'This field is required';
+                isValid = false;
+            }
+        }
     });
+    
+    return isValid;
+}
 
-    // No checkbox toggle needed for challenges other; free-text input is always visible
+// Form submission
+document.getElementById('dynamicAssessmentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    // Collect form data
+    const formData = new FormData(this);
+    const assessmentData = {};
+    
+    for (let [key, value] of formData.entries()) {
+        if (assessmentData[key]) {
+            // Handle multiple values (checkboxes)
+            if (Array.isArray(assessmentData[key])) {
+                assessmentData[key].push(value);
+            } else {
+                assessmentData[key] = [assessmentData[key], value];
+            }
+        } else {
+            assessmentData[key] = value;
+        }
+    }
+    
+    // Submit assessment
+    try {
+        const response = await fetch('/submit_assessment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(assessmentData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            window.location.href = result.redirect_url;
+        } else {
+            alert('Error submitting assessment: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Network error submitting assessment');
+    }
 });
 
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('sampleModal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// Initialize
-showStep(1);
+// Load form configuration when page loads
+document.addEventListener('DOMContentLoaded', loadFormConfiguration);
 </script>
 {% endblock %}
