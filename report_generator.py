@@ -85,9 +85,6 @@ class ReportGenerator:
                 change_management_experience, data_governance
             )
             
-            # Generate competitive analysis
-            competitive_analysis = self._generate_assessment_competitive_analysis(assessment_data)
-            
             # Build comprehensive report data
             report_data = {
                 'client_company': company_name,
@@ -113,9 +110,6 @@ class ReportGenerator:
                 'compliance_needs': assessment_data.get('compliance_needs', []),
                 'challenges': assessment_data.get('challenges', []),
                 'implementation_priority': assessment_data.get('implementation_priority', []),
-                
-                # Competitive analysis data
-                **competitive_analysis,
                 
                 'ai_score': scores['overall'],
                 'readiness_level': scores['readiness_level'],
@@ -509,290 +503,607 @@ Format as JSON with fields: name, position, analysis
             }
         ]
     
-    def _generate_assessment_competitive_analysis(self, assessment_data: Dict) -> Dict:
-        """Generate comprehensive competitive analysis for Assessment Report"""
-        try:
-            company_name = assessment_data.get('company_name', 'Your Company')
-            industry = assessment_data.get('industry', 'technology')
-            company_size = assessment_data.get('company_size', '11-50')
-            current_tech = assessment_data.get('current_tech', 'basic')
-            ai_experience = assessment_data.get('ai_experience', 'none')
-            budget = assessment_data.get('budget', '25k-50k')
-            
-            prompt = f"""
-            Based on the following company profile:
-            - Company: {company_name}
-            - Industry: {industry}
-            - Company Size: {company_size} employees
-            - Current Technology Level: {current_tech}
-            - AI Experience: {ai_experience}
-            - Budget Range: {budget}
-            
-            Provide a comprehensive competitive analysis for the Assessment Report that includes:
-            
-            1. **Industry Benchmarking**: How does this company compare to industry peers in AI adoption?
-            2. **Competitive Pressures**: What competitive forces are driving AI adoption in this industry?
-            3. **Market Position**: Where does this company stand relative to competitors in AI readiness?
-            4. **Competitive Gaps**: What specific AI capabilities are competitors developing that this company lacks?
-            5. **Urgency Factors**: What competitive risks exist if AI implementation is delayed?
-            6. **Opportunity Sizing**: How much revenue/market share could be gained through AI implementation?
-            
-            Provide specific, actionable insights that would help the client understand their competitive situation and urgency for AI implementation.
-            Focus on creating urgency while being realistic and data-driven.
-            """
-            
-            response = self.llm_service.generate_content(prompt)
-            
-            # Parse the response into structured data
-            competitive_data = self._parse_competitive_response(response, industry, company_size)
-            
-            return competitive_data
-            
-        except Exception as e:
-            logger.error(f"Error generating competitive analysis: {e}")
-            return self._get_default_competitive_analysis(assessment_data.get('industry', 'technology'))
+    def _generate_strategic_recommendations(self, context: str, industry: str) -> str:
+        """Generate strategic recommendations using LLM"""
+        prompt = f"""
+Based on this company context: {context}
+
+Provide 2-3 strategic recommendations for AI implementation in the {industry} industry. Focus on:
+- Competitive positioning opportunities
+- Strategic advantages to pursue
+- Market timing considerations
+
+Write 2-3 sentences of strategic recommendations:
+"""
+        
+        response = self.llm_service._call_llm(prompt)
+        return response if response else f"Focus on rapid implementation of customer-facing AI solutions to gain competitive advantage in the {industry} market."
     
-    def _parse_competitive_response(self, response: str, industry: str, company_size: str) -> Dict:
-        """Parse LLM response into structured competitive analysis data"""
-        try:
-            # Extract key competitive insights from the response
-            competitive_data = {
-                'industry_ai_adoption_rate': self._extract_adoption_rate(response),
-                'avg_industry_investment': self._extract_avg_investment(response),
-                'competitive_position': self._extract_competitive_position(response),
-                'competitive_gaps': self._extract_competitive_gaps(response),
-                'market_pressure_analysis': self._extract_market_pressure(response),
-                'urgency_factors': self._extract_urgency_factors(response),
-                'opportunity_sizing': self._extract_opportunity_sizing(response),
-                'industry_benchmarks': self._get_industry_benchmarks(industry, company_size)
+    def _generate_vendor_matrix(self, industry: str, company_size: str) -> List[Dict]:
+        """Generate vendor evaluation matrix"""
+        # Base vendors for different categories
+        vendors = [
+            {
+                'name': 'Intercom',
+                'category': 'Customer Service',
+                'cost_rating': 'good',
+                'features_rating': 'excellent',
+                'support_rating': 'excellent',
+                'integration_rating': 'good',
+                'overall_score': 9
+            },
+            {
+                'name': 'Zapier',
+                'category': 'Automation',
+                'cost_rating': 'excellent',
+                'features_rating': 'good',
+                'support_rating': 'good',
+                'integration_rating': 'excellent',
+                'overall_score': 8
+            },
+            {
+                'name': 'Tableau',
+                'category': 'Analytics',
+                'cost_rating': 'fair',
+                'features_rating': 'excellent',
+                'support_rating': 'excellent',
+                'integration_rating': 'good',
+                'overall_score': 8
+            },
+            {
+                'name': 'Microsoft Power Platform',
+                'category': 'Enterprise',
+                'cost_rating': 'good',
+                'features_rating': 'excellent',
+                'support_rating': 'excellent',
+                'integration_rating': 'excellent',
+                'overall_score': 9
+            },
+            {
+                'name': 'Salesforce Einstein',
+                'category': 'CRM',
+                'cost_rating': 'fair',
+                'features_rating': 'excellent',
+                'support_rating': 'excellent',
+                'integration_rating': 'good',
+                'overall_score': 8
             }
-            
-            return competitive_data
-            
-        except Exception as e:
-            logger.error(f"Error parsing competitive response: {e}")
-            return self._get_default_competitive_analysis(industry)
-    
-    def _extract_adoption_rate(self, response: str) -> str:
-        """Extract AI adoption rate from response"""
-        # Look for patterns like "X% adoption" or "X percent"
-        import re
-        pattern = r'(\d+(?:\.\d+)?)\s*%?\s*(?:adoption|companies|organizations)'
-        match = re.search(pattern, response.lower())
-        return match.group(1) + '%' if match else '35%'
-    
-    def _extract_avg_investment(self, response: str) -> str:
-        """Extract average industry investment from response"""
-        import re
-        pattern = r'\$?(\d+(?:,\d+)?(?:k|m|million|thousand))'
-        match = re.search(pattern, response.lower())
-        return f"${match.group(1)}" if match else '$2.1M'
-    
-    def _extract_competitive_position(self, response: str) -> str:
-        """Extract competitive position from response"""
-        if any(word in response.lower() for word in ['behind', 'lagging', 'falling behind']):
-            return 'Behind Competitors'
-        elif any(word in response.lower() for word in ['ahead', 'leading', 'advanced']):
-            return 'Ahead of Competitors'
-        else:
-            return 'On Par with Competitors'
-    
-    def _extract_competitive_gaps(self, response: str) -> List[Dict]:
-        """Extract competitive gaps from response"""
-        gaps = []
-        # Look for specific AI capabilities mentioned
-        ai_capabilities = ['customer service automation', 'predictive analytics', 'process automation', 'data analytics']
+        ]
         
-        for capability in ai_capabilities:
-            if capability in response.lower():
-                gaps.append({
-                    'description': f'Lack of {capability.replace("_", " ").title()}',
-                    'urgency_level': 'High' if 'customer service' in capability else 'Medium'
-                })
-        
-        if not gaps:
-            gaps = [
-                {'description': 'Limited AI-powered customer service capabilities', 'urgency_level': 'High'},
-                {'description': 'No predictive analytics for business intelligence', 'urgency_level': 'Medium'},
-                {'description': 'Manual processes that competitors have automated', 'urgency_level': 'Medium'}
-            ]
-        
-        return gaps
+        return vendors
     
-    def _extract_market_pressure(self, response: str) -> str:
-        """Extract market pressure analysis from response"""
-        # Look for competitive pressure language
-        if any(word in response.lower() for word in ['pressure', 'urgent', 'critical', 'immediate']):
-            return "High competitive pressure - competitors are aggressively adopting AI solutions"
-        elif any(word in response.lower() for word in ['moderate', 'growing', 'increasing']):
-            return "Moderate competitive pressure - AI adoption is accelerating in your industry"
-        else:
-            return "Emerging competitive pressure - early AI adoption provides strategic advantage"
-    
-    def _extract_urgency_factors(self, response: str) -> List[str]:
-        """Extract urgency factors from response"""
-        urgency_factors = []
+    def _generate_risk_assessment(self, context: str, industry: str) -> List[Dict]:
+        """Generate risk assessment using LLM"""
+        prompt = f"""
+Based on this company context: {context}
+
+Identify 3-4 key risks for AI implementation in the {industry} industry. For each risk, provide:
+1. Risk title
+2. Risk level (High, Medium, Low)
+3. Potential impact
+4. Mitigation strategy
+
+Format as JSON with fields: title, level, impact, mitigation
+"""
         
-        if 'customer service' in response.lower():
-            urgency_factors.append("Competitors are implementing AI-powered customer service")
-        if 'efficiency' in response.lower():
-            urgency_factors.append("Competitors gaining operational efficiency through AI automation")
-        if 'data' in response.lower():
-            urgency_factors.append("Competitors leveraging AI for data-driven decision making")
-        if 'cost' in response.lower():
-            urgency_factors.append("Competitors reducing costs through AI optimization")
+        try:
+            response = self.llm_service._call_llm(prompt)
+            if response and '{' in response:
+                start = response.find('{')
+                end = response.rfind('}') + 1
+                json_str = response[start:end]
+                risks = json.loads(json_str)
+                return risks if isinstance(risks, list) else [risks]
+        except:
+            pass
         
-        if not urgency_factors:
-            urgency_factors = [
-                "Competitors implementing AI solutions for competitive advantage",
-                "Market expectations shifting toward AI-enhanced services",
-                "Early adopters gaining market share through AI innovation"
-            ]
-        
-        return urgency_factors
-    
-    def _extract_opportunity_sizing(self, response: str) -> str:
-        """Extract opportunity sizing from response"""
-        import re
-        pattern = r'\$?(\d+(?:,\d+)?(?:k|m|million|thousand))\s*(?:revenue|savings|opportunity)'
-        match = re.search(pattern, response.lower())
-        return f"${match.group(1)}" if match else '$500K - $2M'
-    
-    def _get_industry_benchmarks(self, industry: str, company_size: str) -> Dict:
-        """Get industry-specific benchmarks"""
-        benchmarks = {
-            'technology': {
-                'ai_adoption_rate': '45%',
-                'avg_ai_investment': '$3.2M',
-                'common_use_cases': ['Product Development', 'Customer Analytics', 'Process Automation']
+        # Fallback risks
+        return [
+            {
+                'title': 'Data Security & Privacy',
+                'level': 'High',
+                'impact': 'Regulatory compliance and customer trust',
+                'mitigation': 'Implement robust encryption, access controls, and compliance frameworks'
             },
-            'healthcare': {
-                'ai_adoption_rate': '28%',
-                'avg_ai_investment': '$2.8M',
-                'common_use_cases': ['Patient Care', 'Diagnostics', 'Administrative Efficiency']
+            {
+                'title': 'Employee Resistance',
+                'level': 'Medium',
+                'impact': 'Slower adoption and reduced effectiveness',
+                'mitigation': 'Comprehensive training program and change management strategy'
             },
-            'finance': {
-                'ai_adoption_rate': '52%',
-                'avg_ai_investment': '$4.1M',
-                'common_use_cases': ['Risk Assessment', 'Fraud Detection', 'Customer Service']
-            },
-            'manufacturing': {
-                'ai_adoption_rate': '31%',
-                'avg_ai_investment': '$2.5M',
-                'common_use_cases': ['Predictive Maintenance', 'Quality Control', 'Supply Chain Optimization']
-            },
-            'retail': {
-                'ai_adoption_rate': '38%',
-                'avg_ai_investment': '$1.8M',
-                'common_use_cases': ['Inventory Management', 'Customer Personalization', 'Demand Forecasting']
+            {
+                'title': 'Integration Complexity',
+                'level': 'Medium',
+                'impact': 'Implementation delays and cost overruns',
+                'mitigation': 'Phased implementation approach with thorough testing'
             }
-        }
-        
-        return benchmarks.get(industry.lower(), benchmarks['technology'])
+        ]
     
-    def _get_default_competitive_analysis(self):
-        """Get default competitive analysis when LLM fails"""
+    def _generate_kpi_dashboard(self, industry: str, company_size: str) -> List[Dict]:
+        """Generate KPI dashboard"""
+        return [
+            {
+                'metric': 'Customer Satisfaction',
+                'current_value': '85%',
+                'target_value': '90%'
+            },
+            {
+                'metric': 'Response Time',
+                'current_value': '4 hours',
+                'target_value': '2 hours'
+            },
+            {
+                'metric': 'Operational Efficiency',
+                'current_value': '70%',
+                'target_value': '85%'
+            },
+            {
+                'metric': 'Cost Savings',
+                'current_value': '$0',
+                'target_value': '$50K/month'
+            }
+        ]
+    
+    def _calculate_assessment_scores(self, assessment_data: Dict) -> Dict:
+        """Calculate assessment scores based on data"""
+        # Base scores
+        tech_score = 75
+        data_score = 70
+        team_score = 80
+        process_score = 65
+        
+        # Adjust based on current technology level
+        current_tech = assessment_data.get('current_tech', 'basic')
+        if current_tech == 'advanced':
+            tech_score += 15
+        elif current_tech == 'intermediate':
+            tech_score += 8
+        
+        # Adjust based on AI experience
+        ai_experience = assessment_data.get('ai_experience', 'none')
+        if ai_experience == 'implementing':
+            team_score += 15
+        elif ai_experience == 'exploring':
+            team_score += 8
+        
+        # Calculate overall score
+        overall = (tech_score + data_score + team_score + process_score) // 4
+        
+        # Determine readiness level
+        if overall >= 85:
+            readiness_level = "High"
+        elif overall >= 70:
+            readiness_level = "Medium"
+        else:
+            readiness_level = "Low"
+        
+        # Determine status for each area
+        def get_status(score):
+            if score >= 85:
+                return "Excellent"
+            elif score >= 70:
+                return "Good"
+            elif score >= 55:
+                return "Fair"
+            else:
+                return "Needs Improvement"
+        
         return {
-            'industry_benchmarks': {
-                'ai_adoption_rate': '35%',
-                'avg_ai_investment': '$150,000',
-                'competitive_position': 'Average'
+            'overall': overall,
+            'readiness_level': readiness_level,
+            'tech': tech_score,
+            'data': data_score,
+            'team': team_score,
+            'process': process_score,
+            'tech_status': get_status(tech_score),
+            'data_status': get_status(data_score),
+            'team_status': get_status(team_score),
+            'process_status': get_status(process_score)
+        }
+    
+    def _generate_opportunities(self, assessment_data: Dict) -> List[Dict]:
+        """Generate AI opportunities based on assessment data"""
+        challenges = assessment_data.get('challenges', [])
+        industry = assessment_data.get('industry', 'technology')
+        
+        opportunities = []
+        
+        # Map challenges to opportunities
+        opportunity_mapping = {
+            'customer-service': {
+                'title': 'Customer Service Automation',
+                'roi': 120000,
+                'description': 'Implement AI-powered chatbots and support systems to improve customer experience and reduce response times.'
             },
-            'market_pressure': 'Medium',
-            'competitive_gaps': [
-                {'gap': 'Limited AI Integration', 'urgency': 'High'},
-                {'gap': 'Manual Process Dependencies', 'urgency': 'Medium'}
-            ],
-            'urgency_factors': [
-                'Competitors implementing AI solutions',
-                'Customer demand for automation',
-                'Cost pressure from manual processes'
-            ],
-            'opportunity_sizing': '$500,000 - $1,000,000 annually'
-        }
-
-    def _map_dynamic_form_data(self, assessment_data):
-        """Dynamically map form data based on field configurations"""
-        try:
-            # Get field configurations from database
-            from models import DatabaseManager
-            db_manager = DatabaseManager()
-            field_configs = db_manager.get_field_configurations()
-            
-            # Create a mapping of field names to their configurations
-            field_mapping = {}
-            for field in field_configs:
-                field_mapping[field['field_name']] = field
-            
-            # Map assessment data to expected format
-            mapped_data = {}
-            
-            for field_name, value in assessment_data.items():
-                if field_name in field_mapping:
-                    field_config = field_mapping[field_name]
-                    
-                    # Handle different field types
-                    if field_config['field_type'] == 'checkbox':
-                        # Convert checkbox values to list if needed
-                        if isinstance(value, str):
-                            mapped_data[field_name] = [value]
-                        else:
-                            mapped_data[field_name] = value
-                    else:
-                        mapped_data[field_name] = value
-                else:
-                    # Keep unknown fields as-is
-                    mapped_data[field_name] = value
-            
-            return mapped_data
-            
-        except Exception as e:
-            print(f"Error mapping dynamic form data: {e}")
-            # Return original data if mapping fails
-            return assessment_data
-
-    def generate_assessment_report_data(self, assessment_data):
-        """Generate comprehensive assessment report data with dynamic field support"""
-        # Map dynamic form data
-        mapped_data = self._map_dynamic_form_data(assessment_data)
-        
-        # Generate all report sections
-        report_data = {
-            'executive_summary': self._generate_executive_summary(mapped_data),
-            'ai_readiness_assessment': self._generate_ai_readiness_assessment(mapped_data),
-            'opportunity_identification': self._generate_opportunity_identification(mapped_data),
-            'tool_recommendations': self._generate_tool_recommendations(mapped_data),
-            'implementation_timeline': self._generate_implementation_timeline(mapped_data),
-            'roi_projections': self._generate_roi_projections(mapped_data),
-            'risk_assessment': self._generate_risk_assessment(mapped_data),
-            'competitive_analysis': self._generate_assessment_competitive_analysis(mapped_data),
-            'next_steps': self._generate_next_steps(mapped_data)
+            'manual-processes': {
+                'title': 'Process Automation',
+                'roi': 180000,
+                'description': 'Automate repetitive tasks and workflows to increase efficiency and reduce operational costs.'
+            },
+            'data-analysis': {
+                'title': 'AI-Enhanced Business Intelligence',
+                'roi': 200000,
+                'description': 'Leverage AI for advanced data analysis and insights to drive better decision-making.'
+            },
+            'document-processing': {
+                'title': 'Document Processing Automation',
+                'roi': 150000,
+                'description': 'Automate document handling and data extraction to streamline operations.'
+            }
         }
         
-        # Add original assessment data for template rendering
-        report_data.update(mapped_data)
+        # Add opportunities based on challenges
+        for challenge in challenges:
+            if challenge in opportunity_mapping:
+                opportunities.append(opportunity_mapping[challenge])
         
-        return report_data
-
-    def generate_strategy_blueprint_data(self, assessment_data):
-        """Generate strategy blueprint data with dynamic field support"""
-        # Map dynamic form data
-        mapped_data = self._map_dynamic_form_data(assessment_data)
+        # Add default opportunities if none found
+        if not opportunities:
+            opportunities = [
+                {
+                    'title': 'Customer Service Automation',
+                    'roi': 120000,
+                    'description': 'Implement AI-powered chatbots and support systems.'
+                },
+                {
+                    'title': 'Process Automation',
+                    'roi': 180000,
+                    'description': 'Automate repetitive tasks and workflows.'
+                }
+            ]
         
-        # Generate strategy blueprint sections
-        strategy_data = {
-            'strategic_foundation': self._generate_strategic_foundation(mapped_data),
-            'vendor_evaluation': self._generate_vendor_evaluation(mapped_data),
-            'technology_architecture': self._generate_technology_architecture(mapped_data),
-            'implementation_strategy': self._generate_implementation_strategy(mapped_data),
-            'success_metrics': self._generate_success_metrics(mapped_data),
-            'risk_mitigation': self._generate_risk_mitigation(mapped_data)
+        return opportunities
+    
+    def _calculate_budget_breakdown(self, company_size: str) -> Dict:
+        """Calculate budget breakdown based on company size"""
+        # Base budget for strategy blueprint
+        if '500+' in company_size:
+            total_budget = 200000
+        elif '251-500' in company_size:
+            total_budget = 150000
+        elif '101-250' in company_size:
+            total_budget = 120000
+        elif '51-100' in company_size:
+            total_budget = 100000
+        elif '11-50' in company_size:
+            total_budget = 80000
+        else:
+            total_budget = 60000
+        
+        # Quarterly breakdown
+        q1 = int(total_budget * 0.35)  # Foundation
+        q2 = int(total_budget * 0.30)  # Implementation
+        q3 = int(total_budget * 0.20)  # Scaling
+        q4 = int(total_budget * 0.15)  # Optimization
+        
+        return {
+            'q1': q1,
+            'q2': q2,
+            'q3': q3,
+            'q4': q4,
+            'total': total_budget
+        }
+    
+    def _determine_strategic_position(self, company_size: str, industry: str) -> str:
+        """Determine strategic position based on company size and industry"""
+        if '500+' in company_size:
+            return "Market Leader"
+        elif '251-500' in company_size:
+            return "Established Player"
+        elif '101-250' in company_size:
+            return "Growing Challenger"
+        elif '51-100' in company_size:
+            return "Emerging Competitor"
+        else:
+            return "Innovative Startup"
+    
+    def _get_default_assessment_content(self) -> Dict:
+        """Get default assessment content when LLM is not available"""
+        return {
+            'tech_strengths': 'Solid technology foundation with potential for AI enhancement.',
+            'data_strengths': 'Existing data assets that can be leveraged for AI implementation.',
+            'team_strengths': 'Capable team with willingness to adopt new technologies.',
+            'process_strengths': 'Established processes that can be optimized with AI.'
+        }
+    
+    def _calculate_enhanced_assessment_scores(self, assessment_data: Dict) -> Dict:
+        """Calculate comprehensive assessment scores based on enhanced data"""
+        scores = {}
+        
+        # Technology score (enhanced with current tools and preferences)
+        tech_score = 50
+        current_tech = assessment_data.get('current_tech', 'basic')
+        current_tools = assessment_data.get('current_tools', [])
+        tool_preferences = assessment_data.get('tool_preferences', [])
+        
+        if current_tech == 'advanced':
+            tech_score += 30
+        elif current_tech == 'intermediate':
+            tech_score += 20
+        
+        tech_score += len(current_tools) * 3
+        tech_score += len(tool_preferences) * 2
+        
+        scores['tech'] = min(tech_score, 95)
+        scores['tech_status'] = self._get_status(scores['tech'])
+        
+        # Data score (enhanced with governance and security)
+        data_score = 50
+        data_governance = assessment_data.get('data_governance', 'none')
+        security_requirements = assessment_data.get('security_requirements', [])
+        compliance_needs = assessment_data.get('compliance_needs', [])
+        
+        if data_governance == 'advanced':
+            data_score += 30
+        elif data_governance == 'intermediate':
+            data_score += 20
+        elif data_governance == 'basic':
+            data_score += 10
+        
+        data_score += len(security_requirements) * 3
+        data_score += len(compliance_needs) * 2
+        
+        scores['data'] = min(data_score, 95)
+        scores['data_status'] = self._get_status(scores['data'])
+        
+        # Team score (enhanced with availability and training needs)
+        team_score = 50
+        team_availability = assessment_data.get('team_availability', 'limited')
+        training_needs = assessment_data.get('training_needs', [])
+        resource_requirements = assessment_data.get('resource_requirements', [])
+        
+        if team_availability == 'dedicated':
+            team_score += 25
+        elif team_availability == 'part-time':
+            team_score += 15
+        elif team_availability == 'consultant':
+            team_score += 10
+        
+        team_score += len(training_needs) * 2
+        team_score += len(resource_requirements) * 2
+        
+        scores['team'] = min(team_score, 95)
+        scores['team_status'] = self._get_status(scores['team'])
+        
+        # Process score (enhanced with implementation phases)
+        process_score = 50
+        implementation_phases = assessment_data.get('implementation_phases', [])
+        implementation_priority = assessment_data.get('implementation_priority', [])
+        
+        process_score += len(implementation_phases) * 5
+        process_score += len(implementation_priority) * 3
+        
+        scores['process'] = min(process_score, 95)
+        scores['process_status'] = self._get_status(scores['process'])
+        
+        # Change management score (new)
+        change_score = 50
+        change_management_experience = assessment_data.get('change_management_experience', 'none')
+        mitigation_strategies = assessment_data.get('mitigation_strategies', [])
+        
+        if change_management_experience == 'expert':
+            change_score += 30
+        elif change_management_experience == 'experienced':
+            change_score += 20
+        elif change_management_experience == 'some':
+            change_score += 10
+        
+        change_score += len(mitigation_strategies) * 3
+        
+        scores['change'] = min(change_score, 95)
+        scores['change_status'] = self._get_status(scores['change'])
+        
+        # Security score (new)
+        security_score = 50
+        security_requirements = assessment_data.get('security_requirements', [])
+        compliance_needs = assessment_data.get('compliance_needs', [])
+        
+        security_score += len(security_requirements) * 4
+        security_score += len(compliance_needs) * 3
+        
+        scores['security'] = min(security_score, 95)
+        scores['security_status'] = self._get_status(scores['security'])
+        
+        # Overall score
+        scores['overall'] = int((scores['tech'] + scores['data'] + scores['team'] + 
+                               scores['process'] + scores['change'] + scores['security']) / 6)
+        
+        # Readiness level
+        if scores['overall'] >= 85:
+            scores['readiness_level'] = 'Excellent'
+        elif scores['overall'] >= 70:
+            scores['readiness_level'] = 'Good'
+        elif scores['overall'] >= 55:
+            scores['readiness_level'] = 'Fair'
+        else:
+            scores['readiness_level'] = 'Needs Improvement'
+        
+        # Generate detailed explanations for each dimension
+        scores['tech_explanation'] = self._generate_tech_explanation(
+            current_tech, assessment_data.get('ai_experience', 'exploring'), 
+            current_tools, scores['tech']
+        )
+        scores['data_explanation'] = self._generate_data_explanation(
+            data_governance, security_requirements, compliance_needs, scores['data']
+        )
+        scores['team_explanation'] = self._generate_team_explanation(
+            team_availability, change_management_experience, 
+            assessment_data.get('ai_experience', 'exploring'), scores['team']
+        )
+        scores['process_explanation'] = self._generate_process_explanation(
+            assessment_data.get('timeline', '6-months'), 
+            assessment_data.get('budget', 'under-25k'), 
+            change_management_experience, scores['process']
+        )
+        
+        # Generate strengths and improvement recommendations
+        strengths = self._generate_strengths_analysis(assessment_data, scores['tech'], scores['data'], scores['team'], scores['process'])
+        improvements = self._generate_improvement_recommendations(assessment_data, scores['tech'], scores['data'], scores['team'], scores['process'])
+        
+        scores.update(strengths)
+        scores.update(improvements)
+        
+        return scores
+    
+    def _get_status(self, score: int) -> str:
+        """Get status based on score"""
+        if score >= 85:
+            return 'Excellent'
+        elif score >= 70:
+            return 'Good'
+        elif score >= 55:
+            return 'Fair'
+        else:
+            return 'Needs Improvement'
+    
+    def _generate_tech_explanation(self, current_tech: str, ai_experience: str, current_tools: List[str], tech_score: int) -> str:
+        """Generate detailed explanation for technology infrastructure score"""
+        explanations = {
+            'basic': "Your organization currently operates with basic technology infrastructure, which is common for companies in early stages of digital transformation.",
+            'intermediate': "Your organization has established intermediate technology infrastructure with some modern tools and systems in place.",
+            'advanced': "Your organization demonstrates advanced technology infrastructure with sophisticated systems and tools already implemented."
         }
         
-        # Add original assessment data for template rendering
-        strategy_data.update(mapped_data)
+        experience_explanations = {
+            'exploring': "You're in the early exploration phase of AI adoption, which is a natural starting point for many organizations.",
+            'piloting': "You have some AI pilot projects underway, showing proactive interest in AI implementation.",
+            'implementing': "You're actively implementing AI solutions, demonstrating strong commitment to AI adoption.",
+            'scaling': "You're scaling AI across your organization, indicating mature AI capabilities."
+        }
         
-        return strategy_data
+        base_explanation = explanations.get(current_tech, explanations['basic'])
+        experience_explanation = experience_explanations.get(ai_experience, experience_explanations['exploring'])
+        
+        tools_analysis = ""
+        if current_tools:
+            tools_analysis = f" Your current tool stack includes {', '.join(current_tools)}, which provides a solid foundation for AI integration."
+        else:
+            tools_analysis = " You currently have limited tools in place, which presents opportunities for strategic AI tool selection."
+        
+        score_analysis = ""
+        if tech_score >= 85:
+            score_analysis = " This excellent score reflects your strong technological foundation and readiness for advanced AI implementations."
+        elif tech_score >= 70:
+            score_analysis = " This good score indicates you have a solid foundation for AI adoption with room for strategic enhancements."
+        elif tech_score >= 55:
+            score_analysis = " This fair score suggests you have basic infrastructure that can support AI initiatives with targeted improvements."
+        else:
+            score_analysis = " This score indicates that technology infrastructure improvements should be prioritized before major AI implementations."
+        
+        return f"{base_explanation} {experience_explanation}{tools_analysis}{score_analysis}"
+    
+    def _generate_data_explanation(self, data_governance: str, security_requirements: List[str], compliance_needs: List[str], data_score: int) -> str:
+        """Generate detailed explanation for data readiness score"""
+        governance_explanations = {
+            'none': "Your organization currently lacks formal data governance structures, which is common in early-stage companies.",
+            'basic': "You have basic data governance practices in place, providing a foundation for data-driven initiatives.",
+            'intermediate': "Your organization has established intermediate data governance with structured policies and procedures.",
+            'advanced': "You demonstrate advanced data governance with comprehensive policies, procedures, and oversight mechanisms."
+        }
+        
+        base_explanation = governance_explanations.get(data_governance, governance_explanations['none'])
+        
+        security_analysis = ""
+        if security_requirements:
+            security_analysis = f" Your security requirements include {', '.join(security_requirements)}, indicating strong security awareness."
+        else:
+            security_analysis = " You have minimal security requirements defined, which should be addressed before AI implementation."
+        
+        compliance_analysis = ""
+        if compliance_needs:
+            compliance_analysis = f" Your compliance needs include {', '.join(compliance_needs)}, which will influence AI solution selection."
+        else:
+            compliance_analysis = " You have limited compliance requirements, providing flexibility in AI solution choices."
+        
+        score_analysis = ""
+        if data_score >= 85:
+            score_analysis = " This excellent score reflects your mature data governance and strong security/compliance posture."
+        elif data_score >= 70:
+            score_analysis = " This good score indicates solid data foundations with room for strategic enhancements."
+        elif data_score >= 55:
+            score_analysis = " This fair score suggests basic data readiness that can support AI with targeted improvements."
+        else:
+            score_analysis = " This score indicates that data governance and security improvements should be prioritized."
+        
+        return f"{base_explanation}{security_analysis}{compliance_analysis}{score_analysis}"
+    
+    def _generate_team_explanation(self, team_availability: str, change_management_experience: str, ai_experience: str, team_score: int) -> str:
+        """Generate detailed explanation for team preparedness score"""
+        availability_explanations = {
+            'limited': "Your team has limited availability for AI initiatives, which is common in resource-constrained organizations.",
+            'part-time': "You have part-time team availability for AI projects, allowing for gradual implementation.",
+            'dedicated': "You have dedicated team resources for AI initiatives, indicating strong organizational commitment.",
+            'consultant': "You're relying on consultant support for AI initiatives, which can provide expertise but may limit internal capability building."
+        }
+        
+        change_explanations = {
+            'none': "Your organization has limited change management experience, which is typical for companies new to digital transformation.",
+            'some': "You have some change management experience, providing a foundation for AI adoption.",
+            'experienced': "Your organization has experienced change management capabilities, which will be valuable for AI implementation.",
+            'expert': "You have expert-level change management experience, positioning you well for complex AI transformations."
+        }
+        
+        base_explanation = availability_explanations.get(team_availability, availability_explanations['limited'])
+        change_explanation = change_explanations.get(change_management_experience, change_explanations['none'])
+        
+        ai_experience_analysis = ""
+        if ai_experience in ['implementing', 'scaling']:
+            ai_experience_analysis = " Your team has practical AI experience, which significantly strengthens your implementation capabilities."
+        elif ai_experience == 'piloting':
+            ai_experience_analysis = " Your team is gaining AI experience through pilot projects, building valuable knowledge."
+        else:
+            ai_experience_analysis = " Your team is new to AI, which will require focused training and support during implementation."
+        
+        score_analysis = ""
+        if team_score >= 85:
+            score_analysis = " This excellent score reflects your strong team capabilities and readiness for AI implementation."
+        elif team_score >= 70:
+            score_analysis = " This good score indicates solid team foundations with room for targeted skill development."
+        elif team_score >= 55:
+            score_analysis = " This fair score suggests basic team readiness that can support AI with focused training and support."
+        else:
+            score_analysis = " This score indicates that team development and change management should be prioritized."
+        
+        return f"{base_explanation} {change_explanation}{ai_experience_analysis}{score_analysis}"
+    
+    def _generate_process_explanation(self, timeline: str, budget: str, change_management_experience: str, process_score: int) -> str:
+        """Generate detailed explanation for process maturity score"""
+        timeline_explanations = {
+            'immediate': "Your organization is ready for immediate AI implementation, indicating strong urgency and readiness.",
+            '3-months': "You have a 3-month timeline for AI implementation, suggesting focused, rapid deployment.",
+            '6-months': "You have a 6-month timeline, allowing for thorough planning and implementation.",
+            '12-months': "You have a 12-month timeline, enabling comprehensive transformation planning."
+        }
+        
+        budget_explanations = {
+            'under-25k': "Your budget is under $25,000, which is suitable for pilot projects and initial AI exploration.",
+            '25k-50k': "Your budget of $25,000-$50,000 allows for meaningful AI implementations and tool investments.",
+            '50k-100k': "Your budget of $50,000-$100,000 enables comprehensive AI initiatives with multiple solutions.",
+            'over-100k': "Your budget over $100,000 supports enterprise-level AI transformations and advanced solutions."
+        }
+        
+        base_explanation = timeline_explanations.get(timeline, timeline_explanations['6-months'])
+        budget_explanation = budget_explanations.get(budget, budget_explanations['under-25k'])
+        
+        change_analysis = ""
+        if change_management_experience in ['experienced', 'expert']:
+            change_analysis = " Your strong change management experience will be valuable for process transformation."
+        elif change_management_experience == 'some':
+            change_analysis = " Your some change management experience provides a foundation for process improvements."
+        else:
+            change_analysis = " You may need to focus on change management as part of your process transformation."
+        
+        score_analysis = ""
+        if process_score >= 85:
+            score_analysis = " This excellent score reflects your mature processes and strong readiness for AI transformation."
+        elif process_score >= 70:
+            score_analysis = " This good score indicates solid process foundations with room for optimization."
+        elif process_score >= 55:
+            score_analysis = " This fair score suggests basic process maturity that can support AI with targeted improvements."
+        else:
+            score_analysis = " This score indicates that process optimization should be prioritized before AI implementation."
+        
+        return f"{base_explanation} {budget_explanation}{change_analysis}{score_analysis}"
     
     def _generate_strengths_analysis(self, assessment_data: Dict, tech_score: int, data_score: int, team_score: int, process_score: int) -> Dict:
         """Generate strengths analysis for each dimension"""
