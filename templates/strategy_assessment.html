@@ -609,6 +609,7 @@ function changeStrategyStep(direction) {
     const newStep = strategyCurrentStep + direction;
     
     if (newStep >= 1 && newStep <= strategyTotalSteps) {
+        // No validation blocking - always allow navigation
         strategyCurrentStep = newStep;
         showStrategyStep(strategyCurrentStep);
     }

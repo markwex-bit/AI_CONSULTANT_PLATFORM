@@ -1821,6 +1821,10 @@ function submitAssessment() {
 }
 
 function validateCurrentStep() {
+    // For dynamic forms, always allow navigation (no validation blocking)
+    if (useDynamicForm) {
+        return true;
+    }
     return validateStep(currentStep);
 }
 

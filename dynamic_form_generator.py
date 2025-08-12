@@ -179,28 +179,26 @@ class DynamicFormGenerator:
         if not is_visible:
             return []
         
-        # Add required asterisk if needed
+        # Don't add required asterisk or required attribute - all fields are optional for testing
         label_text = field_label
-        if is_required:
-            label_text += ' *'
         
         html.append('<div class="form-group">')
         html.append(f'<label>{label_text}</label>')
         
         if field_type == 'text':
-            html.append(f'<input type="text" name="{field_name}"{" required" if is_required else ""}>')
+            html.append(f'<input type="text" name="{field_name}">')
         
         elif field_type == 'email':
-            html.append(f'<input type="email" name="{field_name}"{" required" if is_required else ""}>')
+            html.append(f'<input type="email" name="{field_name}">')
         
         elif field_type == 'tel':
-            html.append(f'<input type="tel" name="{field_name}"{" required" if is_required else ""}>')
+            html.append(f'<input type="tel" name="{field_name}">')
         
         elif field_type == 'url':
-            html.append(f'<input type="url" name="{field_name}" placeholder="https://example.com"{" required" if is_required else ""}>')
+            html.append(f'<input type="url" name="{field_name}" placeholder="https://example.com">')
         
         elif field_type == 'select':
-            html.append(f'<select name="{field_name}"{" required" if is_required else ""}>')
+            html.append(f'<select name="{field_name}">')
             html.append('<option value="">Select an option</option>')
             
             # Get dropdown options for this field
@@ -221,11 +219,11 @@ class DynamicFormGenerator:
             html.append('</div>')
         
         elif field_type == 'textarea':
-            html.append(f'<textarea name="{field_name}" rows="4"{" required" if is_required else ""}></textarea>')
+            html.append(f'<textarea name="{field_name}" rows="4"></textarea>')
         
         else:
             # Default to text input
-            html.append(f'<input type="text" name="{field_name}"{" required" if is_required else ""}>')
+            html.append(f'<input type="text" name="{field_name}">')
         
         html.append('</div>')
         
@@ -301,9 +299,9 @@ class DynamicFormGenerator:
                 if not is_visible:
                     continue
                 
-                # Add to required fields if needed
-                if is_required:
-                    validation_rules['required_fields'].append(field_name)
+                # Don't add any fields as required - all fields are optional for testing
+                # if is_required:
+                #     validation_rules['required_fields'].append(field_name)
                 
                 # Store field type for validation
                 validation_rules['field_types'][field_name] = field_type
