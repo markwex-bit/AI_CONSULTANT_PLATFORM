@@ -3645,16 +3645,20 @@ function loadFormBuilder() {
 
 function loadAllConfigurations() {
     console.log('Loading all configurations...');
+    const formFilter = document.getElementById('formFilter').value;
+    
     // Load sections first, then fields, then dropdown options
-    loadSectionConfigurations().then(() => {
+    loadSectionConfigurations(formFilter).then(() => {
         loadFieldConfigurations();
-        loadDropdownFieldOptions();
+        loadDropdownFieldOptions(formFilter);
     });
 }
 
-function loadSectionConfigurations() {
+function loadSectionConfigurations(formFilter = null) {
     console.log('Loading section configurations...');
-    return fetch('/api/section_configurations')
+    const url = formFilter ? `/api/section_configurations?form_flag=${formFilter}` : '/api/section_configurations';
+    
+    return fetch(url)
         .then(response => response.json())
         .then(data => {
             console.log('Section configurations data:', data);
@@ -3763,9 +3767,11 @@ function renderSectionConfigTable(configurations) {
     `).join('');
 }
 
-function loadDropdownFieldOptions() {
+function loadDropdownFieldOptions(formFilter = null) {
     console.log('Loading dropdown options...');
-    fetch('/api/dropdown_options')
+    const url = formFilter ? `/api/dropdown_options?form_flag=${formFilter}` : '/api/dropdown_options';
+    
+    fetch(url)
         .then(response => response.json())
         .then(data => {
             console.log('Dropdown options data:', data);
@@ -3804,8 +3810,13 @@ function renderDropdownOptionsTable(options) {
 }
 
 function filterFieldsByForm() {
-    console.log('Filtering fields by form...');
+    console.log('Filtering by form...');
+    const formFilter = document.getElementById('formFilter').value;
+    
+    // Always update all tabs when form filter changes
+    loadSectionConfigurations(formFilter);
     loadFieldConfigurations();
+    loadDropdownFieldOptions(formFilter);
 }
 
 function updateFieldSection(fieldName, sectionName) {
