@@ -406,8 +406,6 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         margin-bottom: 2rem;
         overflow: hidden;
-        border: 2px solid #e5e7eb;
-        background: #f8fafc;
     }
     
     .card-header {
@@ -426,9 +424,6 @@
     .card-body {
         padding: 2rem;
         background: white;
-        margin: 1rem;
-        border-radius: 8px;
-        border: 1px solid #e5e7eb;
     }
     
     .form-row {
@@ -451,6 +446,10 @@
     
     .form-group {
         margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        background: #f8fafc;
     }
     
     .field-label {
@@ -507,10 +506,20 @@
         background: #f0f9ff;
     }
     
-    .other-option {
+    .other-input-section {
         margin-top: 1rem;
-        padding-left: 0;
-        min-width: auto;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .other-input {
+        background: white !important;
+        border-color: #d1d5db !important;
+    }
+    
+    .other-input::placeholder {
+        color: #6b7280;
+        font-style: italic;
     }
     
     .checkbox-input {

@@ -229,11 +229,10 @@ class DynamicFormGenerator:
                 html.append(f'<input type="checkbox" name="{field_name}" value="{option["option_value"]}" class="checkbox-input">')
                 html.append(f'<span class="checkbox-label">{option["option_label"]}</span>')
                 html.append('</label>')
-            # Add "Other" option at bottom left
-            html.append(f'<label class="checkbox-option other-option">')
-            html.append(f'<input type="checkbox" name="{field_name}" value="other" class="checkbox-input">')
-            html.append(f'<span class="checkbox-label">Other</span>')
-            html.append('</label>')
+            # Add "Other" text input at bottom
+            html.append('<div class="other-input-section">')
+            html.append(f'<input type="text" name="{field_name}_other" class="form-control other-input" placeholder="Enter other {field_label.lower()}">')
+            html.append('</div>')
             html.append('</div>')
         
         elif field_type == 'textarea':
