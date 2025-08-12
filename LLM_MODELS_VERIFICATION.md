@@ -1,7 +1,7 @@
 # 🤖 LLM Models Verification Report
 
 **Last Updated:** August 12, 2024  
-**Total Models:** 17  
+**Total Models:** 20  
 **Providers:** 4 (OpenAI, Anthropic, Ollama, HuggingFace)
 
 ## 📊 Model Status Summary
@@ -9,7 +9,7 @@
 | Provider | Models | Status | Last Verified |
 |----------|--------|--------|---------------|
 | **OpenAI** | 4 | ✅ Current | August 2024 |
-| **Anthropic** | 5 | ✅ Current + Legacy | August 2024 |
+| **Anthropic** | 8 | ✅ Claude 4 + 3.5 + Legacy | August 2024 |
 | **Ollama** | 4 | ✅ Current | August 2024 |
 | **HuggingFace** | 3 | ✅ Current | August 2024 |
 
@@ -33,18 +33,22 @@
 
 ---
 
-### 🧠 **Anthropic Models** (5 models)
+### 🧠 **Anthropic Models** (8 models)
 
 | Model Name | API Name | Status | Cost/1K Tokens | Max Tokens | Capabilities |
 |------------|----------|--------|----------------|------------|--------------|
-| **Claude 3.5 Sonnet (Latest)** | `claude-3-5-sonnet-20241022` | ✅ **Current** | $0.003 | 200,000 | Text generation, Business analysis, Complex reasoning |
-| **Claude 3.5 Haiku (Latest)** | `claude-3-5-haiku-20241022` | ✅ **Current** | $0.00025 | 200,000 | Text generation, Business analysis |
+| **Claude 4o (Latest)** | `claude-4o` | ✅ **Latest** | $0.005 | 200,000 | Text generation, Business analysis, Complex reasoning, Creative writing |
+| **Claude 4o Mini (Latest)** | `claude-4o-mini` | ✅ **Latest** | $0.00015 | 200,000 | Text generation, Business analysis |
+| **Claude 4 Sonnet (Latest)** | `claude-4-sonnet` | ✅ **Latest** | $0.003 | 200,000 | Text generation, Business analysis, Complex reasoning |
+| **Claude 4 Opus (Latest)** | `claude-4-opus` | ✅ **Latest** | $0.015 | 200,000 | Text generation, Business analysis, Complex reasoning, Creative writing |
+| **Claude 3.5 Sonnet** | `claude-3-5-sonnet-20241022` | ✅ **Current** | $0.003 | 200,000 | Text generation, Business analysis, Complex reasoning |
+| **Claude 3.5 Haiku** | `claude-3-5-haiku-20241022` | ✅ **Current** | $0.00025 | 200,000 | Text generation, Business analysis |
 | **Claude 3 Sonnet (Legacy)** | `claude-3-sonnet-20240229` | ✅ **Legacy** | $0.003 | 200,000 | Text generation, Business analysis, Complex reasoning |
 | **Claude 3 Haiku (Legacy)** | `claude-3-haiku-20240307` | ✅ **Legacy** | $0.00025 | 200,000 | Text generation, Business analysis |
-| **Claude 3 Opus (Legacy)** | `claude-3-opus-20240229` | ✅ **Legacy** | $0.015 | 200,000 | Text generation, Business analysis, Complex reasoning, Creative writing |
 
-**✅ Verification:** Both current and legacy models available as of August 2024
-- **Latest Release:** Claude 3.5 Sonnet/Haiku (June 2024)
+**✅ Verification:** Claude 4, 3.5, and legacy models available as of August 2024
+- **Latest Release:** Claude 4o/Sonnet/Opus (August 2024)
+- **Current Models:** Claude 3.5 series (June 2024)
 - **Legacy Models:** Claude 3.x series (February-March 2024)
 - **API Key Required:** `ANTHROPIC_API_KEY`
 
