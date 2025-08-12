@@ -197,6 +197,39 @@
     .hidden {
         display: none;
     }
+    
+    /* Step Navigation Styles */
+    .step-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 2px solid #e5e7eb;
+    }
+    
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .btn-secondary:hover {
+        background: #4b5563;
+    }
+    
+    .step {
+        display: none;
+    }
+    
+    .step.active {
+        display: block;
+    }
 </style>
 {% endblock %}
 
@@ -514,6 +547,10 @@ async function loadDynamicStrategyForm() {
             document.getElementById('originalFormContainer').style.display = 'none';
             
             useDynamicForm = true;
+            
+            // Initialize step navigation for strategy form
+            initializeStrategyStepNavigation();
+            
             console.log('Dynamic strategy form activated successfully!');
         } else {
             console.error('Failed to load dynamic strategy form:', data.error);
@@ -521,6 +558,90 @@ async function loadDynamicStrategyForm() {
     } catch (error) {
         console.error('Error loading dynamic strategy form:', error);
     }
+}
+
+// Strategy form step navigation
+let strategyCurrentStep = 1;
+let strategyTotalSteps = 1;
+
+function initializeStrategyStepNavigation() {
+    const dynamicSteps = document.querySelectorAll('#dynamicFormContainer .step');
+    strategyTotalSteps = dynamicSteps.length;
+    strategyCurrentStep = 1;
+    showStrategyStep(1);
+}
+
+function showStrategyStep(step) {
+    // Hide all steps
+    const steps = document.querySelectorAll('#dynamicFormContainer .step');
+    steps.forEach(s => s.classList.remove('active'));
+    
+    // Show current step
+    const currentStepEl = document.getElementById(`step${step}`);
+    if (currentStepEl) {
+        currentStepEl.classList.add('active');
+    }
+    
+    strategyCurrentStep = step;
+    
+    // Update navigation buttons
+    const prevBtn = document.querySelector('#dynamicFormContainer #prevBtn');
+    const nextBtn = document.querySelector('#dynamicFormContainer #nextBtn');
+    
+    if (prevBtn && nextBtn) {
+        if (step === 1) {
+            prevBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'block';
+        }
+        
+        if (step === strategyTotalSteps) {
+            nextBtn.textContent = 'Submit Strategy Assessment';
+            nextBtn.onclick = submitStrategyAssessment;
+        } else {
+            nextBtn.textContent = 'Next';
+            nextBtn.onclick = () => changeStrategyStep(1);
+        }
+    }
+}
+
+function changeStrategyStep(direction) {
+    const newStep = strategyCurrentStep + direction;
+    
+    if (newStep >= 1 && newStep <= strategyTotalSteps) {
+        strategyCurrentStep = newStep;
+        showStrategyStep(strategyCurrentStep);
+    }
+}
+
+function submitStrategyAssessment() {
+    // Collect form data and submit
+    const formData = new FormData(document.getElementById('strategyForm'));
+    const data = Object.fromEntries(formData);
+    
+    // Handle checkbox arrays
+    data.vendor_features = Array.from(formData.getAll('vendor_features'));
+    
+    fetch('/upgrade_to_strategy', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Strategy Blueprint assessment submitted successfully! You will be redirected to payment.');
+            window.location.href = `/strategy_payment/${data.assessment_id}`;
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
 }
 
 function toggleStrategyFormType() {

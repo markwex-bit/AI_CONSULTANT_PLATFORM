@@ -90,6 +90,17 @@ class DynamicFormGenerator:
                 html.append('</div>')
                 step_number += 1
             
+            # Add step navigation
+            html.append('</div>')  # Close the last step
+            
+            # Add step navigation buttons
+            html.append('''
+            <div class="step-navigation">
+                <button type="button" class="btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">Previous</button>
+                <button type="button" class="cta-button" id="nextBtn" onclick="changeStep(1)">Next</button>
+            </div>
+            ''')
+            
             return '\n'.join(html)
             
         except Exception as e:

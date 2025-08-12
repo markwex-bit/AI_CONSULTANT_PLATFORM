@@ -2127,8 +2127,13 @@ async function loadDynamicForm() {
             
             useDynamicForm = true;
             
-            // Reinitialize form
+            // Reinitialize form steps for the dynamic form
             currentStep = 1;
+            
+            // Count steps in dynamic form
+            const dynamicSteps = container.querySelectorAll('.step');
+            totalSteps = dynamicSteps.length;
+            
             showStep(currentStep);
             
             console.log('Dynamic form activated successfully!');
