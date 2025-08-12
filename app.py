@@ -2119,6 +2119,37 @@ def update_field_configuration(field_name):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/field_configurations/bulk_update', methods=['PUT'])
+def bulk_update_field_configurations():
+    """Bulk update field configurations (for required/visible status)"""
+    try:
+        data = request.get_json()
+        field_names = data.get('field_names', [])
+        is_required = data.get('is_required', False)
+        is_visible = data.get('is_visible', True)
+        
+        if not field_names:
+            return jsonify({'success': False, 'error': 'No field names provided'})
+        
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        # Update all specified fields in a single transaction
+        placeholders = ','.join(['?' for _ in field_names])
+        cursor.execute(f'''
+            UPDATE field_configurations
+            SET is_required = ?, is_visible = ?
+            WHERE field_name IN ({placeholders})
+        ''', [is_required, is_visible] + field_names)
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'updated_count': len(field_names)})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route('/api/section_configurations', methods=['POST'])
 def add_section_configuration():
     """Add a new section configuration"""

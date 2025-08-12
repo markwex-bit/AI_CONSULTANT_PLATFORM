@@ -4726,7 +4726,8 @@ function toggleFieldRequired(fieldName, isRequired) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(`Field ${isRequired ? 'marked as required' : 'marked as optional'}`, 'success');
+            // Silent success - no notification for individual toggles
+            console.log(`Field ${fieldName} ${isRequired ? 'marked as required' : 'marked as optional'}`);
         } else {
             showNotification('Error updating field: ' + data.error, 'error');
             // Revert the checkbox if there was an error
@@ -4752,7 +4753,8 @@ function toggleFieldVisible(fieldName, isVisible) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(`Field ${isVisible ? 'made visible' : 'hidden'}`, 'success');
+            // Silent success - no notification for individual toggles
+            console.log(`Field ${fieldName} ${isVisible ? 'made visible' : 'hidden'}`);
         } else {
             showNotification('Error updating field: ' + data.error, 'error');
             // Revert the checkbox if there was an error
@@ -4797,14 +4799,24 @@ function toggleAllRequiredFields() {
 function disableAllRequiredFields() {
     console.log('Disabling all required fields...');
     
-    // Store current required states and disable all fields
+    // Store current required states and update UI immediately
     if (window.fieldConfigurations) {
         window.fieldConfigurations.forEach(field => {
             if (field.is_required) {
                 originalRequiredStates.set(field.field_name, true);
-                toggleFieldRequired(field.field_name, false);
+                // Update the field configuration in memory
+                field.is_required = false;
             }
         });
+        
+        // Update the UI immediately
+        renderFieldConfigTable(window.fieldConfigurations);
+        
+        // Make a single bulk update to the database
+        const fieldsToUpdate = Array.from(originalRequiredStates.keys());
+        if (fieldsToUpdate.length > 0) {
+            bulkUpdateFieldRequired(fieldsToUpdate, false);
+        }
     }
     
     showNotification('All required fields have been disabled. You can now work through forms without filling required fields.', 'success');
@@ -4813,17 +4825,62 @@ function disableAllRequiredFields() {
 function reEnableAllRequiredFields() {
     console.log('Re-enabling all required fields...');
     
-    // Restore original required states
-    originalRequiredStates.forEach((wasRequired, fieldName) => {
-        if (wasRequired) {
-            toggleFieldRequired(fieldName, true);
+    // Update UI immediately
+    if (window.fieldConfigurations) {
+        originalRequiredStates.forEach((wasRequired, fieldName) => {
+            if (wasRequired) {
+                const field = window.fieldConfigurations.find(f => f.field_name === fieldName);
+                if (field) {
+                    field.is_required = true;
+                }
+            }
+        });
+        
+        // Update the UI immediately
+        renderFieldConfigTable(window.fieldConfigurations);
+        
+        // Make a single bulk update to the database
+        const fieldsToUpdate = Array.from(originalRequiredStates.keys());
+        if (fieldsToUpdate.length > 0) {
+            bulkUpdateFieldRequired(fieldsToUpdate, true);
         }
-    });
+    }
     
     // Clear the stored states
     originalRequiredStates.clear();
     
     showNotification('All required fields have been restored to their original state.', 'success');
+}
+
+function bulkUpdateFieldRequired(fieldNames, isRequired) {
+    console.log(`Bulk updating ${fieldNames.length} fields to required=${isRequired}`);
+    
+    // Make a single API call to update all fields at once
+    fetch('/api/field_configurations/bulk_update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            field_names: fieldNames,
+            is_required: isRequired
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log(`Successfully updated ${fieldNames.length} fields`);
+        } else {
+            console.error('Error in bulk update:', data.error);
+            showNotification('Error updating fields: ' + data.error, 'error');
+            // Refresh to get correct state
+            loadFieldConfigurations();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error updating fields', 'error');
+        // Refresh to get correct state
+        loadFieldConfigurations();
+    });
 }
 
 // Initialize the page
