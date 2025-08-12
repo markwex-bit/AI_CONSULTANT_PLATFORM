@@ -631,11 +631,15 @@
                     <div style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <label style="font-weight: 500; color: #374151;">Section Filter:</label>
-                            <input type="text" id="sectionFilter" placeholder="Filter by section..." style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;" onkeyup="filterFieldConfigurations()">
+                            <select id="sectionFilter" style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;" onchange="filterFieldConfigurations()">
+                                <option value="">All Sections</option>
+                            </select>
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <label style="font-weight: 500; color: #374151;">Field Name Filter:</label>
-                            <input type="text" id="fieldNameFilter" placeholder="Filter by field name..." style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;" onkeyup="filterFieldConfigurations()">
+                            <select id="fieldNameFilter" style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;" onchange="filterFieldConfigurations()">
+                                <option value="">All Field Names</option>
+                            </select>
                         </div>
                     </div>
                     <div id="fieldConfigTable" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
@@ -3701,9 +3705,7 @@ function loadFieldConfigurations() {
             if (data.success) {
                 window.fieldConfigurations = data.configurations;
                 renderFieldConfigTable(data.configurations);
-                // Clear filters when loading new data
-                document.getElementById('sectionFilter').value = '';
-                document.getElementById('fieldNameFilter').value = '';
+                populateFilterDropdowns(data.configurations);
             } else {
                 console.error('Error loading field configurations:', data.error);
             }
@@ -3844,10 +3846,32 @@ function filterFieldsByForm() {
     loadDropdownFieldOptions(formFilter);
 }
 
+function populateFilterDropdowns(configurations) {
+    console.log('Populating filter dropdowns...');
+    
+    // Get unique sections and field names
+    const sections = [...new Set(configurations.map(config => config.section_name).filter(Boolean))].sort();
+    const fieldNames = [...new Set(configurations.map(config => config.field_name).filter(Boolean))].sort();
+    
+    // Populate section filter dropdown
+    const sectionFilter = document.getElementById('sectionFilter');
+    sectionFilter.innerHTML = '<option value="">All Sections</option>';
+    sections.forEach(section => {
+        sectionFilter.innerHTML += `<option value="${section}">${section}</option>`;
+    });
+    
+    // Populate field name filter dropdown
+    const fieldNameFilter = document.getElementById('fieldNameFilter');
+    fieldNameFilter.innerHTML = '<option value="">All Field Names</option>';
+    fieldNames.forEach(fieldName => {
+        fieldNameFilter.innerHTML += `<option value="${fieldName}">${fieldName}</option>`;
+    });
+}
+
 function filterFieldConfigurations() {
     console.log('Filtering field configurations...');
-    const sectionFilter = document.getElementById('sectionFilter').value.toLowerCase();
-    const fieldNameFilter = document.getElementById('fieldNameFilter').value.toLowerCase();
+    const sectionFilter = document.getElementById('sectionFilter').value;
+    const fieldNameFilter = document.getElementById('fieldNameFilter').value;
     
     if (!window.fieldConfigurations) {
         console.log('No field configurations loaded yet');
@@ -3855,8 +3879,8 @@ function filterFieldConfigurations() {
     }
     
     const filteredConfigurations = window.fieldConfigurations.filter(config => {
-        const sectionMatch = !sectionFilter || (config.section_name && config.section_name.toLowerCase().includes(sectionFilter));
-        const fieldNameMatch = !fieldNameFilter || (config.field_name && config.field_name.toLowerCase().includes(fieldNameFilter));
+        const sectionMatch = !sectionFilter || config.section_name === sectionFilter;
+        const fieldNameMatch = !fieldNameFilter || config.field_name === fieldNameFilter;
         return sectionMatch && fieldNameMatch;
     });
     
