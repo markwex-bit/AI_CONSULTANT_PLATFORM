@@ -609,6 +609,7 @@
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Title</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Step</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Description</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Form</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Actions</th>
                                 </tr>
                             </thead>
@@ -627,14 +628,24 @@
                             ➕ Add New Field
                         </button>
                     </div>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label style="font-weight: 500; color: #374151;">Section Filter:</label>
+                            <input type="text" id="sectionFilter" placeholder="Filter by section..." style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;" onkeyup="filterFieldConfigurations()">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label style="font-weight: 500; color: #374151;">Field Name Filter:</label>
+                            <input type="text" id="fieldNameFilter" placeholder="Filter by field name..." style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;" onkeyup="filterFieldConfigurations()">
+                        </div>
+                    </div>
                     <div id="fieldConfigTable" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: #f9fafb;">
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Name</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Label</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Type</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Form</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Actions</th>
                                 </tr>
@@ -662,6 +673,7 @@
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Value</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Label</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Order</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Form</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Actions</th>
                                 </tr>
                             </thead>
@@ -3689,6 +3701,9 @@ function loadFieldConfigurations() {
             if (data.success) {
                 window.fieldConfigurations = data.configurations;
                 renderFieldConfigTable(data.configurations);
+                // Clear filters when loading new data
+                document.getElementById('sectionFilter').value = '';
+                document.getElementById('fieldNameFilter').value = '';
             } else {
                 console.error('Error loading field configurations:', data.error);
             }
@@ -3707,16 +3722,16 @@ function renderFieldConfigTable(configurations) {
     
     tbody.innerHTML = configurations.map(config => `
         <tr style="border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 12px;">
+                <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: #f3f4f6; color: #374151;">
+                    ${config.section_name || 'Unassigned'}
+                </span>
+            </td>
             <td style="padding: 12px;">${config.field_name || ''}</td>
             <td style="padding: 12px;">${config.field_label || ''}</td>
             <td style="padding: 12px;">
                 <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: ${getTypeColor(config.field_type)}; color: white;">
                     ${config.field_type || ''}
-                </span>
-            </td>
-            <td style="padding: 12px;">
-                <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: #f3f4f6; color: #374151;">
-                    ${config.section_name || 'Unassigned'}
                 </span>
             </td>
             <td style="padding: 12px;">
@@ -3758,6 +3773,11 @@ function renderSectionConfigTable(configurations) {
             <td style="padding: 12px;">${config.section_title || ''}</td>
             <td style="padding: 12px;">${config.step_number || ''}</td>
             <td style="padding: 12px;">${config.description || ''}</td>
+            <td style="padding: 12px;">
+                <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: ${config.form_flag === 'A' ? '#3b82f6' : '#10b981'}; color: white;">
+                    ${config.form_flag === 'A' ? 'Assessment' : 'Strategy'}
+                </span>
+            </td>
             <td style="padding: 12px;">
                 <div style="display: flex; gap: 4px;">
                     <button class="action-btn" onclick="editSectionConfig('${config.section_name}')" style="background: #3b82f6; color: white;" title="Edit Section">✏️</button>
@@ -3801,6 +3821,11 @@ function renderDropdownOptionsTable(options) {
             <td style="padding: 12px;">${option.option_label || ''}</td>
             <td style="padding: 12px;">${option.sort_order || 0}</td>
             <td style="padding: 12px;">
+                <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: ${option.form_flag === 'A' ? '#3b82f6' : '#10b981'}; color: white;">
+                    ${option.form_flag === 'A' ? 'Assessment' : 'Strategy'}
+                </span>
+            </td>
+            <td style="padding: 12px;">
                 <div style="display: flex; gap: 4px;">
                     <button class="action-btn" onclick="editDropdownOption(${option.id})" style="background: #3b82f6; color: white;" title="Edit Option">✏️</button>
                 </div>
@@ -3817,6 +3842,25 @@ function filterFieldsByForm() {
     loadSectionConfigurations(formFilter);
     loadFieldConfigurations();
     loadDropdownFieldOptions(formFilter);
+}
+
+function filterFieldConfigurations() {
+    console.log('Filtering field configurations...');
+    const sectionFilter = document.getElementById('sectionFilter').value.toLowerCase();
+    const fieldNameFilter = document.getElementById('fieldNameFilter').value.toLowerCase();
+    
+    if (!window.fieldConfigurations) {
+        console.log('No field configurations loaded yet');
+        return;
+    }
+    
+    const filteredConfigurations = window.fieldConfigurations.filter(config => {
+        const sectionMatch = !sectionFilter || (config.section_name && config.section_name.toLowerCase().includes(sectionFilter));
+        const fieldNameMatch = !fieldNameFilter || (config.field_name && config.field_name.toLowerCase().includes(fieldNameFilter));
+        return sectionMatch && fieldNameMatch;
+    });
+    
+    renderFieldConfigTable(filteredConfigurations);
 }
 
 function updateFieldSection(fieldName, sectionName) {
