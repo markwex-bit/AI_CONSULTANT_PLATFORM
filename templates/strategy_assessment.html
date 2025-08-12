@@ -238,7 +238,8 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         margin-bottom: 2rem;
         overflow: hidden;
-        border: 1px solid #e5e7eb;
+        border: 2px solid #e5e7eb;
+        background: #f8fafc;
     }
     
     .card-header {
@@ -256,6 +257,10 @@
     
     .card-body {
         padding: 2rem;
+        background: white;
+        margin: 1rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
     }
     
     .form-row {
@@ -269,6 +274,11 @@
         flex: 1;
         padding: 0 1rem;
         min-width: 250px;
+    }
+    
+    .form-col-full {
+        width: 100%;
+        padding: 0;
     }
     
     .form-group {
@@ -317,17 +327,22 @@
         display: flex;
         align-items: center;
         padding: 0.75rem 1rem;
-        border: 2px solid #e5e7eb;
+        border: none;
         border-radius: 8px;
         cursor: pointer;
-        background: #f9fafb;
+        background: transparent;
         transition: all 0.2s ease;
         min-width: 200px;
     }
     
     .checkbox-option:hover {
-        border-color: #059669;
         background: #f0fdf4;
+    }
+    
+    .other-option {
+        margin-top: 1rem;
+        padding-left: 0;
+        min-width: auto;
     }
     
     .checkbox-input {

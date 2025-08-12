@@ -164,25 +164,15 @@ class DynamicFormGenerator:
         return html
     
     def _generate_generic_section(self, fields: List[Dict]) -> List[str]:
-        """Generate generic section with responsive layout"""
+        """Generate generic section with single-row layout"""
         html = []
         
-        # Group fields into pairs for better layout
-        for i in range(0, len(fields), 2):
+        # Each field gets its own row for better organization
+        for field in fields:
             html.append('<div class="form-row">')
-            
-            # First field in pair
-            if i < len(fields):
-                html.append('<div class="form-col">')
-                html.extend(self._generate_field_html(fields[i]))
-                html.append('</div>')
-            
-            # Second field in pair (if exists)
-            if i + 1 < len(fields):
-                html.append('<div class="form-col">')
-                html.extend(self._generate_field_html(fields[i + 1]))
-                html.append('</div>')
-            
+            html.append('<div class="form-col-full">')
+            html.extend(self._generate_field_html(field))
+            html.append('</div>')
             html.append('</div>')
         
         return html
@@ -239,6 +229,11 @@ class DynamicFormGenerator:
                 html.append(f'<input type="checkbox" name="{field_name}" value="{option["option_value"]}" class="checkbox-input">')
                 html.append(f'<span class="checkbox-label">{option["option_label"]}</span>')
                 html.append('</label>')
+            # Add "Other" option at bottom left
+            html.append(f'<label class="checkbox-option other-option">')
+            html.append(f'<input type="checkbox" name="{field_name}" value="other" class="checkbox-input">')
+            html.append(f'<span class="checkbox-label">Other</span>')
+            html.append('</label>')
             html.append('</div>')
         
         elif field_type == 'textarea':
