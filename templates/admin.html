@@ -649,8 +649,9 @@
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Name</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Label</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Step</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Order</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section Step</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Step</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Order</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Type</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Form</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Actions</th>
@@ -3729,6 +3730,7 @@ function renderFieldConfigTable(configurations) {
             <td style="padding: 12px;">${config.section_name || 'Unassigned'}</td>
             <td style="padding: 12px;">${config.field_name || ''}</td>
             <td style="padding: 12px;">${config.field_label || ''}</td>
+            <td style="padding: 12px;">${config.section_step || 1}</td>
             <td style="padding: 12px;">${config.step_number || 1}</td>
             <td style="padding: 12px;">${config.sort_order || 0}</td>
             <td style="padding: 12px;">
@@ -3839,6 +3841,7 @@ function renderDropdownOptionsTable(options) {
 function filterFieldsByForm() {
     console.log('Filtering by form...');
     const formFilter = document.getElementById('formFilter').value;
+    window.currentFormFilter = formFilter;
     
     // Always update all tabs when form filter changes
     loadSectionConfigurations(formFilter);
@@ -3974,13 +3977,17 @@ function showEditFieldModal(field) {
                     </select>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Step Number:</label>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section Step:</label>
+                        <input type="number" id="editFieldSectionStep" value="${field.section_step || 1}" min="1" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Step:</label>
                         <input type="number" id="editFieldStep" value="${field.step_number || 1}" min="1" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                     </div>
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Sort Order:</label>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Order:</label>
                         <input type="number" id="editFieldOrder" value="${field.sort_order || 0}" min="0" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                     </div>
                 </div>
@@ -4049,6 +4056,7 @@ function saveFieldConfig() {
     const fieldLabel = document.getElementById('editFieldLabel').value;
     const fieldType = document.getElementById('editFieldType').value;
     const fieldSection = document.getElementById('editFieldSection').value;
+    const fieldSectionStep = parseInt(document.getElementById('editFieldSectionStep').value) || 1;
     const fieldStep = parseInt(document.getElementById('editFieldStep').value) || 1;
     const fieldOrder = parseInt(document.getElementById('editFieldOrder').value) || 0;
     const fieldRequired = document.getElementById('editFieldRequired').checked;
@@ -4061,6 +4069,8 @@ function saveFieldConfig() {
         section_name: fieldSection,
         step_number: fieldStep,
         sort_order: fieldOrder,
+        section_step: fieldSectionStep,
+        form_flag: window.currentFormFilter || 'A',
         is_required: fieldRequired,
         is_visible: fieldVisible,
         help_text: fieldHelpText
