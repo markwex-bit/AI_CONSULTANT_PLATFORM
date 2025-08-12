@@ -605,8 +605,8 @@
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: #f9fafb;">
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section Name</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Title</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Card Name</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">DB Name</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Step</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Description</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Form</th>
@@ -3773,8 +3773,8 @@ function renderSectionConfigTable(configurations) {
     
     tbody.innerHTML = configurations.map(config => `
         <tr style="border-bottom: 1px solid #e5e7eb;">
-            <td style="padding: 12px;">${config.section_name || ''}</td>
             <td style="padding: 12px;">${config.section_title || ''}</td>
+            <td style="padding: 12px;">${config.section_name || ''}</td>
             <td style="padding: 12px;">${config.step_number || ''}</td>
             <td style="padding: 12px;">${config.description || ''}</td>
             <td style="padding: 12px;">
@@ -4129,13 +4129,13 @@ function showEditSectionModal(section) {
                 <h3 style="margin-bottom: 1rem; color: #1f2937;">Edit Section Configuration</h3>
                 
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section Name:</label>
-                    <input type="text" id="editSectionName" value="${section.section_name}" readonly style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Card Name:</label>
+                    <input type="text" id="editSectionTitle" value="${section.section_title || ''}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section Title:</label>
-                    <input type="text" id="editSectionTitle" value="${section.section_title || ''}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">DB Name:</label>
+                    <input type="text" id="editSectionName" value="${section.section_name}" readonly style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
@@ -4532,13 +4532,13 @@ function addNewSection() {
                 <h3 style="margin-bottom: 1rem; color: #1f2937;">Add New Section</h3>
                 
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section Name:</label>
-                    <input type="text" id="newSectionName" placeholder="e.g., contact_company" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Card Name:</label>
+                    <input type="text" id="newSectionTitle" placeholder="e.g., Contact & Company Information" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section Title:</label>
-                    <input type="text" id="newSectionTitle" placeholder="e.g., Contact & Company Information" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">DB Name:</label>
+                    <input type="text" id="newSectionName" placeholder="e.g., contact_company" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
