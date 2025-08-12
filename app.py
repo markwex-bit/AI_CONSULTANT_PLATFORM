@@ -2518,6 +2518,40 @@ def get_llm_pricing_summary():
             'error': str(e)
         }), 500
 
+@app.route('/api/dynamic-form/<form_type>')
+def get_dynamic_form(form_type):
+    """Get dynamically generated form HTML"""
+    try:
+        from dynamic_form_generator import DynamicFormGenerator
+        
+        generator = DynamicFormGenerator()
+        
+        # Map form types to form flags
+        form_flag_map = {
+            'assessment': 'A',
+            'strategy': 'S'
+        }
+        
+        form_flag = form_flag_map.get(form_type, 'A')
+        
+        # Generate form HTML
+        form_html = generator.generate_form_html(form_flag)
+        
+        # Get validation rules
+        validation_rules = generator.get_form_validation_rules(form_flag)
+        
+        return jsonify({
+            'success': True,
+            'form_html': form_html,
+            'validation_rules': validation_rules
+        })
+    except Exception as e:
+        logger.error(f"Error generating dynamic form: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)

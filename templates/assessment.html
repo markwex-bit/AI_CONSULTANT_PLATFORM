@@ -595,6 +595,14 @@
                 <input type="hidden" id="selectedReportType" name="report_type">
                 <input type="hidden" id="selectedReportPrice" name="report_price">
                 
+                <!-- Dynamic Form Container -->
+                <div id="dynamicFormContainer" style="display: none;">
+                    <!-- Dynamic form will be loaded here -->
+                </div>
+                
+                <!-- Original Form Container -->
+                <div id="originalFormContainer">
+                
                 <!-- Step 1: Contact & Company Information -->
     <div class="step active" id="step1">
                     <h3>Contact & Company Information</h3>
@@ -1292,6 +1300,9 @@
     <div class="step-navigation">
         <button type="button" class="btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">Previous</button>
         <button type="button" class="cta-button" id="nextBtn" onclick="changeStep(1)">Next</button>
+                </div> <!-- End originalFormContainer -->
+            </div>
+        </div>
     </div>
 </form>
 </div>
@@ -1813,33 +1824,113 @@ function validateCurrentStep() {
     return validateStep(currentStep);
 }
 
+// Global variable to store validation rules
+let formValidationRules = {
+    required_fields: [],
+    field_types: {},
+    checkbox_groups: []
+};
+
+// Load validation rules from database
+async function loadFormValidationRules() {
+    try {
+        const response = await fetch('/api/dynamic-form/assessment');
+        const data = await response.json();
+        
+        if (data.success) {
+            formValidationRules = data.validation_rules;
+            console.log('Loaded validation rules:', formValidationRules);
+            
+            // Update form fields based on validation rules
+            updateFormFields();
+        }
+    } catch (error) {
+        console.error('Error loading validation rules:', error);
+    }
+}
+
+// Update form fields based on validation rules
+function updateFormFields() {
+    // Update required attributes based on database configuration
+    formValidationRules.required_fields.forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.required = true;
+            // Add asterisk to label if not already present
+            const label = field.closest('.form-group')?.querySelector('label');
+            if (label && !label.textContent.includes('*')) {
+                label.textContent += ' *';
+            }
+        }
+    });
+    
+    // Remove required from fields that are not in required_fields
+    const allFields = document.querySelectorAll('input, select, textarea');
+    allFields.forEach(field => {
+        if (field.name && !formValidationRules.required_fields.includes(field.name)) {
+            field.required = false;
+            // Remove asterisk from label
+            const label = field.closest('.form-group')?.querySelector('label');
+            if (label) {
+                label.textContent = label.textContent.replace(' *', '');
+            }
+        }
+    });
+}
+
 function validateStep(stepIdx) {
     const stepEl = document.getElementById(`step${stepIdx}`);
     if (!stepEl) return true;
     let valid = true;
-    // Required inputs/selects
-    const requiredInputs = stepEl.querySelectorAll('input[required], select[required]');
-    requiredInputs.forEach(el => {
-        if (!el.value || (el.tagName === 'SELECT' && el.value === '')) {
-            valid = false;
-        }
-    });
-    // Checkbox groups: ensure at least one if group present
-    const checkboxGroups = [
-        'challenges','current_tools','tool_preferences','implementation_priority',
-        'security_requirements','compliance_needs','integration_requirements',
-        'success_metrics','risk_factors','mitigation_strategies','implementation_phases',
-        'resource_requirements','training_needs','vendor_criteria'
-    ];
-    checkboxGroups.forEach(name => {
-        const groupBoxes = stepEl.querySelectorAll(`input[type="checkbox"][name="${name}"]`);
-        const otherText = stepEl.querySelector(`input[data-other-for="${name}"]`);
-        if (groupBoxes.length > 0 || otherText) {
-            const anyChecked = Array.from(groupBoxes).some(cb => cb.checked);
-            const hasOtherText = !!(otherText && otherText.value && otherText.value.trim().length > 0);
-            if (!anyChecked && !hasOtherText) valid = false;
-        }
-    });
+    
+    // Use dynamic validation rules if available, otherwise fall back to hardcoded
+    if (formValidationRules.required_fields.length > 0) {
+        // Check required fields based on database configuration
+        formValidationRules.required_fields.forEach(fieldName => {
+            const field = stepEl.querySelector(`[name="${fieldName}"]`);
+            if (field) {
+                if (!field.value || (field.tagName === 'SELECT' && field.value === '')) {
+                    valid = false;
+                }
+            }
+        });
+        
+        // Check checkbox groups based on database configuration
+        formValidationRules.checkbox_groups.forEach(name => {
+            const groupBoxes = stepEl.querySelectorAll(`input[type="checkbox"][name="${name}"]`);
+            const otherText = stepEl.querySelector(`input[data-other-for="${name}"]`);
+            if (groupBoxes.length > 0 || otherText) {
+                const anyChecked = Array.from(groupBoxes).some(cb => cb.checked);
+                const hasOtherText = !!(otherText && otherText.value && otherText.value.trim().length > 0);
+                if (!anyChecked && !hasOtherText) valid = false;
+            }
+        });
+    } else {
+        // Fallback to hardcoded validation
+        const requiredInputs = stepEl.querySelectorAll('input[required], select[required]');
+        requiredInputs.forEach(el => {
+            if (!el.value || (el.tagName === 'SELECT' && el.value === '')) {
+                valid = false;
+            }
+        });
+        
+        const checkboxGroups = [
+            'challenges','current_tools','tool_preferences','implementation_priority',
+            'security_requirements','compliance_needs','integration_requirements',
+            'success_metrics','risk_factors','mitigation_strategies','implementation_phases',
+            'resource_requirements','training_needs','vendor_criteria'
+        ];
+        checkboxGroups.forEach(name => {
+            const groupBoxes = stepEl.querySelectorAll(`input[type="checkbox"][name="${name}"]`);
+            const otherText = stepEl.querySelector(`input[data-other-for="${name}"]`);
+            if (groupBoxes.length > 0 || otherText) {
+                const anyChecked = Array.from(groupBoxes).some(cb => cb.checked);
+                const hasOtherText = !!(otherText && otherText.value && otherText.value.trim().length > 0);
+                if (!anyChecked && !hasOtherText) valid = false;
+            }
+        });
+    }
+    
     return valid;
 }
 
@@ -2006,5 +2097,67 @@ window.onclick = function(event) {
 
 // Initialize
 showStep(1);
+
+// Load dynamic validation rules
+loadFormValidationRules();
+
+// Dynamic form loading
+let useDynamicForm = false;
+
+async function loadDynamicForm() {
+    try {
+        console.log('Loading dynamic form...');
+        const response = await fetch('/api/dynamic-form/assessment');
+        const data = await response.json();
+        
+        if (data.success) {
+            const container = document.getElementById('dynamicFormContainer');
+            container.innerHTML = data.form_html;
+            
+            // Update validation rules
+            formValidationRules = data.validation_rules;
+            console.log('Dynamic form loaded with validation rules:', formValidationRules);
+            
+            // Show dynamic form, hide original
+            document.getElementById('dynamicFormContainer').style.display = 'block';
+            document.getElementById('originalFormContainer').style.display = 'none';
+            
+            useDynamicForm = true;
+            
+            // Reinitialize form
+            currentStep = 1;
+            showStep(currentStep);
+            
+            console.log('Dynamic form activated successfully!');
+        } else {
+            console.error('Failed to load dynamic form:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading dynamic form:', error);
+    }
+}
+
+function toggleFormType() {
+    if (useDynamicForm) {
+        // Switch back to original form
+        document.getElementById('dynamicFormContainer').style.display = 'none';
+        document.getElementById('originalFormContainer').style.display = 'block';
+        useDynamicForm = false;
+        console.log('Switched to original form');
+    } else {
+        // Switch to dynamic form
+        loadDynamicForm();
+    }
+}
+
+// Add form toggle button (for testing)
+document.addEventListener('DOMContentLoaded', function() {
+    // Add toggle button for testing
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = '🔄 Toggle Dynamic Form';
+    toggleBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 1000; background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;';
+    toggleBtn.onclick = toggleFormType;
+    document.body.appendChild(toggleBtn);
+});
 </script>
 {% endblock %}
