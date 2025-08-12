@@ -566,15 +566,23 @@
                 <!-- Form Filter -->
                 <div style="margin-bottom: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 8px;">
                     <h3 style="color: #374151; margin-bottom: 1rem;">Form Filter</h3>
-                    <div style="display: flex; gap: 1rem; align-items: center;">
-                        <select id="formFilter" onchange="filterFieldsByForm()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
-                            <option value="">All Forms</option>
-                            <option value="A">Assessment Form</option>
-                            <option value="S">Strategic Blueprint Form</option>
-                        </select>
-                        <button onclick="loadFormBuilder()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            🔄 Refresh
-                        </button>
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <select id="formFilter" onchange="filterFieldsByForm()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
+                                <option value="">All Forms</option>
+                                <option value="A">Assessment Form</option>
+                                <option value="S">Strategic Blueprint Form</option>
+                            </select>
+                            <button onclick="loadFormBuilder()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
+                            <button id="toggleRequiredBtn" onclick="toggleAllRequiredFields()" style="padding: 8px 16px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                                🔒 Disable All Required Fields
+                            </button>
+                            <span id="requiredStatus" style="font-size: 12px; color: #6b7280; font-style: italic;">Required fields are currently enabled</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -653,6 +661,8 @@
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Step</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Order</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Type</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Required</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Visible</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Form</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Actions</th>
                                 </tr>
@@ -3738,6 +3748,18 @@ function renderFieldConfigTable(configurations) {
                     ${config.field_type || ''}
                 </span>
             </td>
+            <td style="padding: 12px; text-align: center;">
+                <input type="checkbox" 
+                       ${config.is_required ? 'checked' : ''} 
+                       onchange="toggleFieldRequired('${config.field_name}', this.checked)"
+                       style="width: 16px; height: 16px; cursor: pointer;">
+            </td>
+            <td style="padding: 12px; text-align: center;">
+                <input type="checkbox" 
+                       ${config.is_visible ? 'checked' : ''} 
+                       onchange="toggleFieldVisible('${config.field_name}', this.checked)"
+                       style="width: 16px; height: 16px; cursor: pointer;">
+            </td>
             <td style="padding: 12px;">
                 <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: ${config.form_flag === 'A' ? '#3b82f6' : '#10b981'}; color: white;">
                     ${config.form_flag === 'A' ? 'Assessment' : 'Strategy'}
@@ -3992,17 +4014,7 @@ function showEditFieldModal(field) {
                     </div>
                 </div>
                 
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Required:</label>
-                    <input type="checkbox" id="editFieldRequired" ${field.is_required ? 'checked' : ''} style="margin-right: 0.5rem;">
-                    <span>This field is required</span>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Visible:</label>
-                    <input type="checkbox" id="editFieldVisible" ${field.is_visible ? 'checked' : ''} style="margin-right: 0.5rem;">
-                    <span>This field is visible</span>
-                </div>
+
                 
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Help Text:</label>
@@ -4059,8 +4071,6 @@ function saveFieldConfig() {
     const fieldSectionStep = parseInt(document.getElementById('editFieldSectionStep').value) || 1;
     const fieldStep = parseInt(document.getElementById('editFieldStep').value) || 1;
     const fieldOrder = parseInt(document.getElementById('editFieldOrder').value) || 0;
-    const fieldRequired = document.getElementById('editFieldRequired').checked;
-    const fieldVisible = document.getElementById('editFieldVisible').checked;
     const fieldHelpText = document.getElementById('editFieldHelpText').value;
     
     const updateData = {
@@ -4071,8 +4081,6 @@ function saveFieldConfig() {
         sort_order: fieldOrder,
         section_step: fieldSectionStep,
         form_flag: window.currentFormFilter || 'A',
-        is_required: fieldRequired,
-        is_visible: fieldVisible,
         help_text: fieldHelpText
     };
     
@@ -4450,17 +4458,7 @@ function addNewField() {
                     </select>
                 </div>
                 
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Required:</label>
-                    <input type="checkbox" id="newFieldRequired" style="margin-right: 0.5rem;">
-                    <span>This field is required</span>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Visible:</label>
-                    <input type="checkbox" id="newFieldVisible" checked style="margin-right: 0.5rem;">
-                    <span>This field is visible</span>
-                </div>
+
                 
                 <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                     <button onclick="closeAddFieldModal()" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
@@ -4486,8 +4484,6 @@ function saveNewField() {
     const fieldType = document.getElementById('newFieldType').value;
     const fieldSection = document.getElementById('newFieldSection').value;
     const formFlag = document.getElementById('newFieldFormFlag').value;
-    const fieldRequired = document.getElementById('newFieldRequired').checked;
-    const fieldVisible = document.getElementById('newFieldVisible').checked;
     
     if (!fieldName || !fieldLabel) {
         showNotification('Field name and label are required', 'error');
@@ -4500,8 +4496,8 @@ function saveNewField() {
         field_type: fieldType,
         section_name: fieldSection,
         form_flag: formFlag,
-        is_required: fieldRequired,
-        is_visible: fieldVisible
+        is_required: false,
+        is_visible: true
     };
     
     fetch('/api/field_configurations', {
@@ -4716,6 +4712,118 @@ function saveNewDropdownOption() {
         console.error('Error:', error);
         showNotification('Network error adding dropdown option', 'error');
     });
+}
+
+// Field Required/Visible Toggle Functions
+function toggleFieldRequired(fieldName, isRequired) {
+    console.log('Toggling field required:', fieldName, isRequired);
+    
+    fetch(`/api/field_configurations/${fieldName}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_required: isRequired })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`Field ${isRequired ? 'marked as required' : 'marked as optional'}`, 'success');
+        } else {
+            showNotification('Error updating field: ' + data.error, 'error');
+            // Revert the checkbox if there was an error
+            loadFieldConfigurations();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error updating field', 'error');
+        // Revert the checkbox if there was an error
+        loadFieldConfigurations();
+    });
+}
+
+function toggleFieldVisible(fieldName, isVisible) {
+    console.log('Toggling field visible:', fieldName, isVisible);
+    
+    fetch(`/api/field_configurations/${fieldName}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_visible: isVisible })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`Field ${isVisible ? 'made visible' : 'hidden'}`, 'success');
+        } else {
+            showNotification('Error updating field: ' + data.error, 'error');
+            // Revert the checkbox if there was an error
+            loadFieldConfigurations();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error updating field', 'error');
+        // Revert the checkbox if there was an error
+        loadFieldConfigurations();
+    });
+}
+
+// Universal Required Fields Toggle
+let originalRequiredStates = new Map(); // Store original required states
+let requiredFieldsDisabled = false; // Track current state
+
+function toggleAllRequiredFields() {
+    const button = document.getElementById('toggleRequiredBtn');
+    const status = document.getElementById('requiredStatus');
+    
+    if (!requiredFieldsDisabled) {
+        // Disable all required fields
+        disableAllRequiredFields();
+        button.textContent = '🔓 Re-enable All Required Fields';
+        button.style.background = '#10b981';
+        status.textContent = 'Required fields are currently disabled';
+        status.style.color = '#ef4444';
+        requiredFieldsDisabled = true;
+    } else {
+        // Re-enable all required fields
+        reEnableAllRequiredFields();
+        button.textContent = '🔒 Disable All Required Fields';
+        button.style.background = '#f59e0b';
+        status.textContent = 'Required fields are currently enabled';
+        status.style.color = '#6b7280';
+        requiredFieldsDisabled = false;
+    }
+}
+
+function disableAllRequiredFields() {
+    console.log('Disabling all required fields...');
+    
+    // Store current required states and disable all fields
+    if (window.fieldConfigurations) {
+        window.fieldConfigurations.forEach(field => {
+            if (field.is_required) {
+                originalRequiredStates.set(field.field_name, true);
+                toggleFieldRequired(field.field_name, false);
+            }
+        });
+    }
+    
+    showNotification('All required fields have been disabled. You can now work through forms without filling required fields.', 'success');
+}
+
+function reEnableAllRequiredFields() {
+    console.log('Re-enabling all required fields...');
+    
+    // Restore original required states
+    originalRequiredStates.forEach((wasRequired, fieldName) => {
+        if (wasRequired) {
+            toggleFieldRequired(fieldName, true);
+        }
+    });
+    
+    // Clear the stored states
+    originalRequiredStates.clear();
+    
+    showNotification('All required fields have been restored to their original state.', 'success');
 }
 
 // Initialize the page
