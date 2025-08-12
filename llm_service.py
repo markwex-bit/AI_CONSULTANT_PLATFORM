@@ -16,9 +16,17 @@ class LLMService:
     def __init__(self):
         self.openai_api_key = os.environ.get('OPENAI_API_KEY')
         self.anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
-        self.default_provider = os.environ.get('LLM_PROVIDER', 'openai')  # openai or anthropic
+        self.huggingface_api_key = os.environ.get('HUGGINGFACE_API_KEY')
+        self.default_provider = os.environ.get('LLM_PROVIDER', 'openai')
         
-        if not self.openai_api_key and not self.anthropic_api_key:
+        # Import database manager
+        from models import db_manager
+        self.db_manager = db_manager
+        
+        # Initialize default models if not exists
+        self.db_manager.initialize_default_llm_models()
+        
+        if not self.openai_api_key and not self.anthropic_api_key and not self.huggingface_api_key:
             logger.warning("No LLM API keys found. Dynamic content will be disabled.")
             self.enabled = False
         else:
@@ -147,15 +155,51 @@ Write only the personalized description, nothing else:
     
     def _call_llm(self, prompt: str) -> Optional[str]:
         """Call the configured LLM provider"""
-        if self.default_provider == 'anthropic' and self.anthropic_api_key:
-            return self._call_anthropic(prompt)
-        elif self.openai_api_key:
-            return self._call_openai(prompt)
+        # Get the current default model from database
+        default_model = self.db_manager.get_default_llm_model()
+        if not default_model:
+            logger.error("No default LLM model configured")
+            return None
+        
+        model_type = default_model['model_type']
+        
+        if model_type == 'openai' and self.openai_api_key:
+            return self._call_openai(prompt, default_model)
+        elif model_type == 'anthropic' and self.anthropic_api_key:
+            return self._call_anthropic(prompt, default_model)
+        elif model_type == 'open_source':
+            return self._call_open_source(prompt, default_model)
         else:
-            logger.error("No available LLM provider configured")
+            logger.error(f"No available LLM provider configured for model type: {model_type}")
+            return None
+
+    def call_specific_model(self, model_id: int, prompt: str) -> Optional[str]:
+        """Call a specific model by ID"""
+        # Get the specific model from database
+        models = self.db_manager.get_all_llm_models()
+        target_model = None
+        for model in models:
+            if model['id'] == model_id:
+                target_model = model
+                break
+        
+        if not target_model:
+            logger.error(f"Model with ID {model_id} not found")
+            return None
+        
+        model_type = target_model['model_type']
+        
+        if model_type == 'openai' and self.openai_api_key:
+            return self._call_openai(prompt, target_model)
+        elif model_type == 'anthropic' and self.anthropic_api_key:
+            return self._call_anthropic(prompt, target_model)
+        elif model_type == 'open_source':
+            return self._call_open_source(prompt, target_model)
+        else:
+            logger.error(f"No available LLM provider configured for model type: {model_type}")
             return None
     
-    def _call_openai(self, prompt: str) -> Optional[str]:
+    def _call_openai(self, prompt: str, model_config: dict) -> Optional[str]:
         """Call OpenAI API"""
         try:
             import openai
@@ -163,13 +207,13 @@ Write only the personalized description, nothing else:
             client = openai.OpenAI(api_key=self.openai_api_key)
             
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=model_config['model_name'],
                 messages=[
                     {"role": "system", "content": "You are a professional AI consultant helping businesses understand AI opportunities."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=200,
-                temperature=0.7
+                max_tokens=model_config.get('max_tokens', 200),
+                temperature=model_config.get('temperature', 0.7)
             )
             
             return response.choices[0].message.content
@@ -178,7 +222,7 @@ Write only the personalized description, nothing else:
             logger.error(f"OpenAI API error: {e}")
             return None
     
-    def _call_anthropic(self, prompt: str) -> Optional[str]:
+    def _call_anthropic(self, prompt: str, model_config: dict) -> Optional[str]:
         """Call Anthropic API"""
         try:
             import anthropic
@@ -186,9 +230,9 @@ Write only the personalized description, nothing else:
             client = anthropic.Anthropic(api_key=self.anthropic_api_key)
             
             response = client.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=200,
-                temperature=0.7,
+                model=model_config['model_name'],
+                max_tokens=model_config.get('max_tokens', 200),
+                temperature=model_config.get('temperature', 0.7),
                 system="You are a professional AI consultant helping businesses understand AI opportunities.",
                 messages=[
                     {"role": "user", "content": prompt}
@@ -199,6 +243,127 @@ Write only the personalized description, nothing else:
             
         except Exception as e:
             logger.error(f"Anthropic API error: {e}")
+            return None
+
+    def _call_open_source(self, prompt: str, model_config: dict) -> Optional[str]:
+        """Call Open Source API (Ollama, HuggingFace, etc.)"""
+        try:
+            import requests
+            
+            api_endpoint = model_config.get('api_endpoint')
+            if not api_endpoint:
+                logger.error("No API endpoint configured for open source model")
+                return None
+            
+            # Handle different open source providers
+            if 'ollama' in model_config['provider_name'].lower():
+                return self._call_ollama(prompt, model_config)
+            elif 'huggingface' in model_config['provider_name'].lower():
+                return self._call_huggingface(prompt, model_config)
+            else:
+                # Generic REST API call
+                return self._call_generic_api(prompt, model_config)
+                
+        except Exception as e:
+            logger.error(f"Open Source API error: {e}")
+            return None
+
+    def _call_ollama(self, prompt: str, model_config: dict) -> Optional[str]:
+        """Call Ollama API"""
+        try:
+            import requests
+            
+            payload = {
+                "model": model_config['model_name'],
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": model_config.get('temperature', 0.7),
+                    "num_predict": model_config.get('max_tokens', 200)
+                }
+            }
+            
+            response = requests.post(
+                model_config['api_endpoint'],
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                return response.json().get('response', '')
+            else:
+                logger.error(f"Ollama API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Ollama API error: {e}")
+            return None
+
+    def _call_huggingface(self, prompt: str, model_config: dict) -> Optional[str]:
+        """Call HuggingFace API"""
+        try:
+            import requests
+            
+            headers = {
+                "Authorization": f"Bearer {self.huggingface_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "inputs": prompt,
+                "parameters": {
+                    "max_new_tokens": model_config.get('max_tokens', 200),
+                    "temperature": model_config.get('temperature', 0.7),
+                    "return_full_text": False
+                }
+            }
+            
+            response = requests.post(
+                model_config['api_endpoint'],
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, list) and len(result) > 0:
+                    return result[0].get('generated_text', '')
+                return str(result)
+            else:
+                logger.error(f"HuggingFace API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"HuggingFace API error: {e}")
+            return None
+
+    def _call_generic_api(self, prompt: str, model_config: dict) -> Optional[str]:
+        """Call generic REST API"""
+        try:
+            import requests
+            
+            payload = {
+                "prompt": prompt,
+                "max_tokens": model_config.get('max_tokens', 200),
+                "temperature": model_config.get('temperature', 0.7)
+            }
+            
+            response = requests.post(
+                model_config['api_endpoint'],
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return result.get('response', result.get('text', str(result)))
+            else:
+                logger.error(f"Generic API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Generic API error: {e}")
             return None
 
     def select_relevant_tools(

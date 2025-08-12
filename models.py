@@ -98,6 +98,40 @@ class DatabaseManager:
             add_column('data_governance TEXT')
             add_column('security_requirements TEXT')
             add_column('compliance_needs TEXT')
+
+            # LLM Models Management Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS llm_models (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    provider_name TEXT NOT NULL,
+                    model_name TEXT NOT NULL,
+                    display_name TEXT NOT NULL,
+                    model_type TEXT NOT NULL,  -- 'openai', 'anthropic', 'open_source', 'custom'
+                    api_endpoint TEXT,         -- For custom/open-source models
+                    api_key_required BOOLEAN DEFAULT 1,
+                    max_tokens INTEGER DEFAULT 2000,
+                    temperature REAL DEFAULT 0.7,
+                    cost_per_1k_tokens REAL DEFAULT 0.0,
+                    is_active BOOLEAN DEFAULT 1,
+                    is_default BOOLEAN DEFAULT 0,
+                    description TEXT,
+                    capabilities TEXT,         -- JSON array of capabilities
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(provider_name, model_name)
+                )
+            ''')
+
+            # LLM Configuration Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS llm_config (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    config_key TEXT UNIQUE NOT NULL,
+                    config_value TEXT NOT NULL,
+                    description TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
             add_column('integration_requirements TEXT')
             add_column('success_metrics TEXT')
             add_column('expected_roi TEXT')
@@ -1045,6 +1079,238 @@ class DatabaseManager:
             
             conn.commit()
             return True
+
+    # ---------- LLM Models Management ----------
+    
+    def initialize_default_llm_models(self):
+        """Initialize default LLM models in the database"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Default models to insert
+            default_models = [
+                # OpenAI Models
+                ('OpenAI', 'gpt-3.5-turbo', 'GPT-3.5 Turbo', 'openai', None, 1, 2000, 0.7, 0.002, 1, 1, 
+                 'Fast and cost-effective model for general AI tasks', '["text-generation", "business-analysis"]'),
+                ('OpenAI', 'gpt-4o', 'GPT-4o', 'openai', None, 1, 4000, 0.7, 0.005, 1, 0, 
+                 'Advanced model with better reasoning and accuracy', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                ('OpenAI', 'gpt-4o-mini', 'GPT-4o Mini', 'openai', None, 1, 4000, 0.7, 0.00015, 1, 0, 
+                 'Cost-effective GPT-4o variant', '["text-generation", "business-analysis"]'),
+                
+                # Anthropic Models
+                ('Anthropic', 'claude-3-haiku-20240307', 'Claude 3 Haiku', 'anthropic', None, 1, 2000, 0.7, 0.00025, 1, 0, 
+                 'Fast and efficient Claude model', '["text-generation", "business-analysis"]'),
+                ('Anthropic', 'claude-3-sonnet-20240229', 'Claude 3 Sonnet', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
+                 'Balanced Claude model for complex tasks', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                ('Anthropic', 'claude-3-opus-20240229', 'Claude 3 Opus', 'anthropic', None, 1, 4000, 0.7, 0.015, 1, 0, 
+                 'Most capable Claude model', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
+                
+                # Open Source Models
+                ('Ollama', 'llama3.2', 'Llama 3.2 (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
+                 'Local Llama 3.2 model via Ollama', '["text-generation", "business-analysis"]'),
+                ('Ollama', 'mistral', 'Mistral (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
+                 'Local Mistral model via Ollama', '["text-generation", "business-analysis"]'),
+                ('Ollama', 'codellama', 'Code Llama (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
+                 'Local Code Llama model for technical tasks', '["text-generation", "code-generation", "technical-analysis"]'),
+                
+                # Hugging Face Models
+                ('HuggingFace', 'meta-llama/Llama-2-7b-chat-hf', 'Llama 2 7B Chat', 'open_source', 'https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf', 1, 2000, 0.7, 0.0, 1, 0, 
+                 'Llama 2 7B model via Hugging Face', '["text-generation", "business-analysis"]'),
+                ('HuggingFace', 'microsoft/DialoGPT-medium', 'DialoGPT Medium', 'open_source', 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium', 1, 2000, 0.7, 0.0, 1, 0, 
+                 'DialoGPT model for conversational AI', '["text-generation", "conversation"]'),
+            ]
+            
+            for model_data in default_models:
+                try:
+                    cursor.execute('''
+                        INSERT OR IGNORE INTO llm_models 
+                        (provider_name, model_name, display_name, model_type, api_endpoint, api_key_required, 
+                         max_tokens, temperature, cost_per_1k_tokens, is_active, is_default, description, capabilities)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', model_data)
+                except sqlite3.IntegrityError:
+                    pass  # Model already exists
+            
+            # Set default configuration
+            cursor.execute('''
+                INSERT OR REPLACE INTO llm_config (config_key, config_value, description)
+                VALUES 
+                ('default_provider', 'openai', 'Default LLM provider'),
+                ('default_model', 'gpt-3.5-turbo', 'Default LLM model'),
+                ('max_tokens', '200', 'Default max tokens for responses'),
+                ('temperature', '0.7', 'Default temperature for responses')
+            ''')
+            
+            conn.commit()
+
+    def get_all_llm_models(self) -> list:
+        """Get all LLM models"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM llm_models 
+                ORDER BY provider_name, model_name
+            ''')
+            rows = cursor.fetchall()
+            
+            if rows:
+                columns = [description[0] for description in cursor.description]
+                return [dict(zip(columns, row)) for row in rows]
+            return []
+
+    def get_active_llm_models(self) -> list:
+        """Get only active LLM models"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM llm_models 
+                WHERE is_active = 1
+                ORDER BY provider_name, model_name
+            ''')
+            rows = cursor.fetchall()
+            
+            if rows:
+                columns = [description[0] for description in cursor.description]
+                return [dict(zip(columns, row)) for row in rows]
+            return []
+
+    def get_default_llm_model(self) -> dict:
+        """Get the default LLM model"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM llm_models 
+                WHERE is_default = 1 AND is_active = 1
+                LIMIT 1
+            ''')
+            row = cursor.fetchone()
+            
+            if row:
+                columns = [description[0] for description in cursor.description]
+                return dict(zip(columns, row))
+            return None
+
+    def add_llm_model(self, model_data: dict) -> bool:
+        """Add a new LLM model"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO llm_models 
+                    (provider_name, model_name, display_name, model_type, api_endpoint, api_key_required, 
+                     max_tokens, temperature, cost_per_1k_tokens, is_active, is_default, description, capabilities)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    model_data['provider_name'],
+                    model_data['model_name'],
+                    model_data['display_name'],
+                    model_data['model_type'],
+                    model_data.get('api_endpoint'),
+                    model_data.get('api_key_required', 1),
+                    model_data.get('max_tokens', 2000),
+                    model_data.get('temperature', 0.7),
+                    model_data.get('cost_per_1k_tokens', 0.0),
+                    model_data.get('is_active', 1),
+                    model_data.get('is_default', 0),
+                    model_data.get('description', ''),
+                    json.dumps(model_data.get('capabilities', []))
+                ))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error adding LLM model: {e}")
+            return False
+
+    def update_llm_model(self, model_id: int, model_data: dict) -> bool:
+        """Update an existing LLM model"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE llm_models 
+                    SET provider_name = ?, model_name = ?, display_name = ?, model_type = ?, 
+                        api_endpoint = ?, api_key_required = ?, max_tokens = ?, temperature = ?, 
+                        cost_per_1k_tokens = ?, is_active = ?, is_default = ?, description = ?, 
+                        capabilities = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                ''', (
+                    model_data['provider_name'],
+                    model_data['model_name'],
+                    model_data['display_name'],
+                    model_data['model_type'],
+                    model_data.get('api_endpoint'),
+                    model_data.get('api_key_required', 1),
+                    model_data.get('max_tokens', 2000),
+                    model_data.get('temperature', 0.7),
+                    model_data.get('cost_per_1k_tokens', 0.0),
+                    model_data.get('is_active', 1),
+                    model_data.get('is_default', 0),
+                    model_data.get('description', ''),
+                    json.dumps(model_data.get('capabilities', [])),
+                    model_id
+                ))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error updating LLM model: {e}")
+            return False
+
+    def delete_llm_model(self, model_id: int) -> bool:
+        """Delete an LLM model"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM llm_models WHERE id = ?', (model_id,))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error deleting LLM model: {e}")
+            return False
+
+    def set_default_llm_model(self, model_id: int) -> bool:
+        """Set a model as the default"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                # First, unset all defaults
+                cursor.execute('UPDATE llm_models SET is_default = 0')
+                # Then set the new default
+                cursor.execute('UPDATE llm_models SET is_default = 1 WHERE id = ?', (model_id,))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error setting default LLM model: {e}")
+            return False
+
+    def get_llm_config(self, key: str = None) -> dict:
+        """Get LLM configuration"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            if key:
+                cursor.execute('SELECT config_key, config_value, description FROM llm_config WHERE config_key = ?', (key,))
+                row = cursor.fetchone()
+                if row:
+                    return {'config_key': row[0], 'config_value': row[1], 'description': row[2]}
+                return None
+            else:
+                cursor.execute('SELECT config_key, config_value, description FROM llm_config')
+                rows = cursor.fetchall()
+                return {row[0]: {'value': row[1], 'description': row[2]} for row in rows}
+
+    def update_llm_config(self, key: str, value: str) -> bool:
+        """Update LLM configuration"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT OR REPLACE INTO llm_config (config_key, config_value, updated_at)
+                    VALUES (?, ?, CURRENT_TIMESTAMP)
+                ''', (key, value))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error updating LLM config: {e}")
+            return False
 
 
 # Initialize database manager (used by app)

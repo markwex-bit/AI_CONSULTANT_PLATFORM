@@ -2244,6 +2244,233 @@ def delete_dropdown_option(option_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+# ---------- LLM Models Management API ----------
+
+@app.route('/api/llm/models')
+def get_llm_models():
+    """Get all LLM models"""
+    try:
+        models = db_manager.get_all_llm_models()
+        return jsonify({
+            'success': True,
+            'models': models
+        })
+    except Exception as e:
+        logger.error(f"Error getting LLM models: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/models/active')
+def get_active_llm_models():
+    """Get only active LLM models"""
+    try:
+        models = db_manager.get_active_llm_models()
+        return jsonify({
+            'success': True,
+            'models': models
+        })
+    except Exception as e:
+        logger.error(f"Error getting active LLM models: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/models/default')
+def get_default_llm_model():
+    """Get the default LLM model"""
+    try:
+        model = db_manager.get_default_llm_model()
+        return jsonify({
+            'success': True,
+            'model': model
+        })
+    except Exception as e:
+        logger.error(f"Error getting default LLM model: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/models', methods=['POST'])
+def add_llm_model():
+    """Add a new LLM model"""
+    try:
+        data = request.get_json()
+        success = db_manager.add_llm_model(data)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Model added successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to add model'
+            }), 400
+    except Exception as e:
+        logger.error(f"Error adding LLM model: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/models/<int:model_id>', methods=['PUT'])
+def update_llm_model(model_id):
+    """Update an LLM model"""
+    try:
+        data = request.get_json()
+        success = db_manager.update_llm_model(model_id, data)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Model updated successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to update model'
+            }), 400
+    except Exception as e:
+        logger.error(f"Error updating LLM model: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/models/<int:model_id>', methods=['DELETE'])
+def delete_llm_model(model_id):
+    """Delete an LLM model"""
+    try:
+        success = db_manager.delete_llm_model(model_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Model deleted successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to delete model'
+            }), 400
+    except Exception as e:
+        logger.error(f"Error deleting LLM model: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/models/<int:model_id>/set-default', methods=['POST'])
+def set_default_llm_model(model_id):
+    """Set a model as the default"""
+    try:
+        success = db_manager.set_default_llm_model(model_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Default model set successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to set default model'
+            }), 400
+    except Exception as e:
+        logger.error(f"Error setting default LLM model: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/test', methods=['POST'])
+def test_llm_model():
+    """Test a specific LLM model"""
+    try:
+        data = request.get_json()
+        model_id = data.get('model_id')
+        prompt = data.get('prompt', 'Hello, this is a test message. Please respond with a brief greeting.')
+        
+        if not model_id:
+            return jsonify({
+                'success': False,
+                'error': 'Model ID is required'
+            }), 400
+        
+        response = llm_service.call_specific_model(model_id, prompt)
+        
+        if response:
+            return jsonify({
+                'success': True,
+                'response': response,
+                'model_id': model_id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to get response from model'
+            }), 400
+    except Exception as e:
+        logger.error(f"Error testing LLM model: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/config')
+def get_llm_config():
+    """Get LLM configuration"""
+    try:
+        config = db_manager.get_llm_config()
+        return jsonify({
+            'success': True,
+            'config': config
+        })
+    except Exception as e:
+        logger.error(f"Error getting LLM config: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/config', methods=['PUT'])
+def update_llm_config():
+    """Update LLM configuration"""
+    try:
+        data = request.get_json()
+        key = data.get('key')
+        value = data.get('value')
+        
+        if not key or value is None:
+            return jsonify({
+                'success': False,
+                'error': 'Key and value are required'
+            }), 400
+        
+        success = db_manager.update_llm_config(key, str(value))
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Configuration updated successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to update configuration'
+            }), 400
+    except Exception as e:
+        logger.error(f"Error updating LLM config: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)

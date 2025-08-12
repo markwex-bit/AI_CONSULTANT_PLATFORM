@@ -515,6 +515,9 @@
                 <button class="nav-tab" onclick="showSection('database', event)" style="flex: 1; padding: 1rem; background: #f8fafc; border: none; color: #6b7280; font-weight: 600; cursor: pointer;">
                     🗄️ Database View
                 </button>
+                <button class="nav-tab" onclick="showSection('llmManagement', event)" style="flex: 1; padding: 1rem; background: #f8fafc; border: none; color: #6b7280; font-weight: 600; cursor: pointer;">
+                    🤖 LLM Management
+                </button>
             </div>
         </div>
         
@@ -724,6 +727,70 @@
                             <!-- Database schema will be populated here -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- LLM Management Section -->
+        <div id="llmManagementSection" class="content-section" style="display: none; padding: 2rem;">
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: #1f2937; margin-bottom: 1rem;">🤖 LLM Management</h2>
+                <p style="color: #6b7280; margin-bottom: 1.5rem;">Manage AI models for report generation. Choose from OpenAI, Anthropic, or open-source models.</p>
+                
+                <!-- Current Model Status -->
+                <div style="margin-bottom: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 8px;">
+                    <h3 style="color: #374151; margin-bottom: 1rem;">Current Model Status</h3>
+                    <div id="currentModelStatus" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <div style="padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; font-weight: 600;">
+                            <span id="currentModelName">Loading...</span>
+                        </div>
+                        <div style="padding: 8px 16px; background: #3b82f6; color: white; border-radius: 6px; font-weight: 600;">
+                            <span id="currentModelProvider">Loading...</span>
+                        </div>
+                        <button onclick="loadLLMModels()" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Model Management Controls -->
+                <div style="margin-bottom: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 8px;">
+                    <h3 style="color: #374151; margin-bottom: 1rem;">Model Management</h3>
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <button onclick="showAddModelModal()" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                            ➕ Add New Model
+                        </button>
+                        <button onclick="showTestModelModal()" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                            🧪 Test Model
+                        </button>
+                        <button onclick="showConfigModal()" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                            ⚙️ Configuration
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Models Table -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: #374151; margin-bottom: 1rem;">Available Models</h3>
+                    <div class="table-container">
+                        <table class="data-table" id="llmModelsTable">
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Model Name</th>
+                                    <th>Display Name</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Default</th>
+                                    <th>Cost/1K Tokens</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="llmModelsTableBody">
+                                <!-- LLM models will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1576,6 +1643,150 @@
         <button type="button" class="control-btn" onclick="closeModal('editModal')" style="background: #6b7280; color: white;">
             ❌ Cancel
         </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- LLM Management Modals -->
+
+<!-- Add Model Modal -->
+<div id="addModelModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <span class="close" onclick="closeModal('addModelModal')">&times;</span>
+        <h2>➕ Add New LLM Model</h2>
+        <form id="addModelForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Provider Name *</label>
+                    <input type="text" id="addProviderName" required placeholder="e.g., OpenAI, Anthropic, Ollama">
+                </div>
+                <div class="form-group">
+                    <label>Model Name *</label>
+                    <input type="text" id="addModelName" required placeholder="e.g., gpt-4o, claude-3-sonnet">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Display Name *</label>
+                    <input type="text" id="addDisplayName" required placeholder="e.g., GPT-4o, Claude 3 Sonnet">
+                </div>
+                <div class="form-group">
+                    <label>Model Type *</label>
+                    <select id="addModelType" required>
+                        <option value="">Select Type</option>
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic</option>
+                        <option value="open_source">Open Source</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>API Endpoint</label>
+                <input type="url" id="addApiEndpoint" placeholder="e.g., http://localhost:11434/api/generate">
+                <small>Required for open source and custom models</small>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Max Tokens</label>
+                    <input type="number" id="addMaxTokens" value="2000" min="1" max="100000">
+                </div>
+                <div class="form-group">
+                    <label>Temperature</label>
+                    <input type="number" id="addTemperature" value="0.7" min="0" max="2" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Cost per 1K Tokens</label>
+                    <input type="number" id="addCostPer1K" value="0.0" min="0" step="0.001">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="addDescription" rows="3" placeholder="Brief description of the model's capabilities"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Capabilities (JSON array)</label>
+                <textarea id="addCapabilities" rows="2" placeholder='["text-generation", "business-analysis"]'></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="control-btn" style="background: #10b981; color: white;">
+                    ➕ Add Model
+                </button>
+                <button type="button" class="control-btn" onclick="closeModal('addModelModal')" style="background: #6b7280; color: white;">
+                    ❌ Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Test Model Modal -->
+<div id="testModelModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <span class="close" onclick="closeModal('testModelModal')">&times;</span>
+        <h2>🧪 Test LLM Model</h2>
+        <form id="testModelForm">
+            <div class="form-group">
+                <label>Select Model</label>
+                <select id="testModelSelect" required>
+                    <option value="">Choose a model to test...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Test Prompt</label>
+                <textarea id="testPrompt" rows="4" placeholder="Enter a test prompt...">Hello, this is a test message. Please respond with a brief greeting and tell me about your capabilities.</textarea>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="control-btn" style="background: #f59e0b; color: white;">
+                    🧪 Test Model
+                </button>
+                <button type="button" class="control-btn" onclick="closeModal('testModelModal')" style="background: #6b7280; color: white;">
+                    ❌ Cancel
+                </button>
+            </div>
+        </form>
+        
+        <div id="testResult" style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 6px; display: none;">
+            <h4>Test Result:</h4>
+            <div id="testResultContent" style="white-space: pre-wrap; font-family: monospace;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Modal -->
+<div id="configModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close" onclick="closeModal('configModal')">&times;</span>
+        <h2>⚙️ LLM Configuration</h2>
+        <form id="configForm">
+            <div class="form-group">
+                <label>Default Max Tokens</label>
+                <input type="number" id="configMaxTokens" value="200" min="1" max="10000">
+                <small>Default maximum tokens for responses</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Default Temperature</label>
+                <input type="number" id="configTemperature" value="0.7" min="0" max="2" step="0.1">
+                <small>Default creativity level (0 = focused, 2 = creative)</small>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="control-btn" style="background: #8b5cf6; color: white;">
+                    💾 Save Configuration
+                </button>
+                <button type="button" class="control-btn" onclick="closeModal('configModal')" style="background: #6b7280; color: white;">
+                    ❌ Cancel
+                </button>
             </div>
         </form>
     </div>
@@ -3661,6 +3872,8 @@ function showSection(sectionName, event = null) {
         loadFormBuilder();
     } else if (sectionName === 'database') {
         loadDatabaseView();
+    } else if (sectionName === 'llmManagement') {
+        loadLLMModels();
     }
 }
 
@@ -4794,6 +5007,304 @@ function toggleAllRequiredFields() {
         status.style.color = '#6b7280';
         requiredFieldsDisabled = false;
     }
+}
+
+// ---------- LLM Management Functions ----------
+
+let llmModels = [];
+let currentDefaultModel = null;
+
+function loadLLMModels() {
+    fetch('/api/llm/models')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                llmModels = data.models;
+                renderLLMModelsTable();
+                loadDefaultModel();
+                populateTestModelSelect();
+            } else {
+                showNotification('Error loading LLM models: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Network error loading LLM models', 'error');
+        });
+}
+
+function renderLLMModelsTable() {
+    const tbody = document.getElementById('llmModelsTableBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    llmModels.forEach(model => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${model.provider_name}</td>
+            <td>${model.model_name}</td>
+            <td>${model.display_name}</td>
+            <td>${model.model_type}</td>
+            <td>
+                <span style="padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${model.is_active ? '#10b981' : '#6b7280'}; color: white;">
+                    ${model.is_active ? 'Active' : 'Inactive'}
+                </span>
+            </td>
+            <td>
+                ${model.is_default ? '✅ Default' : '❌'}
+            </td>
+            <td>$${model.cost_per_1k_tokens}</td>
+            <td>
+                <div class="action-buttons">
+                    ${!model.is_default ? `<button onclick="setDefaultModel(${model.id})" style="padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer;">Set Default</button>` : ''}
+                    <button onclick="editLLMModel(${model.id})" style="padding: 4px 8px; background: #f59e0b; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer;">Edit</button>
+                    <button onclick="deleteLLMModel(${model.id})" style="padding: 4px 8px; background: #ef4444; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer;">Delete</button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function loadDefaultModel() {
+    fetch('/api/llm/models/default')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.model) {
+                currentDefaultModel = data.model;
+                document.getElementById('currentModelName').textContent = data.model.display_name;
+                document.getElementById('currentModelProvider').textContent = data.model.provider_name;
+            } else {
+                document.getElementById('currentModelName').textContent = 'No default model';
+                document.getElementById('currentModelProvider').textContent = 'Not set';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading default model:', error);
+            document.getElementById('currentModelName').textContent = 'Error loading';
+            document.getElementById('currentModelProvider').textContent = 'Error';
+        });
+}
+
+function populateTestModelSelect() {
+    const select = document.getElementById('testModelSelect');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Choose a model to test...</option>';
+    llmModels.filter(model => model.is_active).forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = `${model.display_name} (${model.provider_name})`;
+        select.appendChild(option);
+    });
+}
+
+function showAddModelModal() {
+    document.getElementById('addModelModal').style.display = 'block';
+}
+
+function showTestModelModal() {
+    document.getElementById('testModelModal').style.display = 'block';
+    populateTestModelSelect();
+}
+
+function showConfigModal() {
+    // Load current configuration
+    fetch('/api/llm/config')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const config = data.config;
+                document.getElementById('configMaxTokens').value = config.max_tokens?.value || 200;
+                document.getElementById('configTemperature').value = config.temperature?.value || 0.7;
+            }
+        })
+        .catch(error => console.error('Error loading config:', error));
+    
+    document.getElementById('configModal').style.display = 'block';
+}
+
+// Form event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Model Form
+    const addModelForm = document.getElementById('addModelForm');
+    if (addModelForm) {
+        addModelForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            addLLMModel();
+        });
+    }
+    
+    // Test Model Form
+    const testModelForm = document.getElementById('testModelForm');
+    if (testModelForm) {
+        testModelForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            testLLMModel();
+        });
+    }
+    
+    // Config Form
+    const configForm = document.getElementById('configForm');
+    if (configForm) {
+        configForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveLLMConfig();
+        });
+    }
+});
+
+function addLLMModel() {
+    const modelData = {
+        provider_name: document.getElementById('addProviderName').value,
+        model_name: document.getElementById('addModelName').value,
+        display_name: document.getElementById('addDisplayName').value,
+        model_type: document.getElementById('addModelType').value,
+        api_endpoint: document.getElementById('addApiEndpoint').value || null,
+        max_tokens: parseInt(document.getElementById('addMaxTokens').value),
+        temperature: parseFloat(document.getElementById('addTemperature').value),
+        cost_per_1k_tokens: parseFloat(document.getElementById('addCostPer1K').value),
+        description: document.getElementById('addDescription').value,
+        capabilities: JSON.parse(document.getElementById('addCapabilities').value || '[]')
+    };
+    
+    fetch('/api/llm/models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(modelData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Model added successfully', 'success');
+            closeModal('addModelModal');
+            loadLLMModels();
+        } else {
+            showNotification('Error adding model: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error adding model', 'error');
+    });
+}
+
+function testLLMModel() {
+    const modelId = document.getElementById('testModelSelect').value;
+    const prompt = document.getElementById('testPrompt').value;
+    
+    if (!modelId) {
+        showNotification('Please select a model to test', 'error');
+        return;
+    }
+    
+    const testResult = document.getElementById('testResult');
+    const testResultContent = document.getElementById('testResultContent');
+    
+    testResult.style.display = 'block';
+    testResultContent.textContent = 'Testing model... Please wait.';
+    
+    fetch('/api/llm/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model_id: parseInt(modelId), prompt: prompt })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            testResultContent.textContent = data.response;
+        } else {
+            testResultContent.textContent = 'Error: ' + data.error;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        testResultContent.textContent = 'Network error: ' + error.message;
+    });
+}
+
+function saveLLMConfig() {
+    const maxTokens = document.getElementById('configMaxTokens').value;
+    const temperature = document.getElementById('configTemperature').value;
+    
+    const configs = [
+        { key: 'max_tokens', value: maxTokens },
+        { key: 'temperature', value: temperature }
+    ];
+    
+    let savedCount = 0;
+    configs.forEach(config => {
+        fetch('/api/llm/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                savedCount++;
+                if (savedCount === configs.length) {
+                    showNotification('Configuration saved successfully', 'success');
+                    closeModal('configModal');
+                }
+            } else {
+                showNotification('Error saving config: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Network error saving config', 'error');
+        });
+    });
+}
+
+function setDefaultModel(modelId) {
+    fetch(`/api/llm/models/${modelId}/set-default`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Default model set successfully', 'success');
+            loadLLMModels();
+        } else {
+            showNotification('Error setting default model: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error setting default model', 'error');
+    });
+}
+
+function deleteLLMModel(modelId) {
+    if (!confirm('Are you sure you want to delete this model?')) {
+        return;
+    }
+    
+    fetch(`/api/llm/models/${modelId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Model deleted successfully', 'success');
+            loadLLMModels();
+        } else {
+            showNotification('Error deleting model: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error deleting model', 'error');
+    });
+}
+
+function editLLMModel(modelId) {
+    // For now, just show a notification - you can implement full edit functionality later
+    showNotification('Edit functionality coming soon!', 'info');
 }
 
 function disableAllRequiredFields() {
