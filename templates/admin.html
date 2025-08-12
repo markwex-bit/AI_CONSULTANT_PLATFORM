@@ -649,6 +649,8 @@
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Name</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Label</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Step</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Order</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Type</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Form</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Actions</th>
@@ -3724,13 +3726,11 @@ function renderFieldConfigTable(configurations) {
     
     tbody.innerHTML = configurations.map(config => `
         <tr style="border-bottom: 1px solid #e5e7eb;">
-            <td style="padding: 12px;">
-                <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: #f3f4f6; color: #374151;">
-                    ${config.section_name || 'Unassigned'}
-                </span>
-            </td>
+            <td style="padding: 12px;">${config.section_name || 'Unassigned'}</td>
             <td style="padding: 12px;">${config.field_name || ''}</td>
             <td style="padding: 12px;">${config.field_label || ''}</td>
+            <td style="padding: 12px;">${config.step_number || 1}</td>
+            <td style="padding: 12px;">${config.sort_order || 0}</td>
             <td style="padding: 12px;">
                 <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: ${getTypeColor(config.field_type)}; color: white;">
                     ${config.field_type || ''}
@@ -3974,6 +3974,17 @@ function showEditFieldModal(field) {
                     </select>
                 </div>
                 
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Step Number:</label>
+                        <input type="number" id="editFieldStep" value="${field.step_number || 1}" min="1" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Sort Order:</label>
+                        <input type="number" id="editFieldOrder" value="${field.sort_order || 0}" min="0" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    </div>
+                </div>
+                
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Required:</label>
                     <input type="checkbox" id="editFieldRequired" ${field.is_required ? 'checked' : ''} style="margin-right: 0.5rem;">
@@ -4038,6 +4049,8 @@ function saveFieldConfig() {
     const fieldLabel = document.getElementById('editFieldLabel').value;
     const fieldType = document.getElementById('editFieldType').value;
     const fieldSection = document.getElementById('editFieldSection').value;
+    const fieldStep = parseInt(document.getElementById('editFieldStep').value) || 1;
+    const fieldOrder = parseInt(document.getElementById('editFieldOrder').value) || 0;
     const fieldRequired = document.getElementById('editFieldRequired').checked;
     const fieldVisible = document.getElementById('editFieldVisible').checked;
     const fieldHelpText = document.getElementById('editFieldHelpText').value;
@@ -4046,6 +4059,8 @@ function saveFieldConfig() {
         field_label: fieldLabel,
         field_type: fieldType,
         section_name: fieldSection,
+        step_number: fieldStep,
+        sort_order: fieldOrder,
         is_required: fieldRequired,
         is_visible: fieldVisible,
         help_text: fieldHelpText

@@ -1944,11 +1944,20 @@ def get_section_configurations():
         conn = sqlite3.connect('ai_consultant.db')
         cursor = conn.cursor()
         
-        cursor.execute('''
+        form_flag = request.args.get('form_flag')
+        
+        query = '''
             SELECT section_name, section_title, step_number, is_required, is_visible, description, form_flag
             FROM section_configurations
-            ORDER BY step_number, section_name
-        ''')
+        '''
+        
+        if form_flag:
+            query += ' WHERE form_flag = ?'
+            query += ' ORDER BY step_number, section_name'
+            cursor.execute(query, (form_flag,))
+        else:
+            query += ' ORDER BY step_number, section_name'
+            cursor.execute(query)
         
         rows = cursor.fetchall()
         conn.close()
@@ -1983,14 +1992,16 @@ def get_field_configurations():
         form_flag = request.args.get('form_flag')
         
         query = '''
-            SELECT field_name, field_label, field_type, section_name, is_required, is_visible, form_flag
+            SELECT field_name, field_label, field_type, section_name, is_required, is_visible, form_flag, step_number, sort_order
             FROM field_configurations
         '''
         
         if form_flag:
             query += ' WHERE form_flag = ?'
+            query += ' ORDER BY step_number, sort_order, field_name'
             cursor.execute(query, (form_flag,))
         else:
+            query += ' ORDER BY step_number, sort_order, field_name'
             cursor.execute(query)
         
         rows = cursor.fetchall()
@@ -2005,7 +2016,9 @@ def get_field_configurations():
                 'section_name': row[3],
                 'is_required': bool(row[4]),
                 'is_visible': bool(row[5]),
-                'form_flag': row[6]
+                'form_flag': row[6],
+                'step_number': row[7] if row[7] is not None else 1,
+                'sort_order': row[8] if row[8] is not None else 0
             })
         
         return jsonify({
@@ -2023,11 +2036,20 @@ def get_dropdown_options():
         conn = sqlite3.connect('ai_consultant.db')
         cursor = conn.cursor()
         
-        cursor.execute('''
+        form_flag = request.args.get('form_flag')
+        
+        query = '''
             SELECT id, field_name, option_value, option_label, sort_order, form_flag
             FROM dropdown_options
-            ORDER BY field_name, sort_order
-        ''')
+        '''
+        
+        if form_flag:
+            query += ' WHERE form_flag = ?'
+            query += ' ORDER BY field_name, sort_order'
+            cursor.execute(query, (form_flag,))
+        else:
+            query += ' ORDER BY field_name, sort_order'
+            cursor.execute(query)
         
         rows = cursor.fetchall()
         conn.close()
@@ -2061,7 +2083,7 @@ def update_field_configuration(field_name):
         
         cursor.execute('''
             UPDATE field_configurations
-            SET field_label = ?, field_type = ?, section_name = ?, is_required = ?, is_visible = ?
+            SET field_label = ?, field_type = ?, section_name = ?, is_required = ?, is_visible = ?, step_number = ?, sort_order = ?
             WHERE field_name = ?
         ''', (
             data.get('field_label'),
@@ -2069,6 +2091,8 @@ def update_field_configuration(field_name):
             data.get('section_name'),
             data.get('is_required', False),
             data.get('is_visible', True),
+            data.get('step_number', 1),
+            data.get('sort_order', 0),
             field_name
         ))
         

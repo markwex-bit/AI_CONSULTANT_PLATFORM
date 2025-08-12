@@ -198,6 +198,10 @@ class DatabaseManager:
             add_column_to_table('section_configurations', 'form_flag', 'TEXT NOT NULL DEFAULT "A" CHECK (form_flag IN ("A", "S"))')
             add_column_to_table('field_configurations', 'form_flag', 'TEXT NOT NULL DEFAULT "A" CHECK (form_flag IN ("A", "S"))')
             add_column_to_table('dropdown_options', 'form_flag', 'TEXT NOT NULL DEFAULT "A" CHECK (form_flag IN ("A", "S"))')
+            
+            # Add step_number and sort_order columns to field_configurations if they don't exist
+            add_column_to_table('field_configurations', 'step_number', 'INTEGER DEFAULT 1')
+            add_column_to_table('field_configurations', 'sort_order', 'INTEGER DEFAULT 0')
 
             # Initialize default data for Dynamic Form Builder
             self._initialize_dynamic_form_data(cursor)
