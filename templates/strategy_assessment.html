@@ -270,6 +270,14 @@
                 <form id="strategyForm">
                     <input type="hidden" id="assessmentId" name="assessment_id">
                     
+                    <!-- Dynamic Form Container -->
+                    <div id="dynamicFormContainer" style="display: none;">
+                        <!-- Dynamic form will be loaded here -->
+                    </div>
+                    
+                    <!-- Original Form Container -->
+                    <div id="originalFormContainer">
+                    
                     <!-- Competitive Analysis -->
                     <div class="form-group">
                         <label>Direct Competitors (3-5 main competitors)</label>
@@ -415,6 +423,7 @@
                     </div>
                     
                     <button type="submit" class="cta-button">Generate Strategy Blueprint ($1,500)</button>
+                    </div> <!-- End originalFormContainer -->
                 </form>
             </div>
         </div>
@@ -486,6 +495,59 @@ function toggleCheckbox(element) {
         element.classList.remove('selected');
     }
 }
+
+// Dynamic form loading for strategy assessment
+let useDynamicForm = false;
+
+async function loadDynamicStrategyForm() {
+    try {
+        console.log('Loading dynamic strategy form...');
+        const response = await fetch('/api/dynamic-form/strategy');
+        const data = await response.json();
+        
+        if (data.success) {
+            const container = document.getElementById('dynamicFormContainer');
+            container.innerHTML = data.form_html;
+            
+            // Show dynamic form, hide original
+            document.getElementById('dynamicFormContainer').style.display = 'block';
+            document.getElementById('originalFormContainer').style.display = 'none';
+            
+            useDynamicForm = true;
+            console.log('Dynamic strategy form activated successfully!');
+        } else {
+            console.error('Failed to load dynamic strategy form:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading dynamic strategy form:', error);
+    }
+}
+
+function toggleStrategyFormType() {
+    if (useDynamicForm) {
+        // Switch back to original form
+        document.getElementById('dynamicFormContainer').style.display = 'none';
+        document.getElementById('originalFormContainer').style.display = 'block';
+        useDynamicForm = false;
+        console.log('Switched to original strategy form');
+    } else {
+        // Switch to dynamic form
+        loadDynamicStrategyForm();
+    }
+}
+
+// Add form toggle button for strategy assessment
+document.addEventListener('DOMContentLoaded', function() {
+    // Add toggle button for testing
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = '🔄 Toggle Original Strategy Form';
+    toggleBtn.style.cssText = 'position: fixed; top: 50px; right: 10px; z-index: 1000; background: #059669; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;';
+    toggleBtn.onclick = toggleStrategyFormType;
+    document.body.appendChild(toggleBtn);
+    
+    // Load dynamic form by default
+    loadDynamicStrategyForm();
+});
 
 document.getElementById('strategyForm').addEventListener('submit', function(e) {
     e.preventDefault();
