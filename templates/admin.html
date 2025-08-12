@@ -578,8 +578,49 @@
                     </div>
                 </div>
                 
-                <!-- Field Configurations Table -->
+                <!-- Form Builder Navigation Tabs -->
                 <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; border-bottom: 2px solid #e5e7eb;">
+                        <button id="sectionConfigTab" onclick="showFormBuilderTab('sectionConfig')" class="form-builder-tab active" style="padding: 12px 24px; background: #fff; color: #dc2626; border: none; border-bottom: 3px solid #dc2626; font-weight: 600; cursor: pointer; margin-right: 4px;">
+                            📋 Section Configurations
+                        </button>
+                        <button id="fieldConfigTab" onclick="showFormBuilderTab('fieldConfig')" class="form-builder-tab" style="padding: 12px 24px; background: #f8fafc; color: #6b7280; border: none; font-weight: 600; cursor: pointer; margin-right: 4px;">
+                            🏷️ Field Configurations
+                        </button>
+                        <button id="dropdownOptionsTab" onclick="showFormBuilderTab('dropdownOptions')" class="form-builder-tab" style="padding: 12px 24px; background: #f8fafc; color: #6b7280; border: none; font-weight: 600; cursor: pointer;">
+                            📝 Dropdown Options
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Section Configurations Tab Content -->
+                <div id="sectionConfigContent" class="form-builder-tab-content" style="display: block;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: #374151; margin: 0;">Section Configurations</h3>
+                        <button onclick="addNewSection()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                            ➕ Add New Section
+                        </button>
+                    </div>
+                    <div id="sectionConfigTable" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f9fafb;">
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section Name</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Title</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Step</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Description</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sectionConfigTableBody">
+                                <!-- Section configurations will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Field Configurations Tab Content -->
+                <div id="fieldConfigContent" class="form-builder-tab-content" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h3 style="color: #374151; margin: 0;">Field Configurations</h3>
                         <button onclick="addNewField()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
@@ -605,34 +646,8 @@
                     </div>
                 </div>
                 
-                <!-- Section Configurations Table -->
-                <div style="margin-bottom: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3 style="color: #374151; margin: 0;">Section Configurations</h3>
-                        <button onclick="addNewSection()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            ➕ Add New Section
-                        </button>
-                    </div>
-                    <div id="sectionConfigTable" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr style="background: #f9fafb;">
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section Name</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Title</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Step</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Description</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sectionConfigTableBody">
-                                <!-- Section configurations will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Dropdown Options Table -->
-                <div>
+                <!-- Dropdown Options Tab Content -->
+                <div id="dropdownOptionsContent" class="form-builder-tab-content" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h3 style="color: #374151; margin: 0;">Dropdown Options</h3>
                         <button onclick="addNewDropdownOption()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
@@ -3551,6 +3566,35 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Form Builder Tab Navigation
+function showFormBuilderTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.form-builder-tab-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.form-builder-tab').forEach(tab => {
+        tab.style.background = '#f8fafc';
+        tab.style.color = '#6b7280';
+        tab.style.borderBottom = 'none';
+    });
+    
+    // Show selected tab content
+    const selectedContent = document.getElementById(tabName + 'Content');
+    if (selectedContent) {
+        selectedContent.style.display = 'block';
+    }
+    
+    // Add active class to selected tab
+    const selectedTab = document.getElementById(tabName + 'Tab');
+    if (selectedTab) {
+        selectedTab.style.background = '#fff';
+        selectedTab.style.color = '#dc2626';
+        selectedTab.style.borderBottom = '3px solid #dc2626';
+    }
+}
+
 // Navigation functions
 function showSection(sectionName, event = null) {
     // Hide all sections
@@ -3595,6 +3639,8 @@ function showSection(sectionName, event = null) {
 function loadFormBuilder() {
     console.log('Loading form builder...');
     loadAllConfigurations();
+    // Show Section Configurations tab by default
+    showFormBuilderTab('sectionConfig');
 }
 
 function loadAllConfigurations() {
