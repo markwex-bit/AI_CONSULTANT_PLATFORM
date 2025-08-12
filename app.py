@@ -1992,7 +1992,7 @@ def get_field_configurations():
         form_flag = request.args.get('form_flag')
         
         query = '''
-            SELECT fc.field_name, fc.field_label, fc.field_type, fc.section_name, fc.is_required, fc.is_visible, fc.form_flag, fc.step_number, fc.sort_order, sc.step_number as section_step
+            SELECT fc.field_name, fc.field_label, fc.field_type, fc.section_name, fc.is_required, fc.is_visible, fc.form_flag, fc.step_number, fc.sort_order, sc.step_number as section_step, sc.section_title
             FROM field_configurations fc
             LEFT JOIN section_configurations sc ON fc.section_name = sc.section_name AND fc.form_flag = sc.form_flag
         '''
@@ -2020,7 +2020,8 @@ def get_field_configurations():
                 'form_flag': row[6],
                 'step_number': row[7] if row[7] is not None else 1,
                 'sort_order': row[8] if row[8] is not None else 0,
-                'section_step': row[9] if row[9] is not None else 1
+                'section_step': row[9] if row[9] is not None else 1,
+                'section_title': row[10] if row[10] is not None else 'Unassigned'
             })
         
         return jsonify({

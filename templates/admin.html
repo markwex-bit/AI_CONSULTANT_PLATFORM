@@ -646,10 +646,10 @@
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: #f9fafb;">
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Name</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Label</th>
-                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Section Step</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Card Name</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Label</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">DB Name</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Card Step</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Step</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Field Order</th>
                                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600;">Type</th>
@@ -3727,9 +3727,9 @@ function renderFieldConfigTable(configurations) {
     
     tbody.innerHTML = configurations.map(config => `
         <tr style="border-bottom: 1px solid #e5e7eb;">
-            <td style="padding: 12px;">${config.section_name || 'Unassigned'}</td>
-            <td style="padding: 12px;">${config.field_name || ''}</td>
+            <td style="padding: 12px;">${config.section_title || 'Unassigned'}</td>
             <td style="padding: 12px;">${config.field_label || ''}</td>
+            <td style="padding: 12px;">${config.field_name || ''}</td>
             <td style="padding: 12px;">${config.section_step || 1}</td>
             <td style="padding: 12px;">${config.step_number || 1}</td>
             <td style="padding: 12px;">${config.sort_order || 0}</td>
@@ -3943,13 +3943,13 @@ function showEditFieldModal(field) {
                 <h3 style="margin-bottom: 1rem; color: #1f2937;">Edit Field Configuration</h3>
                 
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Name:</label>
-                    <input type="text" id="editFieldName" value="${field.field_name}" readonly style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Label:</label>
+                    <input type="text" id="editFieldLabel" value="${field.field_label || ''}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Label:</label>
-                    <input type="text" id="editFieldLabel" value="${field.field_label || ''}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">DB Name:</label>
+                    <input type="text" id="editFieldName" value="${field.field_name}" readonly style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
@@ -3979,7 +3979,7 @@ function showEditFieldModal(field) {
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section Step:</label>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Card Step:</label>
                         <input type="number" id="editFieldSectionStep" value="${field.section_step || 1}" min="1" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                     </div>
                     <div>
@@ -4410,13 +4410,13 @@ function addNewField() {
                 <h3 style="margin-bottom: 1rem; color: #1f2937;">Add New Field</h3>
                 
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Name:</label>
-                    <input type="text" id="newFieldName" placeholder="e.g., company_size" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Label:</label>
+                    <input type="text" id="newFieldLabel" placeholder="e.g., Company Size" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Label:</label>
-                    <input type="text" id="newFieldLabel" placeholder="e.g., Company Size" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">DB Name:</label>
+                    <input type="text" id="newFieldName" placeholder="e.g., company_size" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
