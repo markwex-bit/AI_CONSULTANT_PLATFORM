@@ -580,7 +580,12 @@
                 
                 <!-- Field Configurations Table -->
                 <div style="margin-bottom: 2rem;">
-                    <h3 style="color: #374151; margin-bottom: 1rem;">Field Configurations</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: #374151; margin: 0;">Field Configurations</h3>
+                        <button onclick="addNewField()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                            ➕ Add New Field
+                        </button>
+                    </div>
                     <div id="fieldConfigTable" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
@@ -602,7 +607,12 @@
                 
                 <!-- Section Configurations Table -->
                 <div style="margin-bottom: 2rem;">
-                    <h3 style="color: #374151; margin-bottom: 1rem;">Section Configurations</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: #374151; margin: 0;">Section Configurations</h3>
+                        <button onclick="addNewSection()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                            ➕ Add New Section
+                        </button>
+                    </div>
                     <div id="sectionConfigTable" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
@@ -623,7 +633,12 @@
                 
                 <!-- Dropdown Options Table -->
                 <div>
-                    <h3 style="color: #374151; margin-bottom: 1rem;">Dropdown Options</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: #374151; margin: 0;">Dropdown Options</h3>
+                        <button onclick="addNewDropdownOption()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                            ➕ Add New Option
+                        </button>
+                    </div>
                     <div id="dropdownOptionsTable" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
@@ -3622,6 +3637,7 @@ function loadFieldConfigurations() {
         .then(data => {
             console.log('Field configurations data:', data);
             if (data.success) {
+                window.fieldConfigurations = data.configurations;
                 renderFieldConfigTable(data.configurations);
             } else {
                 console.error('Error loading field configurations:', data.error);
@@ -3852,6 +3868,7 @@ function showEditFieldModal(field) {
                 
                 <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                     <button onclick="closeEditFieldModal()" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="deleteFieldConfig('${field.field_name}')" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
                     <button onclick="saveFieldConfig()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Changes</button>
                 </div>
             </div>
@@ -3866,6 +3883,28 @@ function closeEditFieldModal() {
     const modal = document.getElementById('editFieldModal');
     if (modal) {
         modal.remove();
+    }
+}
+
+function deleteFieldConfig(fieldName) {
+    if (confirm(`Are you sure you want to delete the field "${fieldName}"? This will also remove all dropdown options associated with this field.`)) {
+        fetch(`/api/field_configurations/${fieldName}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Field deleted successfully', 'success');
+                closeEditFieldModal();
+                loadFieldConfigurations(); // Refresh the table
+            } else {
+                showNotification('Error deleting field: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Network error deleting field', 'error');
+        });
     }
 }
 
@@ -4058,7 +4097,7 @@ function editDropdownOption(optionId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const option = data.options.find(o => o.option_id == optionId);
+                const option = data.options.find(o => o.id == optionId);
                 if (option) {
                     showEditDropdownOptionModal(option);
                 } else {
@@ -4083,7 +4122,7 @@ function showEditDropdownOptionModal(option) {
                 
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option ID:</label>
-                    <input type="text" id="editOptionId" value="${option.option_id}" readonly style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb;">
+                    <input type="text" id="editOptionId" value="${option.id}" readonly style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb;">
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
@@ -4115,7 +4154,7 @@ function showEditDropdownOptionModal(option) {
                 
                 <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                     <button onclick="closeEditDropdownOptionModal()" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
-                    <button onclick="deleteDropdownOptionConfig(${option.option_id})" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
+                    <button onclick="deleteDropdownOptionConfig(${option.id})" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
                     <button onclick="saveDropdownOptionConfig()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Changes</button>
                 </div>
             </div>
@@ -4211,6 +4250,322 @@ function toggleDatabaseView(event) {
         view.style.display = 'none';
         button.textContent = 'Show Database View';
     }
+}
+
+// Add New functions
+function addNewField() {
+    const modalHtml = `
+        <div id="addFieldModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                <h3 style="margin-bottom: 1rem; color: #1f2937;">Add New Field</h3>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Name:</label>
+                    <input type="text" id="newFieldName" placeholder="e.g., company_size" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Label:</label>
+                    <input type="text" id="newFieldLabel" placeholder="e.g., Company Size" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Type:</label>
+                    <select id="newFieldType" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="text">Text</option>
+                        <option value="email">Email</option>
+                        <option value="tel">Phone</option>
+                        <option value="url">URL</option>
+                        <option value="select">Dropdown</option>
+                        <option value="checkbox">Checkbox</option>
+                        <option value="textarea">Text Area</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section:</label>
+                    <select id="newFieldSection" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="">Select a section...</option>
+                        ${window.sectionConfigurations ? window.sectionConfigurations.map(section => 
+                            `<option value="${section.section_name}">${section.section_title}</option>`
+                        ).join('') : ''}
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Form Type:</label>
+                    <select id="newFieldFormFlag" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="A">Assessment Form</option>
+                        <option value="S">Strategic Blueprint Form</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Required:</label>
+                    <input type="checkbox" id="newFieldRequired" style="margin-right: 0.5rem;">
+                    <span>This field is required</span>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Visible:</label>
+                    <input type="checkbox" id="newFieldVisible" checked style="margin-right: 0.5rem;">
+                    <span>This field is visible</span>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button onclick="closeAddFieldModal()" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="saveNewField()" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">Add Field</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeAddFieldModal() {
+    const modal = document.getElementById('addFieldModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function saveNewField() {
+    const fieldName = document.getElementById('newFieldName').value;
+    const fieldLabel = document.getElementById('newFieldLabel').value;
+    const fieldType = document.getElementById('newFieldType').value;
+    const fieldSection = document.getElementById('newFieldSection').value;
+    const formFlag = document.getElementById('newFieldFormFlag').value;
+    const fieldRequired = document.getElementById('newFieldRequired').checked;
+    const fieldVisible = document.getElementById('newFieldVisible').checked;
+    
+    if (!fieldName || !fieldLabel) {
+        showNotification('Field name and label are required', 'error');
+        return;
+    }
+    
+    const newFieldData = {
+        field_name: fieldName,
+        field_label: fieldLabel,
+        field_type: fieldType,
+        section_name: fieldSection,
+        form_flag: formFlag,
+        is_required: fieldRequired,
+        is_visible: fieldVisible
+    };
+    
+    fetch('/api/field_configurations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFieldData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Field added successfully', 'success');
+            closeAddFieldModal();
+            loadFieldConfigurations(); // Refresh the table
+        } else {
+            showNotification('Error adding field: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error adding field', 'error');
+    });
+}
+
+function addNewSection() {
+    const modalHtml = `
+        <div id="addSectionModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                <h3 style="margin-bottom: 1rem; color: #1f2937;">Add New Section</h3>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section Name:</label>
+                    <input type="text" id="newSectionName" placeholder="e.g., contact_company" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Section Title:</label>
+                    <input type="text" id="newSectionTitle" placeholder="e.g., Contact & Company Information" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Step Number:</label>
+                    <input type="number" id="newSectionStepNumber" value="1" min="1" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Form Type:</label>
+                    <select id="newSectionFormFlag" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="A">Assessment Form</option>
+                        <option value="S">Strategic Blueprint Form</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Description:</label>
+                    <textarea id="newSectionDescription" placeholder="Brief description of this section..." style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; height: 80px;"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button onclick="closeAddSectionModal()" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="saveNewSection()" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">Add Section</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeAddSectionModal() {
+    const modal = document.getElementById('addSectionModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function saveNewSection() {
+    const sectionName = document.getElementById('newSectionName').value;
+    const sectionTitle = document.getElementById('newSectionTitle').value;
+    const stepNumber = document.getElementById('newSectionStepNumber').value;
+    const formFlag = document.getElementById('newSectionFormFlag').value;
+    const description = document.getElementById('newSectionDescription').value;
+    
+    if (!sectionName || !sectionTitle) {
+        showNotification('Section name and title are required', 'error');
+        return;
+    }
+    
+    const newSectionData = {
+        section_name: sectionName,
+        section_title: sectionTitle,
+        step_number: parseInt(stepNumber),
+        form_flag: formFlag,
+        description: description,
+        is_required: false,
+        is_visible: true
+    };
+    
+    fetch('/api/section_configurations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSectionData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Section added successfully', 'success');
+            closeAddSectionModal();
+            loadSectionConfigurations(); // Refresh the table
+        } else {
+            showNotification('Error adding section: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error adding section', 'error');
+    });
+}
+
+function addNewDropdownOption() {
+    const modalHtml = `
+        <div id="addDropdownOptionModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                <h3 style="margin-bottom: 1rem; color: #1f2937;">Add New Dropdown Option</h3>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Field Name:</label>
+                    <select id="newOptionFieldName" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="">Select a field...</option>
+                        ${window.fieldConfigurations ? window.fieldConfigurations.filter(f => f.field_type === 'select').map(field => 
+                            `<option value="${field.field_name}">${field.field_label || field.field_name}</option>`
+                        ).join('') : ''}
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option Value:</label>
+                    <input type="text" id="newOptionValue" placeholder="e.g., small" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option Label:</label>
+                    <input type="text" id="newOptionLabel" placeholder="e.g., Small (1-50 employees)" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Sort Order:</label>
+                    <input type="number" id="newOptionSortOrder" value="0" min="0" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Form Type:</label>
+                    <select id="newOptionFormFlag" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="A">Assessment Form</option>
+                        <option value="S">Strategic Blueprint Form</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button onclick="closeAddDropdownOptionModal()" style="padding: 8px 16px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="saveNewDropdownOption()" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">Add Option</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeAddDropdownOptionModal() {
+    const modal = document.getElementById('addDropdownOptionModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function saveNewDropdownOption() {
+    const fieldName = document.getElementById('newOptionFieldName').value;
+    const optionValue = document.getElementById('newOptionValue').value;
+    const optionLabel = document.getElementById('newOptionLabel').value;
+    const sortOrder = document.getElementById('newOptionSortOrder').value;
+    const formFlag = document.getElementById('newOptionFormFlag').value;
+    
+    if (!fieldName || !optionValue || !optionLabel) {
+        showNotification('Field name, option value, and option label are required', 'error');
+        return;
+    }
+    
+    const newOptionData = {
+        field_name: fieldName,
+        option_value: optionValue,
+        option_label: optionLabel,
+        sort_order: parseInt(sortOrder),
+        form_flag: formFlag
+    };
+    
+    fetch('/api/dropdown_options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOptionData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Dropdown option added successfully', 'success');
+            closeAddDropdownOptionModal();
+            loadDropdownFieldOptions(); // Refresh the table
+        } else {
+            showNotification('Error adding dropdown option: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error adding dropdown option', 'error');
+    });
 }
 
 // Initialize the page
