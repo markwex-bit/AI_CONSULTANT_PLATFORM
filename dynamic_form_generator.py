@@ -107,7 +107,7 @@ class DynamicFormGenerator:
             html.append('''
             <div class="step-navigation">
                 <button type="button" class="btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">Previous</button>
-                <button type="button" class="cta-button" id="nextBtn" onclick="changeStep(1)">Next</button>
+                <button type="button" class="cta-button" id="nextBtn" onclick="changeStep(1)" style="margin-left: auto;">Next</button>
             </div>
             ''')
             
@@ -118,7 +118,7 @@ class DynamicFormGenerator:
             return f"<p>Error generating form: {e}</p>"
     
     def _generate_contact_section(self, fields: List[Dict]) -> List[str]:
-        """Generate contact information section with specific layout"""
+        """Generate contact information section with specific layout - no borders"""
         html = []
         
         # First row: First Name, Last Name
@@ -127,7 +127,7 @@ class DynamicFormGenerator:
             html.append('<div class="form-row">')
             for field in name_fields:
                 html.append('<div class="form-col">')
-                html.extend(self._generate_field_html(field))
+                html.extend(self._generate_field_html_no_border(field))
                 html.append('</div>')
             html.append('</div>')
         
@@ -137,7 +137,7 @@ class DynamicFormGenerator:
             html.append('<div class="form-row">')
             for field in contact_fields:
                 html.append('<div class="form-col">')
-                html.extend(self._generate_field_html(field))
+                html.extend(self._generate_field_html_no_border(field))
                 html.append('</div>')
             html.append('</div>')
         
@@ -147,7 +147,7 @@ class DynamicFormGenerator:
             html.append('<div class="form-row">')
             for field in company_fields:
                 html.append('<div class="form-col">')
-                html.extend(self._generate_field_html(field))
+                html.extend(self._generate_field_html_no_border(field))
                 html.append('</div>')
             html.append('</div>')
         
@@ -157,7 +157,7 @@ class DynamicFormGenerator:
             html.append('<div class="form-row">')
             for field in business_fields:
                 html.append('<div class="form-col">')
-                html.extend(self._generate_field_html(field))
+                html.extend(self._generate_field_html_no_border(field))
                 html.append('</div>')
             html.append('</div>')
         
@@ -174,6 +174,75 @@ class DynamicFormGenerator:
             html.extend(self._generate_field_html(field))
             html.append('</div>')
             html.append('</div>')
+        
+        return html
+    
+    def _generate_field_html_no_border(self, field: Dict) -> List[str]:
+        """Generate HTML for a single field without border styling"""
+        html = []
+        
+        field_name = field['field_name']
+        field_label = field['field_label']
+        field_type = field['field_type']
+        is_required = field.get('is_required', False)
+        is_visible = field.get('is_visible', True)
+        
+        # Skip if field is not visible
+        if not is_visible:
+            return []
+        
+        # Don't add required asterisk or required attribute - all fields are optional for testing
+        label_text = field_label
+        
+        html.append('<div class="form-group-no-border">')
+        html.append(f'<label class="field-label">{label_text}</label>')
+        
+        if field_type == 'text':
+            html.append(f'<input type="text" name="{field_name}" class="form-control" placeholder="Enter {field_label.lower()}">')
+        
+        elif field_type == 'email':
+            html.append(f'<input type="email" name="{field_name}" class="form-control" placeholder="Enter your email">')
+        
+        elif field_type == 'tel':
+            html.append(f'<input type="tel" name="{field_name}" class="form-control" placeholder="Enter phone number">')
+        
+        elif field_type == 'url':
+            html.append(f'<input type="url" name="{field_name}" class="form-control" placeholder="https://example.com">')
+        
+        elif field_type == 'select':
+            html.append(f'<select name="{field_name}" class="form-control">')
+            html.append('<option value="">Select an option</option>')
+            
+            # Get dropdown options for this field
+            options = self._get_dropdown_options(field_name)
+            for option in options:
+                html.append(f'<option value="{option["option_value"]}">{option["option_label"]}</option>')
+            
+            html.append('</select>')
+        
+        elif field_type == 'checkbox':
+            # Get dropdown options for checkbox group
+            options = self._get_dropdown_options(field_name)
+            html.append('<div class="checkbox-group">')
+            for option in options:
+                html.append(f'<label class="checkbox-option">')
+                html.append(f'<input type="checkbox" name="{field_name}" value="{option["option_value"]}" class="checkbox-input">')
+                html.append(f'<span class="checkbox-label">{option["option_label"]}</span>')
+                html.append('</label>')
+            # Add "Other" text input at bottom - left aligned, full width
+            html.append('<div class="other-input-section">')
+            html.append(f'<input type="text" name="{field_name}_other" class="form-control other-input-full" placeholder="Enter other {field_label.lower()}">')
+            html.append('</div>')
+            html.append('</div>')
+        
+        elif field_type == 'textarea':
+            html.append(f'<textarea name="{field_name}" rows="4" class="form-control" placeholder="Enter {field_label.lower()}"></textarea>')
+        
+        else:
+            # Default to text input
+            html.append(f'<input type="text" name="{field_name}" class="form-control" placeholder="Enter {field_label.lower()}">')
+        
+        html.append('</div>')
         
         return html
     
@@ -229,9 +298,9 @@ class DynamicFormGenerator:
                 html.append(f'<input type="checkbox" name="{field_name}" value="{option["option_value"]}" class="checkbox-input">')
                 html.append(f'<span class="checkbox-label">{option["option_label"]}</span>')
                 html.append('</label>')
-            # Add "Other" text input at bottom
+            # Add "Other" text input at bottom - left aligned, full width
             html.append('<div class="other-input-section">')
-            html.append(f'<input type="text" name="{field_name}_other" class="form-control other-input" placeholder="Enter other {field_label.lower()}">')
+            html.append(f'<input type="text" name="{field_name}_other" class="form-control other-input-full" placeholder="Enter other {field_label.lower()}">')
             html.append('</div>')
             html.append('</div>')
         
