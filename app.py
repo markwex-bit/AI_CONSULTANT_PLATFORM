@@ -2445,15 +2445,15 @@ def update_llm_config():
         data = request.get_json()
         key = data.get('key')
         value = data.get('value')
-        
+
         if not key or value is None:
             return jsonify({
                 'success': False,
                 'error': 'Key and value are required'
             }), 400
-        
+
         success = db_manager.update_llm_config(key, str(value))
-        
+
         if success:
             return jsonify({
                 'success': True,
@@ -2466,6 +2466,53 @@ def update_llm_config():
             }), 400
     except Exception as e:
         logger.error(f"Error updating LLM config: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/pricing/update', methods=['POST'])
+def update_llm_pricing():
+    """Update LLM model pricing from current rates"""
+    try:
+        from dynamic_pricing import DynamicPricing
+        
+        pricing = DynamicPricing()
+        updated_count = pricing.update_database_pricing()
+        
+        if updated_count >= 0:
+            return jsonify({
+                'success': True,
+                'message': f'Updated pricing for {updated_count} models',
+                'updated_count': updated_count
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to update pricing'
+            }), 400
+    except Exception as e:
+        logger.error(f"Error updating LLM pricing: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/llm/pricing/summary')
+def get_llm_pricing_summary():
+    """Get current LLM pricing summary"""
+    try:
+        from dynamic_pricing import DynamicPricing
+        
+        pricing = DynamicPricing()
+        summary = pricing.get_current_pricing_summary()
+        
+        return jsonify({
+            'success': True,
+            'summary': summary
+        })
+    except Exception as e:
+        logger.error(f"Error getting LLM pricing summary: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

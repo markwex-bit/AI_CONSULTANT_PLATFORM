@@ -766,6 +766,9 @@
                         <button onclick="showConfigModal()" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
                             ⚙️ Configuration
                         </button>
+                        <button onclick="updatePricing()" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                            💰 Update Pricing
+                        </button>
                     </div>
                 </div>
                 
@@ -5305,6 +5308,44 @@ function deleteLLMModel(modelId) {
 function editLLMModel(modelId) {
     // For now, just show a notification - you can implement full edit functionality later
     showNotification('Edit functionality coming soon!', 'info');
+}
+
+function updatePricing() {
+    if (!confirm('This will update pricing for all LLM models from current provider rates. Continue?')) {
+        return;
+    }
+
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '🔄 Updating...';
+    button.disabled = true;
+
+    fetch('/api/llm/pricing/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`Pricing updated successfully! Updated ${data.updated_count} models.`, 'success');
+            // Reload the models table to show updated pricing
+            loadLLMModels();
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error updating pricing', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
 }
 
 function disableAllRequiredFields() {
