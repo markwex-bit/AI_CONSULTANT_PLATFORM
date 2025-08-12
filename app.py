@@ -22,8 +22,8 @@ from werkzeug.utils import secure_filename
 import uuid
 from report_generator import ReportGenerator
 import random
-from config import Config
-REPORTS_DIR = Config.REPORTS_DIR
+from config import config
+REPORTS_DIR = 'reports'
 
 # Configure logging
 logging.basicConfig(
@@ -38,8 +38,8 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Configuration - Use environment variables for security
-app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+# Configuration - Use new config system
+app.secret_key = config.security.secret_key
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_your_stripe_key')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_your_stripe_key')
 stripe.api_key = STRIPE_SECRET_KEY
