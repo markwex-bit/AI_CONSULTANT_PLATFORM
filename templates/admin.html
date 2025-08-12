@@ -445,6 +445,33 @@
         color: #dc2626;
         font-weight: bold;
     }
+    
+    /* Form type color indicators */
+    .assessment-row {
+        border-left: 4px solid #3b82f6 !important;
+    }
+    
+    .strategy-row {
+        border-left: 4px solid #10b981 !important;
+    }
+    
+    .assessment-badge {
+        background: #3b82f6 !important;
+        color: white !important;
+        padding: 4px 8px !important;
+        border-radius: 4px !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+    }
+    
+    .strategy-badge {
+        background: #10b981 !important;
+        color: white !important;
+        padding: 4px 8px !important;
+        border-radius: 4px !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+    }
 </style>
 {% endblock %}
 
@@ -3598,8 +3625,22 @@ function renderFieldConfigTable(configurations) {
         return;
     }
     
-    tbody.innerHTML = configurations.map(config => `
-        <tr style="border-bottom: 1px solid #e5e7eb;">
+    tbody.innerHTML = configurations.map(config => {
+        // Find the section title for display
+        let sectionDisplay = config.section_name || 'Not assigned';
+        if (window.sectionConfigurations) {
+            const section = window.sectionConfigurations.find(s => s.section_name === config.section_name);
+            if (section) {
+                sectionDisplay = section.section_title;
+            }
+        }
+        
+        // Determine form type
+        const formType = config.form_flag === 'A' ? 'assessment' : 'strategy';
+        const formLabel = config.form_flag === 'A' ? 'Assessment' : 'Strategy';
+        
+        return `
+        <tr class="${formType}-row" style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 12px;">${config.field_name || ''}</td>
             <td style="padding: 12px;">${config.field_label || ''}</td>
             <td style="padding: 12px;">
@@ -3607,34 +3648,18 @@ function renderFieldConfigTable(configurations) {
                     ${config.field_type || ''}
                 </span>
             </td>
+            <td style="padding: 12px;">${sectionDisplay}</td>
             <td style="padding: 12px;">
-                <select onchange="updateFieldSection('${config.field_name}', this.value)" style="padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: white;">
-                    <option value="">Select a section...</option>
-                    ${window.sectionConfigurations ? window.sectionConfigurations.map(section => 
-                        `<option value="${section.section_name}" ${config.section_name === section.section_name ? 'selected' : ''}>
-                            ${section.section_title}
-                        </option>`
-                    ).join('') : ''}
-                </select>
-            </td>
-            <td style="padding: 12px;">
-                <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: ${config.form_flag === 'A' ? '#3b82f6' : '#10b981'}; color: white;">
-                    ${config.form_flag === 'A' ? 'Assessment' : 'Strategy'}
-                </span>
+                <span class="${formType}-badge">${formLabel}</span>
             </td>
             <td style="padding: 12px;">
                 <div style="display: flex; gap: 4px;">
                     <button class="action-btn" onclick="editFieldConfig('${config.field_name}')" style="background: #3b82f6; color: white;" title="Edit Field">✏️</button>
-                    ${config.field_type === 'select' ? 
-                        `<button class="action-btn" onclick="manageDropdownOptions('${config.field_name}')" style="background: #3b82f6; color: white;" title="Manage Dropdown Options">📝</button>` : ''
-                    }
-                    ${config.field_type === 'checkbox' ? 
-                        `<button class="action-btn" onclick="manageCheckboxOptions('${config.field_name}')" style="background: #10b981; color: white;" title="Manage Checkbox Options">☑️</button>` : ''
-                    }
                 </div>
             </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function getTypeColor(type) {
@@ -3656,14 +3681,20 @@ function renderSectionConfigTable(configurations) {
         return;
     }
     
-    tbody.innerHTML = configurations.map(config => `
-        <tr style="border-bottom: 1px solid #e5e7eb;">
+    tbody.innerHTML = configurations.map(config => {
+        // Determine form type based on step number
+        const formType = config.step_number <= 7 ? 'assessment' : 'strategy';
+        const formLabel = config.step_number <= 7 ? 'Assessment' : 'Strategy';
+        
+        return `
+        <tr class="${formType}-row" style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 12px;">${config.section_name || ''}</td>
             <td style="padding: 12px;">${config.section_title || ''}</td>
             <td style="padding: 12px;">${config.step_number || ''}</td>
             <td style="padding: 12px;">${config.description || ''}</td>
             <td style="padding: 12px;">
                 <div style="display: flex; gap: 4px;">
+                    <span class="${formType}-badge" style="margin-right: 8px;">${formLabel}</span>
                     <button class="action-btn" onclick="editSectionConfig('${config.section_name}')" style="background: #3b82f6; color: white;" title="Edit Section">✏️</button>
                 </div>
             </td>
@@ -3696,14 +3727,27 @@ function renderDropdownOptionsTable(options) {
         return;
     }
     
-    tbody.innerHTML = options.map(option => `
-        <tr style="border-bottom: 1px solid #e5e7eb;">
+    tbody.innerHTML = options.map(option => {
+        // Determine form type based on field name patterns
+        const assessmentFields = ['industry', 'company_size', 'role', 'current_tech', 'ai_experience', 'deployment_preference', 'solution_preference', 'technical_expertise', 'team_availability', 'change_management_experience', 'budget', 'timeline'];
+        const strategyFields = ['market_position', 'risk_tolerance', 'org_structure', 'decision_process', 'team_size', 'budget_allocation', 'roi_timeline'];
+        
+        let formType = 'assessment'; // Default
+        if (strategyFields.includes(option.field_name)) {
+            formType = 'strategy';
+        }
+        
+        const formLabel = formType === 'assessment' ? 'Assessment' : 'Strategy';
+        
+        return `
+        <tr class="${formType}-row" style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 12px;">${option.field_name || ''}</td>
             <td style="padding: 12px;">${option.option_value || ''}</td>
             <td style="padding: 12px;">${option.option_label || ''}</td>
             <td style="padding: 12px;">${option.sort_order || 0}</td>
             <td style="padding: 12px;">
                 <div style="display: flex; gap: 4px;">
+                    <span class="${formType}-badge" style="margin-right: 8px;">${formLabel}</span>
                     <button class="action-btn" onclick="editDropdownOption(${option.id})" style="background: #3b82f6; color: white;" title="Edit Option">✏️</button>
                 </div>
             </td>
