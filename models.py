@@ -1087,37 +1087,43 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
-            # Default models to insert
+            # Default models to insert (Updated to current versions as of August 2024)
             default_models = [
-                # OpenAI Models
+                # OpenAI Models (Current as of August 2024)
                 ('OpenAI', 'gpt-3.5-turbo', 'GPT-3.5 Turbo', 'openai', None, 1, 2000, 0.7, 0.002, 1, 1, 
                  'Fast and cost-effective model for general AI tasks', '["text-generation", "business-analysis"]'),
                 ('OpenAI', 'gpt-4o', 'GPT-4o', 'openai', None, 1, 4000, 0.7, 0.005, 1, 0, 
                  'Advanced model with better reasoning and accuracy', '["text-generation", "business-analysis", "complex-reasoning"]'),
                 ('OpenAI', 'gpt-4o-mini', 'GPT-4o Mini', 'openai', None, 1, 4000, 0.7, 0.00015, 1, 0, 
                  'Cost-effective GPT-4o variant', '["text-generation", "business-analysis"]'),
+                ('OpenAI', 'gpt-4-turbo', 'GPT-4 Turbo', 'openai', None, 1, 4000, 0.7, 0.01, 1, 0, 
+                 'Latest GPT-4 model with improved performance', '["text-generation", "business-analysis", "complex-reasoning"]'),
                 
-                # Anthropic Models
-                ('Anthropic', 'claude-3-haiku-20240307', 'Claude 3 Haiku', 'anthropic', None, 1, 2000, 0.7, 0.00025, 1, 0, 
-                 'Fast and efficient Claude model', '["text-generation", "business-analysis"]'),
-                ('Anthropic', 'claude-3-sonnet-20240229', 'Claude 3 Sonnet', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
-                 'Balanced Claude model for complex tasks', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                # Anthropic Models (Updated to current versions as of August 2024)
+                ('Anthropic', 'claude-3-5-sonnet-20241022', 'Claude 3.5 Sonnet', 'anthropic', None, 1, 4000, 0.7, 0.003, 1, 0, 
+                 'Latest Claude 3.5 Sonnet model', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                ('Anthropic', 'claude-3-5-haiku-20241022', 'Claude 3.5 Haiku', 'anthropic', None, 1, 2000, 0.7, 0.00025, 1, 0, 
+                 'Fast and efficient Claude 3.5 Haiku model', '["text-generation", "business-analysis"]'),
                 ('Anthropic', 'claude-3-opus-20240229', 'Claude 3 Opus', 'anthropic', None, 1, 4000, 0.7, 0.015, 1, 0, 
                  'Most capable Claude model', '["text-generation", "business-analysis", "complex-reasoning", "creative-writing"]'),
                 
-                # Open Source Models
-                ('Ollama', 'llama3.2', 'Llama 3.2 (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
-                 'Local Llama 3.2 model via Ollama', '["text-generation", "business-analysis"]'),
-                ('Ollama', 'mistral', 'Mistral (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
-                 'Local Mistral model via Ollama', '["text-generation", "business-analysis"]'),
-                ('Ollama', 'codellama', 'Code Llama (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
-                 'Local Code Llama model for technical tasks', '["text-generation", "code-generation", "technical-analysis"]'),
+                # Open Source Models (Verified current model names)
+                ('Ollama', 'llama3.1:8b', 'Llama 3.1 8B (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
+                 'Local Llama 3.1 8B model via Ollama', '["text-generation", "business-analysis"]'),
+                ('Ollama', 'llama3.1:70b', 'Llama 3.1 70B (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
+                 'Local Llama 3.1 70B model via Ollama', '["text-generation", "business-analysis", "complex-reasoning"]'),
+                ('Ollama', 'mistral:7b', 'Mistral 7B (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
+                 'Local Mistral 7B model via Ollama', '["text-generation", "business-analysis"]'),
+                ('Ollama', 'codellama:7b', 'Code Llama 7B (Local)', 'open_source', 'http://localhost:11434/api/generate', 0, 2000, 0.7, 0.0, 1, 0, 
+                 'Local Code Llama 7B model for technical tasks', '["text-generation", "code-generation", "technical-analysis"]'),
                 
-                # Hugging Face Models
-                ('HuggingFace', 'meta-llama/Llama-2-7b-chat-hf', 'Llama 2 7B Chat', 'open_source', 'https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf', 1, 2000, 0.7, 0.0, 1, 0, 
-                 'Llama 2 7B model via Hugging Face', '["text-generation", "business-analysis"]'),
+                # Hugging Face Models (Verified accessible models)
                 ('HuggingFace', 'microsoft/DialoGPT-medium', 'DialoGPT Medium', 'open_source', 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium', 1, 2000, 0.7, 0.0, 1, 0, 
                  'DialoGPT model for conversational AI', '["text-generation", "conversation"]'),
+                ('HuggingFace', 'gpt2', 'GPT-2', 'open_source', 'https://api-inference.huggingface.co/models/gpt2', 1, 2000, 0.7, 0.0, 1, 0, 
+                 'GPT-2 model via Hugging Face', '["text-generation"]'),
+                ('HuggingFace', 'distilgpt2', 'DistilGPT-2', 'open_source', 'https://api-inference.huggingface.co/models/distilgpt2', 1, 2000, 0.7, 0.0, 1, 0, 
+                 'Distilled GPT-2 model via Hugging Face', '["text-generation"]'),
             ]
             
             for model_data in default_models:

@@ -1,28 +1,25 @@
-# Environment Variables Template
-# Copy this file to .env and fill in your actual values
+# AI Consultant Platform - Environment Variables
+# Copy this file to C:/Users/markw/PythonUtils/.env and fill in your API keys
 
-# Flask Configuration
-SECRET_KEY=your-super-secret-key-change-this-in-production
+# OpenAI API Key (for GPT models)
+OPENAI_API_KEY=sk-your-openai-api-key-here
 
-# Stripe Configuration
-STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+# Anthropic API Key (for Claude models)
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-api-key-here
+
+# HuggingFace API Key (for open source models)
+HUGGINGFACE_API_KEY=hf_your-huggingface-api-key-here
+
+# Default LLM Provider (optional)
+LLM_PROVIDER=openai
+
+# Other Configuration
+SECRET_KEY=your-secret-key-change-in-production
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
+STRIPE_SECRET_KEY=sk_test_your_stripe_key
 
 # Email Configuration
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
 EMAIL_ADDRESS=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password
-
-# Database Configuration
-DATABASE_URL=ai_consultant.db
-
-# Application Configuration
-FLASK_ENV=development
-DEBUG=True
-
-# LLM Configuration (Optional - for dynamic content generation)
-# Choose one provider: 'openai' or 'anthropic'
-LLM_PROVIDER=openai
-OPENAI_API_KEY=your_openai_api_key_here
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
