@@ -453,9 +453,7 @@
     }
     
     .form-group-no-border {
-        margin-bottom: 1.5rem;
-        padding: 1.5rem;
-        background: transparent;
+        margin-bottom: 1rem;
     }
     
     .field-label {
@@ -741,6 +739,28 @@
                     <button class="sample-report-btn" onclick="showSampleReport('strategy')">📄 View Sample Report</button>
                     <button class="purchase-btn" onclick="selectReport('strategy', 1500)">Get Strategy Blueprint - $1,500</button>
                 </div>
+                
+                <!-- Implementation Steps Card -->
+                <div class="report-card">
+                    <div class="report-title">Implementation Steps</div>
+                    <div class="report-subtitle">"How do we execute this plan?"</div>
+                    <div class="report-price">
+                        <span class="original">$3,200</span>$2,500
+                    </div>
+                    <ul class="report-features">
+                        <li>Everything from Assessment + Strategy Reports</li>
+                        <li>Detailed implementation roadmap (12-18 months)</li>
+                        <li>Phase-by-phase execution plan</li>
+                        <li>Resource allocation and team structure</li>
+                        <li>Risk mitigation and contingency planning</li>
+                        <li>Vendor selection and contract negotiation</li>
+                        <li>Change management and training programs</li>
+                        <li>Success metrics and monitoring framework</li>
+                        <li>Ongoing support and optimization</li>
+                    </ul>
+                    <button class="sample-report-btn" onclick="showSampleReport('implementation')">📄 View Sample Report</button>
+                    <button class="purchase-btn" onclick="selectReport('implementation', 2500)">Get Implementation Steps - $2,500</button>
+                </div>
             </div>
         </div>
 
@@ -759,7 +779,7 @@
                 <div class="progress-fill" id="progressBar"></div>
             </div>
             
-            <form id="assessmentFormElement">
+            <form id="assessmentFormElement" action="javascript:void(0);" onsubmit="return false;">
                 <input type="hidden" id="selectedReportType" name="report_type">
                 <input type="hidden" id="selectedReportPrice" name="report_price">
                 
@@ -1500,17 +1520,24 @@ function selectReport(type, price) {
     // Simulate payment success (in real implementation, this would be after actual payment)
     alert(`Payment successful! You've purchased the ${type === 'assessment' ? 'Assessment Report' : 'Strategy Blueprint'} for $${price.toLocaleString()}.`);
     
-    // Show assessment form
-    document.getElementById('reportsSection').style.display = 'none';
-    document.getElementById('assessmentForm').classList.add('active');
-    // Reset wizard state
-    sessionStorage.removeItem('assessment_id');
-    currentStep = 1;
-    showStep(currentStep);
-    
     // Set hidden form values
     document.getElementById('selectedReportType').value = type;
     document.getElementById('selectedReportPrice').value = price;
+    
+    // Reset wizard state
+    sessionStorage.removeItem('assessment_id');
+    
+    // Load the appropriate progressive form based on the selected type
+    if (type === 'strategy') {
+        // Load progressive form that includes assessment + strategy data
+        loadProgressiveForm('strategy');
+    } else if (type === 'implementation') {
+        // Load progressive form that includes assessment + strategy + implementation data
+        loadProgressiveForm('implementation');
+    } else {
+        // Load assessment form (default)
+        loadProgressiveForm('assessment');
+    }
 }
 
 function showSampleReport(type) {
@@ -1692,103 +1719,6 @@ function showSampleReport(type) {
                         </ul>
                     </div>
                 </div>
-
-                <!-- Competitive Analysis -->
-                <div style="background: white; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Competitive Analysis & Market Position</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                        <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #0ea5e9;">
-                            <h4 style="margin: 0 0 1rem 0; color: #0c4a6e;">🏆 Market Leaders</h4>
-                            <ul style="margin: 0; padding-left: 1.5rem; color: #0369a1;">
-                                <li><strong>Competitor A:</strong> 35% market share, enterprise focus</li>
-                                <li><strong>Competitor B:</strong> 28% market share, innovation leader</li>
-                            </ul>
-                        </div>
-                        <div style="background: #f0fdf4; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
-                            <h4 style="margin: 0 0 1rem 0; color: #166534;">🎯 Your Position</h4>
-                            <ul style="margin: 0; padding-left: 1.5rem; color: #15803d;">
-                                <li><strong>Market Share:</strong> 12% (growing)</li>
-                                <li><strong>Strengths:</strong> Customer service, innovation</li>
-                                <li><strong>Opportunity:</strong> AI differentiation</li>
-                            </ul>
-                        </div>
-                        <div style="background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                            <h4 style="margin: 0 0 1rem 0; color: #92400e;">⚡ Competitive Advantages</h4>
-                            <ul style="margin: 0; padding-left: 1.5rem; color: #a16207;">
-                                <li>Superior customer experience</li>
-                                <li>Agile development process</li>
-                                <li>Strong technical team</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Vendor Evaluation Matrix -->
-                <div style="background: #f8fafc; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Comprehensive Vendor Evaluation Matrix</h2>
-                    <p style="color: #374151; margin-bottom: 1.5rem;">Analysis of 15+ vendors across multiple criteria including features, pricing, support, and integration capabilities.</p>
-                    
-                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h4 style="margin: 0 0 1rem 0; color: #7c3aed;">🏆 Top Recommended Vendors</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-                            <div style="border: 2px solid #22c55e; border-radius: 8px; padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #166534;">🥇 Intercom</h5>
-                                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #374151;">Customer Service AI</p>
-                                <div style="font-size: 0.9rem; color: #059669;">
-                                    <strong>Score:</strong> 9.2/10<br>
-                                    <strong>Cost:</strong> $99/month<br>
-                                    <strong>Best for:</strong> Enterprise support
-                                </div>
-                            </div>
-                            <div style="border: 2px solid #0ea5e9; border-radius: 8px; padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #0c4a6e;">🥈 Zapier</h5>
-                                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #374151;">Process Automation</p>
-                                <div style="font-size: 0.9rem; color: #0369a1;">
-                                    <strong>Score:</strong> 8.8/10<br>
-                                    <strong>Cost:</strong> $20/month<br>
-                                    <strong>Best for:</strong> Workflow automation
-                                </div>
-                            </div>
-                            <div style="border: 2px solid #f59e0b; border-radius: 8px; padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #92400e;">🥉 Tableau</h5>
-                                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #374151;">Data Analytics</p>
-                                <div style="font-size: 0.9rem; color: #a16207;">
-                                    <strong>Score:</strong> 8.5/10<br>
-                                    <strong>Cost:</strong> $70/month<br>
-                                    <strong>Best for:</strong> Business intelligence
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Risk Assessment -->
-                <div style="background: white; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Risk Assessment & Mitigation Strategies</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                        <div style="background: #fef2f2; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ef4444;">
-                            <h4 style="margin: 0 0 1rem 0; color: #991b1b;">🔒 Data Security (High Priority)</h4>
-                            <p style="margin: 0 0 1rem 0; color: #dc2626;"><strong>Risk:</strong> Data breaches, compliance issues</p>
-                            <p style="margin: 0; color: #374151;"><strong>Mitigation:</strong> Implement encryption, access controls, regular audits</p>
-                        </div>
-                        <div style="background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                            <h4 style="margin: 0 0 1rem 0; color: #92400e;">👥 Change Management (Medium Priority)</h4>
-                            <p style="margin: 0 0 1rem 0; color: #a16207;"><strong>Risk:</strong> Employee resistance, adoption challenges</p>
-                            <p style="margin: 0; color: #374151;"><strong>Mitigation:</strong> Comprehensive training, communication plan</p>
-                        </div>
-                        <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #0ea5e9;">
-                            <h4 style="margin: 0 0 1rem 0; color: #0c4a6e;">🔧 Integration Complexity (Medium Priority)</h4>
-                            <p style="margin: 0 0 1rem 0; color: #0369a1;"><strong>Risk:</strong> Technical challenges, timeline delays</p>
-                            <p style="margin: 0; color: #374151;"><strong>Mitigation:</strong> Phased implementation, expert consultation</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Budget Planning -->
-                <div style="background: #f8fafc; padding: 2rem; margin-top: 1rem;">
-                    <h2 style="color: #1f2937; margin-top: 0; font-size: 1.8rem;">Quarterly Budget Planning</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                        <div style="background: white; padding: 1.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                             <h4 style="margin: 0 0 0.5rem 0; color: #0c4a6e;">Q1</h4>
                             <div style="font-size: 1.5rem; font-weight: 700; color: #0ea5e9;">$25,000</div>
                             <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #374151;">Initial setup, training, pilot projects</p>
@@ -1980,6 +1910,36 @@ function submitAssessment() {
                 });
         } else {
             throw new Error(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+}
+
+function submitStrategyAssessment() {
+    // Collect form data and submit
+    const formData = new FormData(document.getElementById('strategyForm'));
+    const data = Object.fromEntries(formData);
+    
+    // Handle checkbox arrays
+    data.vendor_features = Array.from(formData.getAll('vendor_features'));
+    
+    fetch('/upgrade_to_strategy', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Strategy Blueprint assessment submitted successfully! You will be redirected to payment.');
+            window.location.href = `/strategy_payment/${data.assessment_id}`;
+        } else {
+            alert('Error: ' + data.error);
         }
     })
     .catch(error => {
@@ -2267,53 +2227,652 @@ window.onclick = function(event) {
     }
 }
 
-// Initialize
-showStep(1);
+// Initialize - Don't show any steps by default
+// showStep(1); // Removed to prevent interference with progressive forms
 
 // Load dynamic validation rules
 loadFormValidationRules();
 
-// Load dynamic form by default
-loadDynamicForm();
+// Don't load any form by default - wait for user selection
 
 // Dynamic form loading
 let useDynamicForm = false;
 
+// Assessment form step navigation
+let assessmentCurrentStep = 1;
+let assessmentTotalSteps = 1;
+
+// Strategy form step navigation
+let strategyCurrentStep = 1;
+let strategyTotalSteps = 1;
+
+function initializeStepNavigation() {
+    console.log('=== INITIALIZING STEP NAVIGATION ===');
+    const dynamicSteps = document.querySelectorAll('#dynamicFormContainer .step');
+    console.log('Found dynamic steps:', dynamicSteps.length);
+    assessmentTotalSteps = dynamicSteps.length;
+    assessmentCurrentStep = 1;
+    
+    // Reset progress bar to 0%
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = '0%';
+        console.log('Progress bar reset to 0%');
+    }
+    
+    console.log('About to call showAssessmentStep(1)...');
+    showAssessmentStep(1);
+    console.log('showAssessmentStep(1) completed');
+}
+
+function initializeStrategyStepNavigation() {
+    const dynamicSteps = document.querySelectorAll('#dynamicFormContainer .step');
+    strategyTotalSteps = dynamicSteps.length;
+    strategyCurrentStep = 1;
+    
+    // Reset progress bar to 0%
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = '0%';
+        console.log('Strategy progress bar reset to 0%');
+    }
+    
+    showStrategyStep(1);
+}
+
+function showAssessmentStep(step) {
+    console.log(`=== SHOWING ASSESSMENT STEP ${step} ===`);
+    // Hide all steps
+    const steps = document.querySelectorAll('#dynamicFormContainer .step');
+    console.log('Found steps to hide:', steps.length);
+    steps.forEach(s => s.classList.remove('active'));
+    
+    // Show current step
+    const currentStepEl = document.getElementById(`step${step}`);
+    console.log('Looking for step element:', `step${step}`);
+    console.log('Found step element:', currentStepEl ? 'Yes' : 'No');
+    if (currentStepEl) {
+        currentStepEl.classList.add('active');
+        console.log('Added active class to step element');
+    }
+    
+    assessmentCurrentStep = step;
+    
+    // Update progress bar
+    const progress = ((step - 1) / (assessmentTotalSteps - 1)) * 100;
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+        console.log(`Progress bar updated to ${progress}%`);
+    }
+    
+    // Update navigation buttons
+    const prevBtn = document.querySelector('#dynamicFormContainer #prevBtn');
+    const nextBtn = document.querySelector('#dynamicFormContainer #nextBtn');
+    
+    if (prevBtn && nextBtn) {
+        if (step === 1) {
+            prevBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'block';
+        }
+        
+        if (step === assessmentTotalSteps) {
+            nextBtn.textContent = 'Submit Assessment';
+            nextBtn.onclick = submitAssessment;
+        } else {
+            nextBtn.textContent = 'Next';
+            nextBtn.onclick = () => changeAssessmentStep(1);
+        }
+    }
+}
+
+function changeAssessmentStep(direction) {
+    const newStep = assessmentCurrentStep + direction;
+    
+    if (newStep >= 1 && newStep <= assessmentTotalSteps) {
+        // No validation blocking - always allow navigation
+        assessmentCurrentStep = newStep;
+        showAssessmentStep(assessmentCurrentStep);
+    }
+}
+
+function showStrategyStep(step) {
+    // Hide all steps
+    const steps = document.querySelectorAll('#dynamicFormContainer .step');
+    steps.forEach(s => s.classList.remove('active'));
+    
+    // Show current step
+    const currentStepEl = document.getElementById(`step${step}`);
+    if (currentStepEl) {
+        currentStepEl.classList.add('active');
+    }
+    
+    strategyCurrentStep = step;
+    
+    // Update progress bar
+    const progress = ((step - 1) / (strategyTotalSteps - 1)) * 100;
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+        console.log(`Strategy progress bar updated to ${progress}%`);
+    }
+    
+    // Update navigation buttons
+    const prevBtn = document.querySelector('#dynamicFormContainer #prevBtn');
+    const nextBtn = document.querySelector('#dynamicFormContainer #nextBtn');
+    
+    if (prevBtn && nextBtn) {
+        if (step === 1) {
+            prevBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'block';
+        }
+        
+        if (step === strategyTotalSteps) {
+            nextBtn.textContent = 'Submit Strategy Assessment';
+            nextBtn.onclick = submitStrategyAssessment;
+        } else {
+            nextBtn.textContent = 'Next';
+            nextBtn.onclick = () => changeStrategyStep(1);
+        }
+    }
+}
+
+function changeStrategyStep(direction) {
+    const newStep = strategyCurrentStep + direction;
+    
+    if (newStep >= 1 && newStep <= strategyTotalSteps) {
+        // No validation blocking - always allow navigation
+        strategyCurrentStep = newStep;
+        showStrategyStep(strategyCurrentStep);
+    }
+}
+
 async function loadDynamicForm() {
     try {
-        console.log('Loading dynamic form...');
-        const response = await fetch('/api/dynamic-form/assessment');
+        console.log('=== ASSESSMENT FORM DEBUG ===');
+        console.log('Loading dynamic form for ASSESSMENT...');
+        // Add cache-busting parameter to force fresh load
+        const timestamp = new Date().getTime();
+        const url = `/api/dynamic-form/assessment?t=${timestamp}`;
+        console.log('Fetching from URL:', url);
+        const response = await fetch(url);
         const data = await response.json();
+        
+        console.log('Response status:', response.status);
+        console.log('Response data success:', data.success);
+        console.log('Form HTML length:', data.form_html ? data.form_html.length : 'undefined');
+        console.log('Form HTML preview:', data.form_html ? data.form_html.substring(0, 200) + '...' : 'undefined');
         
         if (data.success) {
             const container = document.getElementById('dynamicFormContainer');
             container.innerHTML = data.form_html;
             
-            // Update validation rules
-            formValidationRules = data.validation_rules;
-            console.log('Dynamic form loaded with validation rules:', formValidationRules);
+            // Show dynamic form, hide original
+            document.getElementById('dynamicFormContainer').style.display = 'block';
+            document.getElementById('originalFormContainer').style.display = 'none';
+            
+            // Hide any sample report content that might be showing
+            const sampleReportContent = document.getElementById('sampleReportContent');
+            if (sampleReportContent && sampleReportContent.innerHTML.trim()) {
+                sampleReportContent.innerHTML = '';
+            }
+            
+            useDynamicForm = true;
+            
+            // Initialize step navigation for assessment form
+            console.log('About to initialize step navigation...');
+            initializeStepNavigation();
+            console.log('Step navigation initialized');
+            
+            console.log('Dynamic assessment form activated successfully!');
+            console.log('Container content length:', container.innerHTML.length);
+        } else {
+            console.error('Failed to load dynamic assessment form:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading dynamic form:', error);
+    }
+}
+
+async function loadProgressiveForm(reportType) {
+    try {
+        console.log(`=== PROGRESSIVE FORM DEBUG ===`);
+        console.log(`Loading progressive form for ${reportType.toUpperCase()}...`);
+        
+        // Hide reports section and show assessment form
+        document.getElementById('reportsSection').style.display = 'none';
+        document.getElementById('assessmentForm').classList.add('active');
+        
+        console.log('Reports section hidden, assessment form active');
+        
+        // Show loading message
+        const container = document.getElementById('dynamicFormContainer');
+        container.innerHTML = '<div style="text-align: center; padding: 2rem;"><h3>Loading your comprehensive assessment...</h3><p>Please wait while we prepare your form.</p></div>';
+        document.getElementById('dynamicFormContainer').style.display = 'block';
+        document.getElementById('originalFormContainer').style.display = 'none';
+        
+        // Determine which forms to load based on report type
+        let formsToLoad = [];
+        let formDescription = '';
+        
+        if (reportType === 'assessment') {
+            formsToLoad = ['assessment'];
+            formDescription = 'Assessment Report';
+        } else if (reportType === 'strategy') {
+            formsToLoad = ['assessment', 'strategy'];
+            formDescription = 'Strategy Blueprint (includes Assessment data)';
+        } else if (reportType === 'implementation') {
+            formsToLoad = ['assessment', 'strategy', 'implementation'];
+            formDescription = 'Implementation Steps (includes Assessment + Strategy data)';
+        }
+        
+        // Show user what they're getting
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; background: #f8fafc; border-radius: 8px; margin: 1rem;">
+                <h3>Preparing Your ${formDescription}</h3>
+                <p>This comprehensive report requires detailed information to ensure accuracy and actionable insights.</p>
+                <p><strong>Estimated time:</strong> ${formsToLoad.length * 5}-${formsToLoad.length * 8} minutes</p>
+                <p><strong>Data required:</strong> ${formsToLoad.join(' + ')}</p>
+                <div style="margin-top: 1rem;">
+                    <button onclick="startProgressiveForm('${reportType}')" class="cta-button">Continue to Form</button>
+                </div>
+            </div>
+        `;
+        
+        console.log('Progressive form instructions displayed');
+        
+    } catch (error) {
+        console.error('Error loading progressive form:', error);
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: red;"><h3>Error Loading Form</h3><p>Please refresh the page and try again.</p></div>';
+    }
+}
+
+async function startProgressiveForm(reportType) {
+    try {
+        console.log(`=== STARTING PROGRESSIVE FORM ===`);
+        console.log(`Report type: ${reportType}`);
+        
+        // The reports section is already hidden and assessment form is already active
+        // from the loadProgressiveForm function
+        console.log('Reports section display:', document.getElementById('reportsSection').style.display);
+        console.log('Assessment form classes:', document.getElementById('assessmentForm').className);
+        
+        // Check for existing data by email
+        const email = document.getElementById('email')?.value || '';
+        let existingData = null;
+        
+        if (email) {
+            try {
+                const response = await fetch(`/api/assessment/email/${encodeURIComponent(email)}`);
+                const data = await response.json();
+                if (data.success) {
+                    existingData = data.assessment;
+                    console.log('Found existing data for email:', email);
+                }
+            } catch (error) {
+                console.log('No existing data found or error checking email');
+            }
+        }
+        
+        // Load the appropriate form based on report type
+        try {
+            console.log(`Loading form for report type: ${reportType}`);
+            if (reportType === 'strategy') {
+                console.log('Calling loadProgressiveStrategyForm...');
+                await loadProgressiveStrategyForm(existingData);
+            } else if (reportType === 'implementation') {
+                console.log('Calling loadProgressiveImplementationForm...');
+                await loadProgressiveImplementationForm(existingData);
+            } else {
+                console.log('Calling loadProgressiveAssessmentForm...');
+                await loadProgressiveAssessmentForm(existingData);
+            }
+            console.log(`Form loading completed for ${reportType}`);
+        } catch (error) {
+            console.error('Error loading progressive form:', error);
+            console.log('Falling back to basic form loading...');
+            // Fallback to basic form loading
+            if (reportType === 'strategy') {
+                await loadDynamicStrategyForm();
+            } else if (reportType === 'implementation') {
+                await loadComprehensiveImplementationForm();
+            } else {
+                await loadDynamicForm();
+            }
+        }
+        
+        // Add a final check to ensure the form is visible
+        setTimeout(() => {
+            console.log('=== FINAL CHECK ===');
+            console.log('Reports section display:', document.getElementById('reportsSection').style.display);
+            console.log('Assessment form classes:', document.getElementById('assessmentForm').className);
+            console.log('Dynamic container display:', document.getElementById('dynamicFormContainer').style.display);
+            console.log('Original container display:', document.getElementById('originalFormContainer').style.display);
+        }, 500);
+        
+        console.log(`=== PROGRESSIVE FORM STARTED SUCCESSFULLY ===`);
+        
+    } catch (error) {
+        console.error('Error starting progressive form:', error);
+    }
+}
+
+
+
+// Simple test function to bypass all complexity
+async function testSimpleFormLoad() {
+    try {
+        console.log('=== TESTING SIMPLE FORM LOAD ===');
+        
+        // Check initial state
+        console.log('Initial state:');
+        console.log('- Reports section display:', document.getElementById('reportsSection').style.display);
+        console.log('- Assessment form classes:', document.getElementById('assessmentForm').className);
+        console.log('- Dynamic container display:', document.getElementById('dynamicFormContainer').style.display);
+        console.log('- Original container display:', document.getElementById('originalFormContainer').style.display);
+        
+        // Hide reports section
+        document.getElementById('reportsSection').style.display = 'none';
+        console.log('Reports section hidden');
+        
+        // Show assessment form
+        document.getElementById('assessmentForm').classList.add('active');
+        console.log('Assessment form active');
+        
+        // Check state after hiding/showing
+        console.log('After hiding/showing:');
+        console.log('- Reports section display:', document.getElementById('reportsSection').style.display);
+        console.log('- Assessment form classes:', document.getElementById('assessmentForm').className);
+        
+        // Load form directly
+        console.log('Fetching form from API...');
+        const response = await fetch('/api/dynamic-form/assessment');
+        const data = await response.json();
+        console.log('API response success:', data.success);
+        console.log('Form HTML length:', data.form_html ? data.form_html.length : 'undefined');
+        
+        if (data.success) {
+            const container = document.getElementById('dynamicFormContainer');
+            console.log('Setting form HTML...');
+            container.innerHTML = data.form_html;
+            console.log('Form HTML set, length:', container.innerHTML.length);
+            
+
+            
+            console.log('Showing dynamic container...');
+            container.style.display = 'block';
+            console.log('Hiding original container...');
+            document.getElementById('originalFormContainer').style.display = 'none';
+            
+            console.log('Simple form load completed');
+            console.log('Final state:');
+            console.log('- Dynamic container display:', container.style.display);
+            console.log('- Original container display:', document.getElementById('originalFormContainer').style.display);
+            console.log('- Container has content:', container.innerHTML.length > 0);
+            console.log('- Container HTML preview:', container.innerHTML.substring(0, 200));
+            
+            // Check if the form-card elements are present
+            const formCards = container.querySelectorAll('.form-card');
+            console.log('- Number of form-card elements:', formCards.length);
+            
+            // Check if the step elements are present
+            const steps = container.querySelectorAll('.step');
+            console.log('- Number of step elements:', steps.length);
+            
+            // Force a delay and check again
+            setTimeout(() => {
+                console.log('=== DELAYED CHECK ===');
+                console.log('- Dynamic container display:', container.style.display);
+                console.log('- Original container display:', document.getElementById('originalFormContainer').style.display);
+                console.log('- Container has content:', container.innerHTML.length > 0);
+                console.log('- Assessment form classes:', document.getElementById('assessmentForm').className);
+                
+                // Add a visual indicator to see if the form is there
+                if (container.innerHTML.length > 0) {
+                    console.log('Form content found, checking if it displays correctly');
+                    // Don't add visual indicator - let's see the actual form
+                }
+            }, 1000);
+        } else {
+            console.error('API returned error:', data.error);
+        }
+        
+    } catch (error) {
+        console.error('Error in simple form load:', error);
+    }
+}
+
+async function loadProgressiveAssessmentForm(existingData = null) {
+    try {
+        console.log('=== LOADING PROGRESSIVE ASSESSMENT FORM ===');
+        console.log('Existing data:', existingData ? 'Found' : 'None');
+        
+        // Show welcome message if existing data found
+        if (existingData) {
+            console.log('Showing welcome back message...');
+            const container = document.getElementById('dynamicFormContainer');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem; background: #f0f9ff; border-radius: 8px; margin: 1rem;">
+                    <h3>Welcome Back!</h3>
+                    <p>We found your previous assessment data from ${existingData.created_at || 'a previous session'}.</p>
+                    <p>We'll use your existing information and only ask for any missing data.</p>
+                    <button onclick="loadDynamicFormWithExistingData()" class="cta-button">Continue with Existing Data</button>
+                    <button onclick="loadDynamicForm()" class="btn-secondary" style="margin-left: 1rem;">Start Fresh</button>
+                </div>
+            `;
+        } else {
+            console.log('Loading regular assessment form...');
+            // Load regular assessment form
+            console.log('About to call loadDynamicForm()...');
+            await loadDynamicForm();
+            console.log('loadDynamicForm() completed');
+        }
+        
+        // Ensure the form container is visible
+        const dynamicContainer = document.getElementById('dynamicFormContainer');
+        const originalContainer = document.getElementById('originalFormContainer');
+        
+        console.log('Before showing - Dynamic container display:', dynamicContainer.style.display);
+        console.log('Before hiding - Original container display:', originalContainer.style.display);
+        
+        dynamicContainer.style.display = 'block';
+        originalContainer.style.display = 'none';
+        
+        // Also ensure the assessment form is visible
+        const assessmentForm = document.getElementById('assessmentForm');
+        assessmentForm.classList.add('active');
+        
+        console.log('After showing - Dynamic container display:', dynamicContainer.style.display);
+        console.log('After hiding - Original container display:', originalContainer.style.display);
+        console.log('Assessment form active:', assessmentForm.classList.contains('active'));
+        
+        console.log('=== PROGRESSIVE ASSESSMENT FORM LOADED ===');
+        
+    } catch (error) {
+        console.error('Error loading progressive assessment form:', error);
+    }
+}
+
+async function loadProgressiveStrategyForm(existingData = null) {
+    try {
+        console.log('Loading progressive strategy form...');
+        
+        if (existingData) {
+            // Show welcome message with existing data summary
+            const container = document.getElementById('dynamicFormContainer');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem; background: #f0f9ff; border-radius: 8px; margin: 1rem;">
+                    <h3>Welcome Back!</h3>
+                    <p>We found your previous assessment data for <strong>${existingData.company_name || 'your company'}</strong>.</p>
+                    <p>Your Strategy Blueprint will build upon this existing information and add strategic analysis.</p>
+                    <div style="text-align: left; background: white; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
+                        <h4>Existing Data Summary:</h4>
+                        <ul>
+                            <li>Company: ${existingData.company_name || 'Not provided'}</li>
+                            <li>Industry: ${existingData.industry || 'Not provided'}</li>
+                            <li>Previous Report: ${existingData.report_type || 'Assessment'}</li>
+                        </ul>
+                    </div>
+                    <button onclick="loadComprehensiveStrategyForm()" class="cta-button">Continue with Existing Data</button>
+                    <button onclick="loadDynamicStrategyForm()" class="btn-secondary" style="margin-left: 1rem;">Start Fresh</button>
+                </div>
+            `;
+        } else {
+            // Load comprehensive strategy form (assessment + strategy)
+            await loadComprehensiveStrategyForm();
+        }
+        
+        // Ensure the form container is visible
+        document.getElementById('dynamicFormContainer').style.display = 'block';
+        document.getElementById('originalFormContainer').style.display = 'none';
+        
+    } catch (error) {
+        console.error('Error loading progressive strategy form:', error);
+    }
+}
+
+async function loadProgressiveImplementationForm(existingData = null) {
+    try {
+        console.log('Loading progressive implementation form...');
+        
+        if (existingData) {
+            // Show welcome message with existing data summary
+            const container = document.getElementById('dynamicFormContainer');
+            container.innerHTML = 'Loading comprehensive implementation form...';
+            
+            // Load comprehensive implementation form (assessment + strategy + implementation)
+            await loadComprehensiveImplementationForm();
+        } else {
+            // Load comprehensive implementation form (assessment + strategy + implementation)
+            await loadComprehensiveImplementationForm();
+        }
+        
+        // Ensure the form container is visible
+        document.getElementById('dynamicFormContainer').style.display = 'block';
+        document.getElementById('originalFormContainer').style.display = 'none';
+        
+    } catch (error) {
+        console.error('Error loading progressive implementation form:', error);
+    }
+}
+
+async function loadDynamicImplementationForm() {
+    try {
+        console.log('Loading dynamic implementation form...');
+        
+        // For now, show a placeholder
+        const container = document.getElementById('dynamicFormContainer');
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <h3>Implementation Steps Report</h3>
+                <p>This comprehensive report is coming soon!</p>
+                <p>It will include Assessment + Strategy + Implementation planning data.</p>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading dynamic implementation form:', error);
+    }
+}
+
+async function loadComprehensiveStrategyForm() {
+    try {
+        console.log('Loading comprehensive strategy form...');
+        
+        // For now, load the strategy form
+        // In the future, this will load assessment + strategy sections
+        await loadDynamicStrategyForm();
+        
+        // Ensure the form container is visible
+        document.getElementById('dynamicFormContainer').style.display = 'block';
+        document.getElementById('originalFormContainer').style.display = 'none';
+        
+    } catch (error) {
+        console.error('Error loading comprehensive strategy form:', error);
+    }
+}
+
+async function loadComprehensiveImplementationForm() {
+    try {
+        console.log('Loading comprehensive implementation form...');
+        
+        // For now, show a placeholder
+        const container = document.getElementById('dynamicFormContainer');
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <h3>Implementation Steps Report</h3>
+                <p>This comprehensive report is coming soon!</p>
+                <p>It will include Assessment + Strategy + Implementation planning data.</p>
+                <p><strong>Note:</strong> This report requires completing both Assessment and Strategy Blueprint first.</p>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading comprehensive implementation form:', error);
+    }
+}
+
+async function loadDynamicFormWithExistingData() {
+    try {
+        console.log('Loading dynamic form with existing data...');
+        
+        // For now, load the regular assessment form
+        // In the future, this will pre-populate with existing data
+        await loadDynamicForm();
+        
+        // Ensure the form container is visible
+        document.getElementById('dynamicFormContainer').style.display = 'block';
+        document.getElementById('originalFormContainer').style.display = 'none';
+        
+    } catch (error) {
+        console.error('Error loading dynamic form with existing data:', error);
+    }
+}
+
+async function loadDynamicStrategyForm() {
+    try {
+        console.log('=== STRATEGY FORM DEBUG ===');
+        console.log('Loading dynamic form for STRATEGY...');
+        // Add cache-busting parameter to force fresh load
+        const timestamp = new Date().getTime();
+        const url = `/api/dynamic-form/strategy?t=${timestamp}`;
+        console.log('Fetching from URL:', url);
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        console.log('Response status:', response.status);
+        console.log('Response data success:', data.success);
+        console.log('Form HTML length:', data.form_html ? data.form_html.length : 'undefined');
+        console.log('Form HTML preview:', data.form_html ? data.form_html.substring(0, 200) + '...' : 'undefined');
+        
+        if (data.success) {
+            const container = document.getElementById('dynamicFormContainer');
+            container.innerHTML = data.form_html;
             
             // Show dynamic form, hide original
             document.getElementById('dynamicFormContainer').style.display = 'block';
             document.getElementById('originalFormContainer').style.display = 'none';
             
+            // Hide any sample report content that might be showing
+            const sampleReportContent = document.getElementById('sampleReportContent');
+            if (sampleReportContent && sampleReportContent.innerHTML.trim()) {
+                sampleReportContent.innerHTML = '';
+            }
+            
             useDynamicForm = true;
             
-            // Reinitialize form steps for the dynamic form
-            currentStep = 1;
+            // Initialize step navigation for strategy form
+            initializeStrategyStepNavigation();
             
-            // Count steps in dynamic form
-            const dynamicSteps = container.querySelectorAll('.step');
-            totalSteps = dynamicSteps.length;
-            
-            showStep(currentStep);
-            
-            console.log('Dynamic form activated successfully!');
+            console.log('Dynamic strategy form activated successfully!');
+            console.log('Container content length:', container.innerHTML.length);
         } else {
-            console.error('Failed to load dynamic form:', data.error);
+            console.error('Failed to load dynamic strategy form:', data.error);
         }
     } catch (error) {
-        console.error('Error loading dynamic form:', error);
+        console.error('Error loading dynamic strategy form:', error);
     }
 }
 
@@ -2330,14 +2889,6 @@ function toggleFormType() {
     }
 }
 
-// Add form toggle button (for testing)
-document.addEventListener('DOMContentLoaded', function() {
-    // Add toggle button for testing
-    const toggleBtn = document.createElement('button');
-    toggleBtn.textContent = '🔄 Toggle Original Form';
-    toggleBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 1000; background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;';
-    toggleBtn.onclick = toggleFormType;
-    document.body.appendChild(toggleBtn);
-});
+
 </script>
 {% endblock %}

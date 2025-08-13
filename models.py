@@ -535,34 +535,51 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
 
-            # Arrays → JSON
-            challenges_json = json.dumps(assessment_data.get('challenges', []))
-            opportunities_json = json.dumps(opportunities or [])
-            current_tools_json = json.dumps(assessment_data.get('current_tools', []))
-            tool_preferences_json = json.dumps(assessment_data.get('tool_preferences', []))
-            implementation_priority_json = json.dumps(assessment_data.get('implementation_priority', []))
-            security_requirements_json = json.dumps(assessment_data.get('security_requirements', []))
-            compliance_needs_json = json.dumps(assessment_data.get('compliance_needs', []))
-            integration_requirements_json = json.dumps(assessment_data.get('integration_requirements', []))
-            success_metrics_json = json.dumps(assessment_data.get('success_metrics', []))
-            risk_factors_json = json.dumps(assessment_data.get('risk_factors', []))
-            mitigation_strategies_json = json.dumps(assessment_data.get('mitigation_strategies', []))
-            implementation_phases_json = json.dumps(assessment_data.get('implementation_phases', []))
-            resource_requirements_json = json.dumps(assessment_data.get('resource_requirements', []))
-            training_needs_json = json.dumps(assessment_data.get('training_needs', []))
-            vendor_criteria_json = json.dumps(assessment_data.get('vendor_criteria', []))
+            # Define all fields that should be JSON-serialized (same as update_assessment_fields)
+            json_array_fields = {
+                'challenges', 'current_tools', 'tool_preferences', 'implementation_priority',
+                'security_requirements', 'compliance_needs', 'integration_requirements',
+                'success_metrics', 'risk_factors', 'mitigation_strategies', 'implementation_phases',
+                'resource_requirements', 'training_needs', 'vendor_criteria', 'current_tech',
+                'website', 'deployment_preference', 'solution_preference', 'technical_expertise',
+                'ai_experience', 'budget', 'timeline', 'team_availability', 'change_management_experience',
+                'data_governance', 'expected_roi', 'payback_period', 'pilot_project',
+                'scalability_requirements', 'maintenance_plan'
+            }
 
-            # Scalars → plain text
-            report_type = assessment_data.get('report_type', 'assessment')
-            expected_roi_val = assessment_data.get('expected_roi') or ''
-            payback_period_val = assessment_data.get('payback_period') or ''
-            team_availability_val = assessment_data.get('team_availability') or ''
-            change_mgmt_val = assessment_data.get('change_management_experience') or ''
-            data_governance_val = assessment_data.get('data_governance') or ''
-            pilot_project_val = assessment_data.get('pilot_project') or ''
-            scalability_requirements_val = assessment_data.get('scalability_requirements') or ''
-            maintenance_plan_val = assessment_data.get('maintenance_plan') or ''
-            website_val = assessment_data.get('website') or ''
+            # Prepare all values, handling arrays as JSON
+            values = []
+            for field_name in [
+                'company_name', 'industry', 'company_size', 'role', 'website', 'challenges',
+                'current_tech', 'ai_experience', 'budget', 'timeline',
+                'first_name', 'last_name', 'email', 'phone', 'ai_score', 'opportunities', 'report_type',
+                'current_tools', 'tool_preferences', 'implementation_priority', 'team_availability',
+                'change_management_experience', 'data_governance', 'security_requirements',
+                'compliance_needs', 'integration_requirements', 'success_metrics', 'expected_roi',
+                'payback_period', 'risk_factors', 'mitigation_strategies', 'implementation_phases',
+                'resource_requirements', 'training_needs', 'vendor_criteria', 'pilot_project',
+                'scalability_requirements', 'maintenance_plan', 'form_source', 'assessment_completed_at'
+            ]:
+                if field_name == 'ai_score':
+                    values.append(ai_score)
+                elif field_name == 'opportunities':
+                    values.append(json.dumps(opportunities or []))
+                elif field_name == 'report_type':
+                    values.append(assessment_data.get('report_type', 'assessment'))
+                elif field_name == 'form_source':
+                    values.append(assessment_data.get('form_source', 'assessment'))
+                elif field_name == 'assessment_completed_at':
+                    values.append(assessment_data.get('assessment_completed_at'))
+                elif field_name in json_array_fields:
+                    # Handle as JSON array
+                    field_value = assessment_data.get(field_name, [])
+                    if isinstance(field_value, list):
+                        values.append(json.dumps(field_value))
+                    else:
+                        values.append(json.dumps([field_value] if field_value else []))
+                else:
+                    # Handle as string
+                    values.append(assessment_data.get(field_name, ''))
 
             cursor.execute(
                 '''
@@ -578,48 +595,7 @@ class DatabaseManager:
                     scalability_requirements, maintenance_plan, form_source, assessment_completed_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''',
-                (
-                    assessment_data.get('company_name'),
-                    assessment_data.get('industry'),
-                    assessment_data.get('company_size'),
-                    assessment_data.get('role'),
-                    website_val,
-                    challenges_json,
-                    assessment_data.get('current_tech'),
-                    assessment_data.get('ai_experience'),
-                    assessment_data.get('budget'),
-                    assessment_data.get('timeline'),
-                    assessment_data.get('first_name'),
-                    assessment_data.get('last_name'),
-                    assessment_data.get('email'),
-                    assessment_data.get('phone'),
-                    ai_score,
-                    opportunities_json,
-                    report_type,
-                    current_tools_json,
-                    tool_preferences_json,
-                    implementation_priority_json,
-                    team_availability_val,
-                    change_mgmt_val,
-                    data_governance_val,
-                    security_requirements_json,
-                    compliance_needs_json,
-                    integration_requirements_json,
-                    success_metrics_json,
-                    expected_roi_val,
-                    payback_period_val,
-                    risk_factors_json,
-                    mitigation_strategies_json,
-                    implementation_phases_json,
-                    resource_requirements_json,
-                    training_needs_json,
-                    vendor_criteria_json,
-                    pilot_project_val,
-                    scalability_requirements_val,
-                    maintenance_plan_val,
-                    assessment_data.get('form_source', 'assessment'),
-                    assessment_data.get('assessment_completed_at'),
-                ),
+                tuple(values)
             )
 
             conn.commit()
@@ -634,7 +610,11 @@ class DatabaseManager:
             'challenges', 'current_tools', 'tool_preferences', 'implementation_priority',
             'security_requirements', 'compliance_needs', 'integration_requirements',
             'success_metrics', 'risk_factors', 'mitigation_strategies', 'implementation_phases',
-            'resource_requirements', 'training_needs', 'vendor_criteria'
+            'resource_requirements', 'training_needs', 'vendor_criteria', 'current_tech',
+            'website', 'deployment_preference', 'solution_preference', 'technical_expertise',
+            'ai_experience', 'budget', 'timeline', 'team_availability', 'change_management_experience',
+            'data_governance', 'expected_roi', 'payback_period', 'pilot_project',
+            'scalability_requirements', 'maintenance_plan'
         }
 
         set_clauses: list[str] = []
@@ -743,6 +723,59 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM assessments WHERE id = ?', (assessment_id,))
             return cursor.fetchone()
+
+    def get_assessment_by_email(self, email: str) -> dict:
+        """Get assessment data by email address"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM assessments WHERE email = ? ORDER BY created_at DESC LIMIT 1', (email,))
+            row = cursor.fetchone()
+            
+            if not row:
+                return None
+            
+            # Get column names
+            columns = [description[0] for description in cursor.description]
+            
+            # Create assessment dict
+            assessment = {}
+            for i, column in enumerate(columns):
+                if column in ['challenges', 'opportunities', 'current_tools', 'tool_preferences', 
+                             'implementation_priority', 'security_requirements', 'compliance_needs',
+                             'integration_requirements', 'success_metrics', 'risk_factors', 
+                             'mitigation_strategies', 'implementation_phases', 'resource_requirements',
+                             'training_needs', 'vendor_criteria', 'competitors', 'data_governance',
+                             'vendor_features', 'risk_concerns', 'improvement_goals']:
+                    # Parse JSON arrays
+                    try:
+                        if row[i] and row[i].strip():
+                            assessment[column] = json.loads(row[i])
+                        else:
+                            assessment[column] = []
+                    except (json.JSONDecodeError, TypeError):
+                        assessment[column] = []
+                else:
+                    # Regular text fields
+                    assessment[column] = row[i]
+            
+            return assessment
+
+    def update_assessment_by_email(self, email: str, assessment_data: dict) -> bool:
+        """Update existing assessment data by email address"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Get existing assessment ID
+            cursor.execute('SELECT id FROM assessments WHERE email = ? ORDER BY created_at DESC LIMIT 1', (email,))
+            row = cursor.fetchone()
+            
+            if not row:
+                return False
+            
+            assessment_id = row[0]
+            
+            # Update the assessment using existing update method
+            return self.update_assessment_fields(assessment_id, assessment_data)
 
     def _initialize_dynamic_form_data(self, cursor):
         """Initialize default data for Dynamic Form Builder"""

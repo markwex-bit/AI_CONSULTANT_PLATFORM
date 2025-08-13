@@ -63,14 +63,10 @@ class DynamicFormGenerator:
             print(f"Error getting field configurations: {e}")
             return {}
     
-    def generate_form_html(self, form_flag: str = 'A') -> str:
-        """Generate HTML form based on field configurations"""
+    def generate_form_html(self, form_flag: str = 'A', form_type: str = 'assessment') -> str:
+        """Generate HTML for the dynamic form based on configurations."""
         try:
             sections = self.get_field_configurations(form_flag)
-            
-            if not sections:
-                return "<p>No form configuration found.</p>"
-            
             html = []
             step_number = 1
             
@@ -103,11 +99,18 @@ class DynamicFormGenerator:
                 html.append('</div>')   # Close step
                 step_number += 1
             
-            # Add step navigation
-            html.append('''
+            # Add step navigation with form-specific function names
+            if form_type == 'strategy':
+                step_function = 'changeStrategyStep'
+                submit_function = 'submitStrategyAssessment'
+            else:
+                step_function = 'changeAssessmentStep'
+                submit_function = 'submitAssessment'
+            
+            html.append(f'''
             <div class="step-navigation">
-                <button type="button" class="btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">Previous</button>
-                <button type="button" class="cta-button" id="nextBtn" onclick="changeStep(1)" style="margin-left: auto;">Next</button>
+                <button type="button" class="btn-secondary" id="prevBtn" onclick="{step_function}(-1)" style="display: none;">Previous</button>
+                <button type="button" class="cta-button" id="nextBtn" onclick="{step_function}(1)" style="margin-left: auto;">Next</button>
             </div>
             ''')
             

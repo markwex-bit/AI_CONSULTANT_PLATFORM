@@ -285,9 +285,7 @@
     }
     
     .form-group-no-border {
-        margin-bottom: 1.5rem;
-        padding: 1.5rem;
-        background: transparent;
+        margin-bottom: 1rem;
     }
     
     .field-label {
@@ -708,9 +706,19 @@ let useDynamicForm = false;
 
 async function loadDynamicStrategyForm() {
     try {
-        console.log('Loading dynamic strategy form...');
-        const response = await fetch('/api/dynamic-form/strategy');
+        console.log('=== STRATEGY FORM DEBUG ===');
+        console.log('Loading dynamic form for STRATEGY...');
+        // Add cache-busting parameter to force fresh load
+        const timestamp = new Date().getTime();
+        const url = `/api/dynamic-form/strategy?t=${timestamp}`;
+        console.log('Fetching from URL:', url);
+        const response = await fetch(url);
         const data = await response.json();
+        
+        console.log('Response status:', response.status);
+        console.log('Response data success:', data.success);
+        console.log('Form HTML length:', data.form_html ? data.form_html.length : 'undefined');
+        console.log('Form HTML preview:', data.form_html ? data.form_html.substring(0, 200) + '...' : 'undefined');
         
         if (data.success) {
             const container = document.getElementById('dynamicFormContainer');
@@ -726,6 +734,7 @@ async function loadDynamicStrategyForm() {
             initializeStrategyStepNavigation();
             
             console.log('Dynamic strategy form activated successfully!');
+            console.log('Container content length:', container.innerHTML.length);
         } else {
             console.error('Failed to load dynamic strategy form:', data.error);
         }

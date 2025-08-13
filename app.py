@@ -209,6 +209,10 @@ def index():
 @app.route('/assessment')
 def assessment():
     return render_template('assessment.html')
+
+@app.route('/strategy_assessment')
+def strategy_assessment():
+    return render_template('strategy_assessment.html')
 @app.route('/education')
 def education():
     return render_template('education.html')
@@ -307,6 +311,27 @@ def get_assessment_details(assessment_id):
         
     except Exception as e:
         print(f"Error in get_assessment_details: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/assessment/email/<email>')
+def get_assessment_by_email(email):
+    """Get assessment data by email address for returning users"""
+    try:
+        from models import DatabaseManager
+        db_manager = DatabaseManager()
+        
+        assessment = db_manager.get_assessment_by_email(email)
+        
+        if not assessment:
+            return jsonify({'success': False, 'error': 'No assessment found for this email'})
+        
+        return jsonify({
+            'success': True, 
+            'assessment': assessment,
+            'message': 'Welcome back! We found your previous assessment data.'
+        })
+        
+    except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 @app.route('/generate_report_from_assessment', methods=['POST'])
 def generate_report_from_assessment():
@@ -2535,7 +2560,7 @@ def get_dynamic_form(form_type):
         form_flag = form_flag_map.get(form_type, 'A')
         
         # Generate form HTML
-        form_html = generator.generate_form_html(form_flag)
+        form_html = generator.generate_form_html(form_flag, form_type)
         
         # Get validation rules
         validation_rules = generator.get_form_validation_rules(form_flag)
