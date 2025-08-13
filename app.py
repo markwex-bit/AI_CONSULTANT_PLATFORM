@@ -219,12 +219,7 @@ def education():
 @app.route('/solutions')
 def solutions():
     return render_template('solutions.html')
-@app.route('/roadmap')
-def roadmap():
-    return render_template('roadmap.html')
-@app.route('/reports')
-def reports():
-    return render_template('reports.html')
+
 @app.route('/api/solutions_data')
 def solutions_data():
     """API endpoint to provide solutions data to frontend"""
@@ -238,7 +233,7 @@ def get_assessments():
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, company_name, industry, first_name, last_name, email, 
+            SELECT id, company_name, industry, first_name, last_name, email, phone,
                    ai_score, created_at, challenges, opportunities
             FROM assessments 
             ORDER BY created_at DESC
@@ -250,12 +245,14 @@ def get_assessments():
                 'id': row[0],
                 'company_name': row[1],
                 'industry': row[2],
-                'contact_name': f"{row[3]} {row[4]}",
+                'first_name': row[3],
+                'last_name': row[4],
                 'email': row[5],
-                'ai_score': row[6],
-                'created_at': row[7],
-                'challenges': json.loads(row[8]) if row[8] else [],
-                'opportunities': json.loads(row[9]) if row[9] else []
+                'phone': row[6],
+                'ai_score': row[7],
+                'created_at': row[8],
+                'challenges': json.loads(row[9]) if row[9] else [],
+                'opportunities': json.loads(row[10]) if row[10] else []
             })
         
         conn.close()
@@ -333,6 +330,109 @@ def get_assessment_by_email(email):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/assessment/notes', methods=['POST'])
+def save_client_notes():
+    """Save client notes for an assessment"""
+    try:
+        data = request.get_json()
+        assessment_id = data.get('assessment_id')
+        client_notes = data.get('client_notes', '')
+        
+        if not assessment_id:
+            return jsonify({'success': False, 'error': 'Assessment ID is required'})
+        
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE assessments 
+            SET client_notes = ?
+            WHERE id = ?
+        ''', (client_notes, assessment_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Client notes saved successfully'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/assessment/regenerate_report', methods=['POST'])
+def regenerate_report_with_notes():
+    """Regenerate report with client notes included in LLM context"""
+    try:
+        data = request.get_json()
+        assessment_id = data.get('assessment_id')
+        include_notes = data.get('include_notes', True)
+        
+        if not assessment_id:
+            return jsonify({'success': False, 'error': 'Assessment ID is required'})
+        
+        # Get assessment data including client notes
+        conn = sqlite3.connect('ai_consultant.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM assessments WHERE id = ?', (assessment_id,))
+        row = cursor.fetchone()
+        
+        if not row:
+            return jsonify({'success': False, 'error': 'Assessment not found'})
+        
+        # Get column names for dynamic field mapping
+        columns = [description[0] for description in cursor.description]
+        assessment = dict(zip(columns, row))
+        
+        conn.close()
+        
+        # Include client notes in assessment data for LLM context
+        assessment_data = {
+            'company_name': assessment.get('company_name'),
+            'industry': assessment.get('industry'),
+            'company_size': assessment.get('company_size'),
+            'role': assessment.get('role'),
+            'challenges': assessment.get('challenges', []),
+            'current_tech': assessment.get('current_tech'),
+            'ai_experience': assessment.get('ai_experience'),
+            'budget': assessment.get('budget'),
+            'timeline': assessment.get('timeline'),
+            'first_name': assessment.get('first_name'),
+            'last_name': assessment.get('last_name'),
+            'email': assessment.get('email'),
+            'phone': assessment.get('phone'),
+            'client_notes': assessment.get('client_notes', '') if include_notes else ''
+        }
+        
+        # Generate enhanced report with client notes context
+        report_generator = ReportGenerator()
+        report_data = report_generator.generate_assessment_report_data(assessment_data)
+        
+        # Generate HTML report
+        report_html = generate_html_assessment_report(assessment_id, assessment_data, report_data['ai_score'], report_data['opportunities'])
+        
+        # Save the HTML report
+        company_name = assessment.get('company_name', 'Unknown').replace(' ', '_').replace('/', '_')
+        created_at = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        filename = f"{assessment_id}_{company_name}_assessment_notes_{created_at}.html"
+        filename = secure_filename(filename)
+        
+        filepath = os.path.join(REPORTS_DIR, filename)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(report_html)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Report regenerated with client notes',
+            'filename': filename,
+            'download_url': f'/download_report/{filename}'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route('/generate_report_from_assessment', methods=['POST'])
 def generate_report_from_assessment():
     try:
@@ -368,7 +468,8 @@ def generate_report_from_assessment():
             'first_name': assessment.get('first_name'),
             'last_name': assessment.get('last_name'),
             'email': assessment.get('email'),
-            'phone': assessment.get('phone')
+            'phone': assessment.get('phone'),
+            'client_notes': assessment.get('client_notes', '')  # Include client notes for LLM context
         }
         
         conn.close()
@@ -544,6 +645,14 @@ def submit_assessment():
 @app.route('/download_report/<int:assessment_id>')
 def download_report(assessment_id):
     report_path = f'reports/assessment_{assessment_id}.pdf'
+    if os.path.exists(report_path):
+        return send_file(report_path, as_attachment=True)
+    return "Report not found", 404
+
+@app.route('/download_report/<filename>')
+def download_report_by_filename(filename):
+    """Download report by filename (for regenerated reports with notes)"""
+    report_path = os.path.join(REPORTS_DIR, filename)
     if os.path.exists(report_path):
         return send_file(report_path, as_attachment=True)
     return "Report not found", 404
@@ -762,15 +871,15 @@ def add_sample_data():
                 return company_data['website']
             elif column_name == 'challenges':
                 # Use exact form checkbox values
-                challenge_options = ['Customer service bottleneck', 'Data management issues', 'Process inefficiencies']
+                challenge_options = ['customer-service', 'manual-processes', 'data-analysis']
                 return json.dumps(challenge_options)
             elif column_name == 'current_tools':
                 # Use exact form checkbox values
-                tool_options = ['CRM systems', 'Marketing automation', 'Communication tools']
+                tool_options = ['crm', 'analytics', 'automation']
                 return json.dumps(tool_options)
             elif column_name == 'tool_preferences':
                 # Use exact form checkbox values
-                preference_options = ['Cloud-based solutions', 'Integration capabilities', 'Analytics platforms']
+                preference_options = ['ease-of-use', 'integration', 'cost-effectiveness']
                 return json.dumps(preference_options)
             elif column_name == 'current_tech':
                 return 'intermediate'
@@ -781,79 +890,81 @@ def add_sample_data():
             elif column_name == 'timeline':
                 return '3-months'
             elif column_name == 'implementation_priority':
-                return 'medium'
+                # Use exact form checkbox values
+                priority_options = ['customer-service', 'data-analytics', 'process-automation']
+                return json.dumps(priority_options)
             elif column_name == 'team_availability':
                 return 'part-time-dedicated'
             elif column_name == 'change_management_experience':
                 return 'moderate'
             elif column_name == 'data_governance':
-                # Use exact form checkbox values
-                governance_options = ['Data classification', 'Access controls']
-                return json.dumps(governance_options)
+                return 'established'
             elif column_name == 'security_requirements':
                 # Use exact form checkbox values
-                security_options = ['Encryption', 'Compliance certifications']
+                security_options = ['soc2', 'gdpr', 'basic']
                 return json.dumps(security_options)
             elif column_name == 'compliance_needs':
                 # Use exact form checkbox values
-                compliance_options = ['SOX', 'Industry-specific']
+                compliance_options = ['financial', 'industry', 'none']
                 return json.dumps(compliance_options)
             elif column_name == 'integration_requirements':
                 # Use exact form checkbox values
-                integration_options = ['API integration', 'Database connectivity']
+                integration_options = ['api', 'database', 'cloud']
                 return json.dumps(integration_options)
             elif column_name == 'success_metrics':
                 # Use exact form checkbox values
-                metrics_options = ['Customer satisfaction', 'Efficiency improvement', 'Cost reduction']
+                metrics_options = ['cost-reduction', 'efficiency', 'customer-satisfaction']
                 return json.dumps(metrics_options)
             elif column_name == 'expected_roi':
-                return 'medium'
+                return '20-50%'
             elif column_name == 'payback_period':
-                return '12-months'
+                return '6-12-months'
             elif column_name == 'risk_factors':
                 # Use exact form checkbox values
-                risk_options = ['Data security', 'User adoption']
+                risk_options = ['budget-constraints', 'skill-gaps', 'data-quality']
                 return json.dumps(risk_options)
             elif column_name == 'mitigation_strategies':
                 # Use exact form checkbox values
-                mitigation_options = ['Phased implementation', 'Training programs']
+                mitigation_options = ['phased-approach', 'pilot-projects', 'training']
                 return json.dumps(mitigation_options)
             elif column_name == 'implementation_phases':
                 # Use exact form checkbox values
-                phase_options = ['Planning & Analysis', 'Design & Development']
+                phase_options = ['assessment', 'pilot', 'core']
                 return json.dumps(phase_options)
             elif column_name == 'resource_requirements':
                 # Use exact form checkbox values
-                resource_options = ['Technical expertise', 'Project management']
+                resource_options = ['technical-lead', 'project-manager', 'data-analyst']
                 return json.dumps(resource_options)
             elif column_name == 'training_needs':
                 # Use exact form checkbox values
-                training_options = ['User training', 'Technical training']
+                training_options = ['technical', 'user', 'management']
                 return json.dumps(training_options)
             elif column_name == 'vendor_criteria':
                 # Use exact form checkbox values
-                vendor_options = ['Cost-effectiveness', 'Technical capabilities']
+                vendor_options = ['reputation', 'support', 'pricing']
                 return json.dumps(vendor_options)
+            elif column_name == 'pilot_project':
+                return 'customer-service-automation'
+            elif column_name == 'scalability_requirements':
+                return 'medium-term'
+            elif column_name == 'maintenance_plan':
+                return 'vendor-supported'
+            elif column_name == 'client_notes':
+                return 'Sample client notes for testing LLM integration and report generation capabilities.'
             elif column_name == 'competitors':
-                # Use exact form checkbox values
-                competitor_options = ['Direct competitors', 'Indirect competitors']
-                return json.dumps(competitor_options)
+                return 'Sample competitors include TechCorp, InnovateTech, and FutureSystems'
             elif column_name == 'competitive_advantages':
-                # Use exact form checkbox values from admin form
-                competitive_options = ['Innovation capabilities', 'Customer relationships', 'Operational efficiency']
-                return json.dumps(competitive_options)
+                return 'Strong customer relationships, innovative technology stack, and efficient operations'
             elif column_name == 'market_position':
                 return 'challenger'
             elif column_name == 'vendor_features':
-                # Use exact form checkbox values from admin form
-                vendor_feature_options = ['Scalability', 'Customization', 'Integration capabilities']
+                # Use exact form checkbox values
+                vendor_feature_options = ['enterprise-support', 'api-integration', 'scalability']
                 return json.dumps(vendor_feature_options)
             elif column_name == 'risk_tolerance':
                 return 'moderate'
             elif column_name == 'risk_concerns':
-                # Use exact form checkbox values from admin form
-                risk_concern_options = ['Data security', 'Vendor lock-in', 'Implementation delays']
-                return json.dumps(risk_concern_options)
+                return 'Data security, vendor lock-in, and implementation timeline concerns'
             elif column_name == 'org_structure':
                 return 'hierarchical'
             elif column_name == 'decision_process':
@@ -861,21 +972,15 @@ def add_sample_data():
             elif column_name == 'team_size':
                 return '16-50'
             elif column_name == 'skill_gaps':
-                # Use exact form checkbox values from admin form
-                skill_gap_options = ['Technical skills', 'Data analysis', 'Change management']
-                return json.dumps(skill_gap_options)
+                return 'Data science expertise, AI/ML knowledge, and change management skills'
             elif column_name == 'budget_allocation':
                 return 'balanced'
             elif column_name == 'roi_timeline':
                 return '12-months'
             elif column_name == 'current_kpis':
-                # Use exact form checkbox values from admin form
-                kpi_options = ['Revenue growth', 'Customer satisfaction', 'Operational efficiency']
-                return json.dumps(kpi_options)
+                return 'Revenue growth, customer satisfaction scores, and operational efficiency metrics'
             elif column_name == 'improvement_goals':
-                # Use exact form checkbox values from admin form
-                goal_options = ['Process automation', 'Data analytics', 'Customer experience']
-                return json.dumps(goal_options)
+                return '30% reduction in response time, 25% increase in sales efficiency, and improved customer experience'
             elif column_name == 'ai_score':
                 return random.randint(75, 95)
             elif column_name == 'opportunities':
@@ -2576,6 +2681,42 @@ def get_dynamic_form(form_type):
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/api/add_new_client', methods=['POST'])
+def add_new_client():
+    """Add a new client directly to the database from admin console"""
+    try:
+        payload = request.get_json(silent=True) or {}
+        
+        # Ensure database schema (adds extended columns if missing)
+        try:
+            db_manager.init_db()
+        except Exception:
+            pass
+        
+        # Validate required fields
+        required_fields = ['first_name', 'last_name', 'email', 'phone', 'company_name', 'role', 'industry', 'company_size']
+        for field in required_fields:
+            if not payload.get(field):
+                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        
+        # Set default values for missing fields
+        payload.setdefault('ai_score', 0)
+        payload.setdefault('report_type', 'assessment')
+        payload.setdefault('form_source', 'admin')
+        payload.setdefault('created_at', datetime.now().isoformat())
+        
+        # Create the new assessment record
+        new_id = db_manager.save_assessment(payload, ai_score=payload.get('ai_score', 0), opportunities=[])
+        
+        return jsonify({
+            'success': True,
+            'assessment_id': int(new_id),
+            'message': 'New client added successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
 
 if __name__ == '__main__':
     init_db()

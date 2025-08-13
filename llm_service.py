@@ -99,6 +99,10 @@ class LLMService:
         if company_data.get('current_tech'):
             context_parts.append(f"Current Technology: {company_data['current_tech']}")
         
+        # Include client notes if available
+        if company_data.get('client_notes'):
+            context_parts.append(f"Additional Context: {company_data['client_notes']}")
+        
         if company_data.get('ai_experience'):
             context_parts.append(f"AI Experience: {company_data['ai_experience']}")
         

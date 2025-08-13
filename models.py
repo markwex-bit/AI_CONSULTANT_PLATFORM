@@ -145,6 +145,7 @@ class DatabaseManager:
             add_column('pilot_project TEXT')
             add_column('scalability_requirements TEXT')
             add_column('maintenance_plan TEXT')
+            add_column('client_notes TEXT')  # Custom notes for LLM context
 
             # Secondary tables
             cursor.execute(

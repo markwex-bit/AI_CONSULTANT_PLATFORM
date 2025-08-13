@@ -375,6 +375,13 @@
         gap: 0.75rem 1rem;
         align-items: start;
     }
+    
+    .checkbox-group .other-input-section {
+        grid-column: 1 / -1;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+    }
     .checkbox-option {
         display: flex;
         align-items: flex-start;
@@ -494,6 +501,13 @@
         margin-top: 0.5rem;
     }
     
+    .checkbox-group .other-input-section {
+        width: 100%;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
     .checkbox-option {
         display: flex;
         align-items: center;
@@ -511,8 +525,7 @@
     }
     
     .other-input-section {
-        margin-top: 1rem;
-        padding-top: 1rem;
+        /* Styles now handled by checkbox-group specific rules */
     }
     
     .other-input-full {
@@ -1046,8 +1059,8 @@
                             <label class="checkbox-option">
                                 <input type="checkbox" name="current_tools" value="marketing"> Marketing (Mailchimp, Hootsuite, etc.)
                             </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="current_tools" placeholder="Other tool(s), specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="current_tools" class="form-control other-input-full" placeholder="Other tool(s), specify here">
                             </div>
                         </div>
                     </div>
@@ -1073,8 +1086,8 @@
                             <label class="checkbox-option">
                                 <input type="checkbox" name="tool_preferences" value="security"> Security and compliance
                             </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="tool_preferences" placeholder="Other preference, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="tool_preferences" class="form-control other-input-full" placeholder="Other preference, specify here">
                             </div>
                         </div>
                     </div>
@@ -1106,8 +1119,8 @@
                             <label class="checkbox-option">
                                 <input type="checkbox" name="implementation_priority" value="product-development"> Product development
                             </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="implementation_priority" placeholder="Other priority, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="implementation_priority" class="form-control other-input-full" placeholder="Other priority, specify here">
                             </div>
                         </div>
                     </div>
@@ -1120,8 +1133,8 @@
                             <option value="limited">Limited availability, need external support</option>
                             <option value="consultant">Prefer consultant-led implementation</option>
                         </select>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="team_availability" placeholder="If other, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="team_availability" class="form-control other-input-full" placeholder="If other, specify here">
                             </div>
                     </div>
                     
@@ -1133,8 +1146,8 @@
                             <option value="experienced">Experienced - Multiple successful changes</option>
                             <option value="expert">Expert - Well-established change processes</option>
             </select>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="change_management_experience" placeholder="If other, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="change_management_experience" class="form-control other-input-full" placeholder="If other, specify here">
                             </div>
         </div>
         
@@ -1195,8 +1208,8 @@
                             <label class="checkbox-option">
                                 <input type="checkbox" name="security_requirements" value="basic"> Basic security requirements
                             </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="security_requirements" placeholder="Other security requirement, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="security_requirements" class="form-control other-input-full" placeholder="Other security requirement, specify here">
                             </div>
         </div>
                     </div>
@@ -1222,8 +1235,8 @@
                             <label class="checkbox-option">
                                 <input type="checkbox" name="compliance_needs" value="none"> No specific compliance needs
                             </label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="compliance_needs" placeholder="Other compliance need, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="compliance_needs" class="form-control other-input-full" placeholder="Other compliance need, specify here">
                             </div>
         </div>
                     </div>
@@ -1243,8 +1256,8 @@
                                 <input type="checkbox" name="integration_requirements" value="mobile"> Mobile app integration</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="integration_requirements" value="none"> No specific integration needs</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="integration_requirements" placeholder="Other integration requirement, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="integration_requirements" class="form-control other-input-full" placeholder="Other integration requirement, specify here">
                             </div>
                         </div>
         </div>
@@ -1274,8 +1287,8 @@
                                 <input type="checkbox" name="success_metrics" value="scalability"> Scalability</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="success_metrics" value="innovation"> Innovation capabilities</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="success_metrics" placeholder="Other success metric, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="success_metrics" class="form-control other-input-full" placeholder="Other success metric, specify here">
                             </div>
         </div>
     </div>
@@ -1321,8 +1334,8 @@
                                 <input type="checkbox" name="risk_factors" value="vendor-lockin"> Vendor lock-in concerns</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="risk_factors" value="security"> Security concerns</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="risk_factors" placeholder="Other risk factor, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="risk_factors" class="form-control other-input-full" placeholder="Other risk factor, specify here">
                             </div>
                         </div>
                     </div>
@@ -1346,8 +1359,8 @@
                                 <input type="checkbox" name="mitigation_strategies" value="security-review"> Security review</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="mitigation_strategies" value="consultant-support"> Consultant support</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="mitigation_strategies" placeholder="Other mitigation strategy, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="mitigation_strategies" class="form-control other-input-full" placeholder="Other mitigation strategy, specify here">
                             </div>
                         </div>
                     </div>
@@ -1373,8 +1386,8 @@
                                 <input type="checkbox" name="implementation_phases" value="training"> Training and adoption</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="implementation_phases" value="optimization"> Optimization and scaling</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="implementation_phases" placeholder="Other implementation phase, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="implementation_phases" class="form-control other-input-full" placeholder="Other implementation phase, specify here">
                             </div>
                         </div>
                     </div>
@@ -1394,8 +1407,8 @@
                                 <input type="checkbox" name="resource_requirements" value="end-users"> End user representatives</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="resource_requirements" value="external-consultant"> External consultant</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="resource_requirements" placeholder="Other resource requirement, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="resource_requirements" class="form-control other-input-full" placeholder="Other resource requirement, specify here">
                             </div>
                         </div>
                     </div>
@@ -1413,8 +1426,8 @@
                                 <input type="checkbox" name="training_needs" value="change-management"> Change management training</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="training_needs" value="ongoing"> Ongoing support and training</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="training_needs" placeholder="Other training need, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="training_needs" class="form-control other-input-full" placeholder="Other training need, specify here">
                             </div>
                         </div>
                     </div>
@@ -1436,8 +1449,8 @@
                                 <input type="checkbox" name="vendor_criteria" value="security"> Strong security features</label>
                             <label class="checkbox-option">
                                 <input type="checkbox" name="vendor_criteria" value="compliance"> Compliance certifications</label>
-                            <div class="form-group" style="margin-top:0.5rem;">
-                                <input type="text" data-other-for="vendor_criteria" placeholder="Other vendor criteria, specify here">
+                            <div class="other-input-section">
+                                <input type="text" data-other-for="vendor_criteria" class="form-control other-input-full" placeholder="Other vendor criteria, specify here">
                             </div>
                         </div>
                     </div>
@@ -1452,8 +1465,8 @@
                             <option value="document-processing">Document processing</option>
                             <option value="other">Other (specify in comments)</option>
                         </select>
-                        <div class="form-group" style="margin-top:0.5rem;">
-                            <input type="text" data-other-for="pilot_project" placeholder="If other, specify here">
+                        <div class="other-input-section">
+                            <input type="text" data-other-for="pilot_project" class="form-control other-input-full" placeholder="If other, specify here">
                         </div>
                     </div>
                     

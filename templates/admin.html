@@ -507,7 +507,7 @@
         <div class="admin-nav" style="background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
             <div style="display: flex; border-bottom: 1px solid #e5e7eb;">
                 <button class="nav-tab active" onclick="showSection('assessments', event)" style="flex: 1; padding: 1rem; background: #fff; border: none; border-bottom: 3px solid #dc2626; color: #dc2626; font-weight: 600; cursor: pointer;">
-                    📋 Client Assessments
+                    👥 Clients
                 </button>
                 <button class="nav-tab" onclick="showSection('formBuilder', event)" style="flex: 1; padding: 1rem; background: #f8fafc; border: none; color: #6b7280; font-weight: 600; cursor: pointer;">
                     🏗️ Dynamic Form Builder
@@ -527,6 +527,13 @@
                 <div id="loadingMessage" class="loading">
                     Loading assessment data...
                 </div>
+                <!-- Always visible Add New Client button -->
+                <div style="display: flex; justify-content: flex-end; padding: 1rem; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
+                    <button onclick="addNewClient()" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                        ➕ Add New Client
+                    </button>
+                </div>
+                <!-- Batch controls for Delete Selected -->
                 <div id="batchControls" style="display: none; padding: 1rem; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
                         <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
@@ -542,15 +549,19 @@
                 <table class="data-table" id="assessmentsTable" style="display: none;">
                     <thead>
                         <tr>
-                            <th style="width: 40px;">
+                            <th style="width: 40px; padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">
                                 <input type="checkbox" id="headerSelectAll" onchange="toggleSelectAll()">
                             </th>
-                            <th>Company</th>
-                            <th>Industry</th>
-                            <th>Contact</th>
-                            <th>AI Score</th>
-                            <th>Date</th>
-                            <th>Actions</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">ID</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Company Name</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Contact Name</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Email</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Phone</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Industry</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">AI Score</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Date</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Reports</th>
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="assessmentsTableBody">
@@ -900,65 +911,47 @@
         </div>
         
         <div class="table-container">
-            <div id="loadingMessage" class="loading">
-                Loading assessment data...
-            </div>
-            <div id="batchControls" style="display: none; padding: 1rem; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
-                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                    Select All
-                </label>
-                <span id="selectedCount" style="color: #6b7280;">0 selected</span>
-                <button id="batchDeleteBtn" class="control-btn btn-clear" onclick="batchDeleteAssessments()" disabled>
-                    🗑️ Delete Selected
+            <!-- Always visible Add New Client button -->
+            <div style="display: flex; justify-content: flex-end; padding: 1rem; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
+                <button onclick="addNewClient()" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                    ➕ Add New Client
                 </button>
             </div>
-        </div>
+            <!-- Batch controls for Delete Selected -->
+            <div id="batchControls" style="display: none; padding: 1rem; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        Select All
+                    </label>
+                    <span id="selectedCount" style="color: #6b7280;">0 selected</span>
+                    <button id="batchDeleteBtn" class="control-btn btn-clear" onclick="batchDeleteAssessments()" disabled>
+                        🗑️ Delete Selected
+                    </button>
+                </div>
+            </div>
             <table class="data-table" id="assessmentsTable" style="display: none;">
                 <thead>
                     <tr>
-                        <th style="width: 40px;">
+                        <th style="width: 40px; padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">
                             <input type="checkbox" id="headerSelectAll" onchange="toggleSelectAll()">
                         </th>
-                        <th>ID</th>
-                        <th>Company</th>
-                        <th>Contact</th>
-                        <th>Email</th>
-                        <th>Industry</th>
-                        <th>AI Score</th>
-                        <th>Created</th>
-                        <th>Form Source</th>
-                        <th>Actions</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">ID</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Company Name</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Contact Name</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Email</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Phone</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Industry</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">AI Score</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Created Date</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Reports</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; background: #000000; color: #ffffff;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="assessmentsTableBody">
                     <!-- Data will be loaded here -->
                 </tbody>
             </table>
-        </div>
-
-        <!-- DB View Section -->
-        <div class="dbview-container">
-            <div class="dbview-header">
-                <div class="dbview-title">🗄️ Database View (raw rows)</div>
-                <button class="dbview-toggle" onclick="toggleDbView()" id="dbViewToggle">Show</button>
-            </div>
-            <div id="dbViewContent" style="display:none;">
-                <div class="db-view-legend">
-                    <strong>📋 Database View Legend:</strong>
-                    <span class="db-view-legend-item db-view-legend-assessment">🔵 Assessment Form Fields</span>
-                    <span class="db-view-legend-item db-view-legend-strategy">🟠 Strategy Blueprint Fields</span>
-                    <span class="db-view-legend-item db-view-legend-common">⚫ Common/Shared Fields</span>
-                </div>
-
-                <div class="dbview-scroll">
-                    <table class="dbview-table" id="dbViewTable">
-                        <thead id="dbViewHead"></thead>
-                        <tbody id="dbViewBody"></tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -1055,22 +1048,22 @@
                 <label>Business Challenges</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editChallenge1" value="Customer service bottleneck"> Customer service bottleneck
+                        <input type="checkbox" id="editChallenge1" value="customer-service"> Customer service bottleneck
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editChallenge2" value="Data management issues"> Data management issues
+                        <input type="checkbox" id="editChallenge2" value="manual-processes"> Manual processes
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editChallenge3" value="Process inefficiencies"> Process inefficiencies
+                        <input type="checkbox" id="editChallenge3" value="data-analysis"> Data analysis
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editChallenge4" value="Cost optimization"> Cost optimization
+                        <input type="checkbox" id="editChallenge4" value="document-processing"> Document processing
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editChallenge5" value="Competitive pressure"> Competitive pressure
+                        <input type="checkbox" id="editChallenge5" value="supply-chain-delays"> Supply chain delays
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editChallenge6" value="Technology adoption"> Technology adoption
+                        <input type="checkbox" id="editChallenge6" value="low-website-conversion"> Low website conversion
                     </label>
                 </div>
                 <input type="text" id="editChallengesOther" placeholder="Other challenges (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1126,22 +1119,22 @@
                 <label>Current Tools & Software</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTool1" value="CRM systems"> CRM systems
+                        <input type="checkbox" id="editTool1" value="crm"> CRM (Salesforce, HubSpot, etc.)
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTool2" value="ERP systems"> ERP systems
+                        <input type="checkbox" id="editTool2" value="erp"> ERP (SAP, Oracle, etc.)
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTool3" value="Marketing automation"> Marketing automation
+                        <input type="checkbox" id="editTool3" value="analytics"> Analytics (Google Analytics, Tableau, etc.)
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTool4" value="Analytics platforms"> Analytics platforms
+                        <input type="checkbox" id="editTool4" value="automation"> Automation (Zapier, IFTTT, etc.)
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTool5" value="Communication tools"> Communication tools
+                        <input type="checkbox" id="editTool5" value="communication"> Communication (Slack, Teams, etc.)
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTool6" value="Project management"> Project management
+                        <input type="checkbox" id="editTool6" value="project-management"> Project Management (Asana, Jira, etc.)
                     </label>
                 </div>
                 <input type="text" id="editCurrentToolsOther" placeholder="Other tools (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1151,45 +1144,63 @@
                 <label>Tool Preferences</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPref1" value="Cloud-based solutions"> Cloud-based solutions
+                        <input type="checkbox" id="editPref1" value="ease-of-use"> Ease of use and user adoption
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPref2" value="On-premise solutions"> On-premise solutions
+                        <input type="checkbox" id="editPref2" value="integration"> Integration with existing systems
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPref3" value="Open source"> Open source
+                        <input type="checkbox" id="editPref3" value="cost-effectiveness"> Cost-effectiveness and ROI
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPref4" value="Enterprise-grade"> Enterprise-grade
+                        <input type="checkbox" id="editPref4" value="scalability"> Scalability and growth potential
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPref5" value="User-friendly interfaces"> User-friendly interfaces
+                        <input type="checkbox" id="editPref5" value="support"> Customer support and training
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPref6" value="Integration capabilities"> Integration capabilities
+                        <input type="checkbox" id="editPref6" value="security"> Security and compliance
                     </label>
                 </div>
                 <input type="text" id="editToolPreferencesOther" placeholder="Other preferences (comma separated)" style="width: 100%; margin-top: 0.5rem;">
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label>Implementation Priority</label>
-                    <select id="editImplementationPriority">
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
+            <div class="form-group">
+                <label>Implementation Priority</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editImpPri1" value="customer-service"> Customer service automation
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editImpPri2" value="data-analytics"> Data analytics and insights
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editImpPri3" value="process-automation"> Process automation
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editImpPri4" value="marketing"> Marketing and lead generation
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editImpPri5" value="operations"> Operations optimization
+                    </label>
+                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
+                        <input type="checkbox" id="editImpPri6" value="product-development"> Product development
+                    </label>
                 </div>
+                <input type="text" id="editImplementationPriorityOther" placeholder="Other priority, specify here" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
                     <label>Team Availability</label>
                     <select id="editTeamAvailability">
-                        <option value="dedicated">Dedicated team</option>
-                        <option value="part-time">Part-time</option>
-                        <option value="limited">Limited</option>
+                        <option value="full-time-dedicated">Full-time dedicated team</option>
+                        <option value="part-time-dedicated">Part-time dedicated team</option>
+                        <option value="shared-resources">Shared resources</option>
+                        <option value="external-contractors">External contractors</option>
+                        <option value="limited-availability">Limited availability</option>
                     </select>
                 </div>
-            </div>
             
             <div class="form-group">
                 <label>Change Management Experience</label>
@@ -1203,37 +1214,28 @@
             
             <div class="form-group">
                 <label>Data Governance</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editDataGov1" value="Data classification"> Data classification
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editDataGov2" value="Access controls"> Access controls
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editDataGov3" value="Data retention policies"> Data retention policies
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editDataGov4" value="Privacy compliance"> Privacy compliance
-                    </label>
-                </div>
-                <input type="text" id="editDataGovernanceOther" placeholder="Other governance policies (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+                <select id="editDataGovernance">
+                    <option value="established">Established policies and procedures</option>
+                    <option value="developing">Developing policies</option>
+                    <option value="basic">Basic governance</option>
+                    <option value="none">No formal governance</option>
+                </select>
             </div>
             
             <div class="form-group">
                 <label>Security Requirements</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editSec1" value="Encryption"> Encryption
+                        <input type="checkbox" id="editSec1" value="soc2"> SOC 2 Compliance
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editSec2" value="Multi-factor authentication"> Multi-factor authentication
+                        <input type="checkbox" id="editSec2" value="gdpr"> GDPR Compliance
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editSec3" value="Regular security audits"> Regular security audits
+                        <input type="checkbox" id="editSec3" value="hipaa"> HIPAA Compliance
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editSec4" value="Compliance certifications"> Compliance certifications
+                        <input type="checkbox" id="editSec4" value="pci"> PCI DSS Compliance
                     </label>
                 </div>
                 <input type="text" id="editSecurityRequirementsOther" placeholder="Other security requirements (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1243,16 +1245,16 @@
                 <label>Compliance Needs</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editComp1" value="GDPR"> GDPR
+                        <input type="checkbox" id="editComp1" value="financial"> Financial services regulations
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editComp2" value="HIPAA"> HIPAA
+                        <input type="checkbox" id="editComp2" value="healthcare"> Healthcare regulations
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editComp3" value="SOX"> SOX
+                        <input type="checkbox" id="editComp3" value="government"> Government contracts
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editComp4" value="Industry-specific"> Industry-specific
+                        <input type="checkbox" id="editComp4" value="international"> International data laws
                     </label>
                 </div>
                 <input type="text" id="editComplianceNeedsOther" placeholder="Other compliance needs (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1262,16 +1264,16 @@
                 <label>Integration Requirements</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editInt1" value="API integration"> API integration
+                        <input type="checkbox" id="editInt1" value="api"> API integrations
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editInt2" value="Database connectivity"> Database connectivity
+                        <input type="checkbox" id="editInt2" value="database"> Database connections
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editInt3" value="Third-party systems"> Third-party systems
+                        <input type="checkbox" id="editInt3" value="cloud"> Cloud platform integration
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editInt4" value="Legacy systems"> Legacy systems
+                        <input type="checkbox" id="editInt4" value="legacy"> Legacy system integration
                     </label>
                 </div>
                 <input type="text" id="editIntegrationRequirementsOther" placeholder="Other integration requirements (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1281,16 +1283,16 @@
                 <label>Success Metrics</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editMetric1" value="Cost reduction"> Cost reduction
+                        <input type="checkbox" id="editMetric1" value="cost-reduction"> Cost reduction
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editMetric2" value="Efficiency improvement"> Efficiency improvement
+                        <input type="checkbox" id="editMetric2" value="efficiency"> Efficiency improvement
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editMetric3" value="Customer satisfaction"> Customer satisfaction
+                        <input type="checkbox" id="editMetric3" value="customer-satisfaction"> Customer satisfaction
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editMetric4" value="Revenue growth"> Revenue growth
+                        <input type="checkbox" id="editMetric4" value="revenue-growth"> Revenue growth
                     </label>
                 </div>
                 <input type="text" id="editSuccessMetricsOther" placeholder="Other success metrics (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1311,16 +1313,16 @@
                 <label>Risk Factors</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editRisk1" value="Data security"> Data security
+                        <input type="checkbox" id="editRisk1" value="budget-constraints"> Budget constraints
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editRisk2" value="Implementation complexity"> Implementation complexity
+                        <input type="checkbox" id="editRisk2" value="time-constraints"> Time constraints
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editRisk3" value="User adoption"> User adoption
+                        <input type="checkbox" id="editRisk3" value="skill-gaps"> Skill gaps
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editRisk4" value="Budget overruns"> Budget overruns
+                        <input type="checkbox" id="editRisk4" value="resistance"> Employee resistance
                     </label>
                 </div>
                 <input type="text" id="editRiskFactorsOther" placeholder="Other risk factors (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1330,16 +1332,16 @@
                 <label>Mitigation Strategies</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editMit1" value="Phased implementation"> Phased implementation
+                        <input type="checkbox" id="editMit1" value="phased-approach"> Phased implementation approach
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editMit2" value="Change management"> Change management
+                        <input type="checkbox" id="editMit2" value="pilot-projects"> Pilot projects
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editMit3" value="Training programs"> Training programs
+                        <input type="checkbox" id="editMit3" value="training"> Comprehensive training
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editMit4" value="Pilot testing"> Pilot testing
+                        <input type="checkbox" id="editMit4" value="change-management"> Change management program
                     </label>
                 </div>
                 <input type="text" id="editMitigationStrategiesOther" placeholder="Other mitigation strategies (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1349,16 +1351,16 @@
                 <label>Implementation Phases</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPhase1" value="Planning & Analysis"> Planning & Analysis
+                        <input type="checkbox" id="editPhase1" value="assessment"> Assessment and planning
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPhase2" value="Design & Development"> Design & Development
+                        <input type="checkbox" id="editPhase2" value="pilot"> Pilot project
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPhase3" value="Testing & Validation"> Testing & Validation
+                        <input type="checkbox" id="editPhase3" value="core"> Core implementation
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editPhase4" value="Deployment & Training"> Deployment & Training
+                        <input type="checkbox" id="editPhase4" value="expansion"> Expansion and optimization
                     </label>
                 </div>
                 <input type="text" id="editImplementationPhasesOther" placeholder="Other implementation phases (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1368,16 +1370,16 @@
                 <label>Resource Requirements</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editRes1" value="Technical expertise"> Technical expertise
+                        <input type="checkbox" id="editRes1" value="technical-lead"> Technical lead
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editRes2" value="Project management"> Project management
+                        <input type="checkbox" id="editRes2" value="project-manager"> Project manager
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editRes3" value="Training resources"> Training resources
+                        <input type="checkbox" id="editRes3" value="data-analyst"> Data analyst
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editRes4" value="Infrastructure"> Infrastructure
+                        <input type="checkbox" id="editRes4" value="change-manager"> Change manager
                     </label>
                 </div>
                 <input type="text" id="editResourceRequirementsOther" placeholder="Other resource requirements (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1387,16 +1389,16 @@
                 <label>Training Needs</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTrain1" value="User training"> User training
+                        <input type="checkbox" id="editTrain1" value="technical"> Technical training
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTrain2" value="Administrator training"> Administrator training
+                        <input type="checkbox" id="editTrain2" value="user"> End user training
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTrain3" value="Technical training"> Technical training
+                        <input type="checkbox" id="editTrain3" value="management"> Management training
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editTrain4" value="Process training"> Process training
+                        <input type="checkbox" id="editTrain4" value="change-management"> Change management training
                     </label>
                 </div>
                 <input type="text" id="editTrainingNeedsOther" placeholder="Other training needs (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1406,16 +1408,16 @@
                 <label>Vendor Criteria</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editVendor1" value="Experience & track record"> Experience & track record
+                        <input type="checkbox" id="editVendor1" value="reputation"> Strong reputation and track record
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editVendor2" value="Technical capabilities"> Technical capabilities
+                        <input type="checkbox" id="editVendor2" value="support"> Excellent customer support
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editVendor3" value="Support & maintenance"> Support & maintenance
+                        <input type="checkbox" id="editVendor3" value="pricing"> Competitive pricing
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editVendor4" value="Cost-effectiveness"> Cost-effectiveness
+                        <input type="checkbox" id="editVendor4" value="integration"> Easy integration
                     </label>
                 </div>
                 <input type="text" id="editVendorCriteriaOther" placeholder="Other vendor criteria (comma separated)" style="width: 100%; margin-top: 0.5rem;">
@@ -1425,40 +1427,12 @@
             <h3 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 2rem;">Strategy Blueprint</h3>
             <div class="form-group">
                 <label>Competitors</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editCompetitor1" value="Direct competitors"> Direct competitors
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editCompetitor2" value="Indirect competitors"> Indirect competitors
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editCompetitor3" value="New market entrants"> New market entrants
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editCompetitor4" value="Substitute products"> Substitute products
-                    </label>
-                </div>
-                <input type="text" id="editCompetitorsOther" placeholder="Other competitors (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+                <textarea id="editCompetitors" placeholder="List your main competitors and briefly describe their strengths or market position..." rows="3"></textarea>
             </div>
             
             <div class="form-group">
                 <label>Competitive Advantages</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editAdv1" value="Technology leadership"> Technology leadership
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editAdv2" value="Customer relationships"> Customer relationships
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editAdv3" value="Operational efficiency"> Operational efficiency
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editAdv4" value="Brand recognition"> Brand recognition
-                    </label>
-                </div>
-                <input type="text" id="editCompetitiveAdvantagesOther" placeholder="Other competitive advantages (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+                <textarea id="editCompetitiveAdvantages" placeholder="What advantages do you currently have or want to build? (e.g., technology, customer service, pricing, etc.)" rows="3"></textarea>
             </div>
             
             <div class="form-group">
@@ -1475,13 +1449,13 @@
                 <label>Vendor Features</label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editVendorFeat1" value="Scalability"> Scalability
+                        <input type="checkbox" id="editVendorFeat1" value="enterprise-support"> Enterprise support
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editVendorFeat2" value="Customization"> Customization
+                        <input type="checkbox" id="editVendorFeat2" value="api-integration"> API integration
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editVendorFeat3" value="Integration capabilities"> Integration capabilities
+                        <input type="checkbox" id="editVendorFeat3" value="custom-development"> Custom development
                     </label>
                     <label style="display: flex; align-items: center; font-size: 0.9rem;">
                         <input type="checkbox" id="editVendorFeat4" value="Analytics & reporting"> Analytics & reporting
@@ -1494,37 +1468,24 @@
                 <div class="form-group">
                     <label>Risk Tolerance</label>
                     <select id="editRiskTolerance">
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
+                        <option value="conservative">Conservative - Prefer proven solutions</option>
+                        <option value="moderate">Moderate - Balance of innovation and stability</option>
+                        <option value="aggressive">Aggressive - Willing to try cutting-edge solutions</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Risk Concerns</label>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                            <input type="checkbox" id="editRiskConcern1" value="Data security"> Data security
-                        </label>
-                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                            <input type="checkbox" id="editRiskConcern2" value="Vendor lock-in"> Vendor lock-in
-                        </label>
-                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                            <input type="checkbox" id="editRiskConcern3" value="Implementation delays"> Implementation delays
-                        </label>
-                        <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                            <input type="checkbox" id="editRiskConcern4" value="Cost overruns"> Cost overruns
-                        </label>
-                    </div>
-                    <input type="text" id="editRiskConcernsOther" placeholder="Other risk concerns (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+                    <textarea id="editRiskConcerns" placeholder="What are your biggest concerns about implementing AI? (e.g., data security, employee resistance, cost overruns, etc.)" rows="3"></textarea>
                 </div>
             </div>
             
             <div class="form-group">
                 <label>Organizational Structure</label>
                 <select id="editOrgStructure">
-                    <option value="centralized">Centralized</option>
-                    <option value="decentralized">Decentralized</option>
-                    <option value="hybrid">Hybrid</option>
+                    <option value="hierarchical">Hierarchical - Clear chain of command</option>
+                    <option value="flat">Flat - Minimal management layers</option>
+                    <option value="matrix">Matrix - Cross-functional teams</option>
+                    <option value="hybrid">Hybrid - Combination of structures</option>
                 </select>
             </div>
             
@@ -1576,40 +1537,17 @@
             
             <div class="form-group">
                 <label>Current KPIs</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editKpi1" value="Revenue growth"> Revenue growth
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editKpi2" value="Customer satisfaction"> Customer satisfaction
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editKpi3" value="Operational efficiency"> Operational efficiency
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editKpi4" value="Cost reduction"> Cost reduction
-                    </label>
-                </div>
-                <input type="text" id="editCurrentKpisOther" placeholder="Other KPIs (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+                <textarea id="editCurrentKpis" placeholder="What key performance indicators do you currently track? (e.g., customer satisfaction, revenue growth, operational efficiency, etc.)" rows="3"></textarea>
             </div>
             
             <div class="form-group">
                 <label>Improvement Goals</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editGoal1" value="Process automation"> Process automation
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editGoal2" value="Data-driven decisions"> Data-driven decisions
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editGoal3" value="Customer experience"> Customer experience
-                    </label>
-                    <label style="display: flex; align-items: center; font-size: 0.9rem;">
-                        <input type="checkbox" id="editGoal4" value="Operational excellence"> Operational excellence
-                    </label>
-                </div>
-                <input type="text" id="editImprovementGoalsOther" placeholder="Other improvement goals (comma separated)" style="width: 100%; margin-top: 0.5rem;">
+                <textarea id="editImprovementGoals" placeholder="What specific improvements are you looking to achieve? (e.g., 30% reduction in response time, 25% increase in sales, etc.)" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Skill Gaps</label>
+                <textarea id="editSkillGaps" placeholder="What technical skills are missing from your current team? (e.g., data science, AI/ML, system integration, etc.)" rows="3"></textarea>
             </div>
             
             <!-- System Fields -->
@@ -1977,7 +1915,7 @@ function loadAssessments() {
     
     document.getElementById('loadingMessage').style.display = 'block';
     document.getElementById('assessmentsTable').style.display = 'none';
-    document.getElementById('batchControls').style.display = 'block';
+    document.getElementById('batchControls').style.display = 'none';
     
     // Add cache-busting parameter
     const url = '/api/assessments?t=' + Date.now();
@@ -2248,6 +2186,38 @@ function getFormSourceTooltip(assessment) {
     }
 }
 
+function getFormStatus(assessment) {
+    // Determine the form status based on various fields
+    if (assessment.form_flag === 'A') {
+        return '📊 Assessment Report';
+    } else if (assessment.form_flag === 'S') {
+        return '🎯 Strategy Blueprint';
+    } else if (assessment.form_source === 'admin') {
+        return 'Admin Entry';
+    } else if (assessment.form_source === 'assessment') {
+        return '📊 Assessment Report';
+    } else if (assessment.form_source === 'strategy') {
+        return '🎯 Strategy Blueprint';
+    } else if (assessment.assessment_completed_at && assessment.strategy_completed_at) {
+        return '📊🎯 Both Reports';
+    } else if (assessment.assessment_completed_at) {
+        return '📊 Assessment Report';
+    } else if (assessment.strategy_completed_at) {
+        return '🎯 Strategy Blueprint';
+    } else {
+        // Check if they have any report data to determine what they purchased
+        if (assessment.challenges && assessment.current_tech && assessment.budget) {
+            return '📊 Assessment Report';
+        } else if (assessment.competitors && assessment.market_position && assessment.risk_tolerance) {
+            return '🎯 Strategy Blueprint';
+        } else if (assessment.company_name && assessment.email) {
+            return '📋 Data Entry';
+        } else {
+            return '📋 New Client';
+        }
+    }
+}
+
 function displayAssessments(assessmentList) {
     console.log('displayAssessments called with:', assessmentList);
     const tbody = document.getElementById('assessmentsTableBody');
@@ -2256,7 +2226,7 @@ function displayAssessments(assessmentList) {
     
     if (assessmentList.length === 0) {
         console.log('No assessments to display');
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 2rem; color: #6b7280;">No assessments found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 2rem; color: #6b7280;">No assessments found</td></tr>';
         return;
     }
     
@@ -2270,12 +2240,13 @@ function displayAssessments(assessmentList) {
         <td><input type="checkbox" value="${assessment.id}" onchange="toggleBatchDeleteButton()"></td>
         <td>${assessment.id}</td>
         <td>${assessment.company_name || ''}</td>
-        <td>${assessment.contact_name || ''}</td>
+        <td>${(assessment.first_name || '') + ' ' + (assessment.last_name || '')}</td>
         <td>${assessment.email || ''}</td>
+        <td>${assessment.phone || ''}</td>
         <td>${assessment.industry || ''}</td>
         <td><span class="score-badge">${assessment.ai_score || 0}%</span></td>
         <td>${createdDate}</td>
-        <td>${assessment.form_flag === 'A' ? 'Assessment' : assessment.form_flag === 'S' ? 'Strategy' : 'Unknown'}</td>
+        <td>${getFormStatus(assessment)}</td>
         <td>
             <div class="action-buttons">
                 <button class="action-btn btn-view" onclick="viewAssessment(${assessment.id})" title="View Details">👁️</button>
@@ -2419,20 +2390,52 @@ function viewAssessment(id) {
                                     <p><strong>Scalability Requirements:</strong> ${assessment.scalability_requirements || 'Not specified'}</p>
                                     <p><strong>Maintenance Plan Preference:</strong> ${assessment.maintenance_plan || 'Not specified'}</p>
                                 </div>
+                                
+                                <!-- Strategy Blueprint Fields -->
+                                <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Strategy Blueprint</h3>
+                                    <p><strong>Competitors:</strong> ${assessment.competitors || 'Not specified'}</p>
+                                    <p><strong>Competitive Advantages:</strong> ${assessment.competitive_advantages || 'Not specified'}</p>
+                                    <p><strong>Market Position:</strong> ${assessment.market_position || 'Not specified'}</p>
+                                    <p><strong>Vendor Features:</strong> ${formatArray(assessment.vendor_features)}</p>
+                                    <p><strong>Risk Tolerance:</strong> ${assessment.risk_tolerance || 'Not specified'}</p>
+                                    <p><strong>Risk Concerns:</strong> ${assessment.risk_concerns || 'Not specified'}</p>
+                                    <p><strong>Organizational Structure:</strong> ${assessment.org_structure || 'Not specified'}</p>
+                                    <p><strong>Decision Process:</strong> ${assessment.decision_process || 'Not specified'}</p>
+                                    <p><strong>Team Size:</strong> ${assessment.team_size || 'Not specified'}</p>
+                                    <p><strong>Skill Gaps:</strong> ${assessment.skill_gaps || 'Not specified'}</p>
+                                    <p><strong>Budget Allocation:</strong> ${assessment.budget_allocation || 'Not specified'}</p>
+                                    <p><strong>ROI Timeline:</strong> ${assessment.roi_timeline || 'Not specified'}</p>
+                                    <p><strong>Current KPIs:</strong> ${assessment.current_kpis || 'Not specified'}</p>
+                                    <p><strong>Improvement Goals:</strong> ${assessment.improvement_goals || 'Not specified'}</p>
+                                </div>
             
-                                            <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-                                    <button onclick="viewExistingReports(${assessment.id})" style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
-                                        📋 View Existing Reports
-                                    </button>
-                                    <button onclick="generateAssessmentReportFromView(${assessment.id})" style="background: #4f46e5; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
-                                        📊 Generate Assessment Report
-                                    </button>
-                                    <button onclick="generateStrategyReportFromView(${assessment.id})" style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
-                                        🎯 Generate Strategic Blueprint Report
-                                    </button>
-                                    <button onclick="editAssessmentFromView(${assessment.id})" style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-                                        ✏️ Edit Assessment
-                                    </button>
+                                            <div style="margin-bottom: 2rem;">
+                                    <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Client Notes & Additional Data</h3>
+                                    <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                        <textarea id="clientNotes" rows="6" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; resize: vertical;" placeholder="Add custom notes, additional context, or data points that should be included in LLM report generation...">${assessment.client_notes || ''}</textarea>
+                                        <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                                            <button onclick="saveClientNotes(${assessment.id})" style="background: #10b981; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;">Save Notes</button>
+                                        </div>
+                                        <p style="margin-top: 0.5rem; font-size: 12px; color: #6b7280;">These notes will be included in LLM context for personalized report generation. Save notes first, then generate reports below.</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; max-width: 800px; margin: 0 auto;">
+                                        <button onclick="viewExistingReports(${assessment.id})" style="background: #10b981; color: white; padding: 12px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; min-height: 48px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                                            📋 View Reports
+                                        </button>
+                                        <button onclick="generateAssessmentReportFromView(${assessment.id})" style="background: #4f46e5; color: white; padding: 12px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; min-height: 48px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                                            📊 Assessment Report
+                                        </button>
+                                        <button onclick="generateStrategyReportFromView(${assessment.id})" style="background: #059669; color: white; padding: 12px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; min-height: 48px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                                            🎯 Strategy Blueprint
+                                        </button>
+                                        <button onclick="editAssessmentFromView(${assessment.id})" style="background: #f59e0b; color: white; padding: 12px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; min-height: 48px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                                            ✏️ Edit Assessment
+                                        </button>
+                                    </div>
                                 </div>
         </div>
     `;
@@ -2774,26 +2777,44 @@ function editAssessment(id) {
             const assessment = data.assessment;
             console.log('Found assessment:', assessment);
             
-            // Populate basic form fields
-            document.getElementById('editId').value = assessment.id;
-            document.getElementById('editCompanyName').value = assessment.company_name || '';
-            document.getElementById('editIndustry').value = assessment.industry || '';
-            document.getElementById('editCompanySize').value = assessment.company_size || '';
-            document.getElementById('editRole').value = assessment.role || '';
-            document.getElementById('editWebsite').value = assessment.website || '';
-            document.getElementById('editFirstName').value = assessment.first_name || '';
-            document.getElementById('editLastName').value = assessment.last_name || '';
-            document.getElementById('editEmail').value = assessment.email || '';
-            document.getElementById('editPhone').value = assessment.phone || '';
-            document.getElementById('editCurrentTech').value = assessment.current_tech || '';
-            document.getElementById('editAiExperience').value = assessment.ai_experience || '';
-            document.getElementById('editBudget').value = assessment.budget || '';
-            document.getElementById('editTimeline').value = assessment.timeline || '';
-            document.getElementById('editImplementationPriority').value = assessment.implementation_priority || '';
-            document.getElementById('editTeamAvailability').value = assessment.team_availability || '';
-            document.getElementById('editChangeManagementExperience').value = assessment.change_management_experience || '';
-            document.getElementById('editAiScore').value = assessment.ai_score || '';
-            document.getElementById('editReportType').value = assessment.report_type || 'assessment';
+            // Populate basic form fields with error handling
+            const editId = document.getElementById('editId');
+            const editCompanyName = document.getElementById('editCompanyName');
+            const editIndustry = document.getElementById('editIndustry');
+            const editCompanySize = document.getElementById('editCompanySize');
+            const editRole = document.getElementById('editRole');
+            const editWebsite = document.getElementById('editWebsite');
+            const editFirstName = document.getElementById('editFirstName');
+            const editLastName = document.getElementById('editLastName');
+            const editEmail = document.getElementById('editEmail');
+            const editPhone = document.getElementById('editPhone');
+            const editCurrentTech = document.getElementById('editCurrentTech');
+            const editAiExperience = document.getElementById('editAiExperience');
+            const editBudget = document.getElementById('editBudget');
+            const editTimeline = document.getElementById('editTimeline');
+            const editTeamAvailability = document.getElementById('editTeamAvailability');
+            const editChangeManagementExperience = document.getElementById('editChangeManagementExperience');
+            const editAiScore = document.getElementById('editAiScore');
+            const editReportType = document.getElementById('editReportType');
+            
+            if (editId) editId.value = assessment.id;
+            if (editCompanyName) editCompanyName.value = assessment.company_name || '';
+            if (editIndustry) editIndustry.value = assessment.industry || '';
+            if (editCompanySize) editCompanySize.value = assessment.company_size || '';
+            if (editRole) editRole.value = assessment.role || '';
+            if (editWebsite) editWebsite.value = assessment.website || '';
+            if (editFirstName) editFirstName.value = assessment.first_name || '';
+            if (editLastName) editLastName.value = assessment.last_name || '';
+            if (editEmail) editEmail.value = assessment.email || '';
+            if (editPhone) editPhone.value = assessment.phone || '';
+            if (editCurrentTech) editCurrentTech.value = assessment.current_tech || '';
+            if (editAiExperience) editAiExperience.value = assessment.ai_experience || '';
+            if (editBudget) editBudget.value = assessment.budget || '';
+            if (editTimeline) editTimeline.value = assessment.timeline || '';
+            if (editTeamAvailability) editTeamAvailability.value = assessment.team_availability || '';
+            if (editChangeManagementExperience) editChangeManagementExperience.value = assessment.change_management_experience || '';
+            if (editAiScore) editAiScore.value = assessment.ai_score || '';
+            if (editReportType) editReportType.value = assessment.report_type || 'assessment';
             
             // Handle challenges checkboxes - database values now match form values exactly
             let challenges = [];
@@ -2843,20 +2864,24 @@ function editAssessment(id) {
                 checkbox.checked = toolPreferences.includes(checkbox.value);
             });
             
-            // Handle data governance checkboxes - database values now match form values exactly
-            let dataGovernance = [];
-            if (Array.isArray(assessment.data_governance)) {
-                dataGovernance = assessment.data_governance;
-            } else if (typeof assessment.data_governance === 'string') {
+            // Handle implementation priority checkboxes - database values now match form values exactly
+            let implementationPriority = [];
+            if (Array.isArray(assessment.implementation_priority)) {
+                implementationPriority = assessment.implementation_priority;
+            } else if (typeof assessment.implementation_priority === 'string') {
                 try {
-                    dataGovernance = JSON.parse(assessment.data_governance);
+                    implementationPriority = JSON.parse(assessment.implementation_priority);
                 } catch (e) {
-                    dataGovernance = assessment.data_governance.split(',').map(item => item.trim()).filter(item => item);
+                    implementationPriority = assessment.implementation_priority.split(',').map(item => item.trim()).filter(item => item);
                 }
             }
-            document.querySelectorAll('[id^="editDataGov"]').forEach(checkbox => {
-                checkbox.checked = dataGovernance.includes(checkbox.value);
+            document.querySelectorAll('[id^="editImpPri"]').forEach(checkbox => {
+                checkbox.checked = implementationPriority.includes(checkbox.value);
             });
+            
+            // Handle data governance dropdown - database values now match form values exactly
+            const editDataGovernance = document.getElementById('editDataGovernance');
+            if (editDataGovernance) editDataGovernance.value = assessment.data_governance || '';
             
             // Handle security requirements checkboxes - database values now match form values exactly
             let securityRequirements = [];
@@ -3029,6 +3054,24 @@ function editAssessment(id) {
             // Handle opportunities field
             document.getElementById('editOpportunities').value = JSON.stringify(assessment.opportunities || [], null, 2);
             
+            // Handle new textarea fields
+            const editCompetitors = document.getElementById('editCompetitors');
+            const editCompetitiveAdvantages = document.getElementById('editCompetitiveAdvantages');
+            const editCurrentKpis = document.getElementById('editCurrentKpis');
+            const editImprovementGoals = document.getElementById('editImprovementGoals');
+            const editSkillGaps = document.getElementById('editSkillGaps');
+            
+            if (editCompetitors) editCompetitors.value = assessment.competitors || '';
+            if (editCompetitiveAdvantages) editCompetitiveAdvantages.value = assessment.competitive_advantages || '';
+            if (editCurrentKpis) editCurrentKpis.value = assessment.current_kpis || '';
+            if (editImprovementGoals) editImprovementGoals.value = assessment.improvement_goals || '';
+            if (editSkillGaps) {
+                console.log('Setting skill_gaps:', assessment.skill_gaps);
+                editSkillGaps.value = assessment.skill_gaps || '';
+            } else {
+                console.log('editSkillGaps element not found');
+            }
+            
             // Handle Strategy Blueprint fields
             // Competitive Analysis - this is a checkbox group with "Other" input
             let competitiveAdvantages = [];
@@ -3041,12 +3084,15 @@ function editAssessment(id) {
                     competitiveAdvantages = assessment.competitive_advantages.split(',').map(item => item.trim()).filter(item => item);
                 }
             }
-            document.querySelectorAll('[id^="editAdv"]').forEach(checkbox => {
-                checkbox.checked = competitiveAdvantages.includes(checkbox.value);
-            });
-            document.getElementById('editCompetitiveAdvantagesOther').value = '';
+            // Note: editAdv checkboxes were removed when we changed to textarea
+            // document.querySelectorAll('[id^="editAdv"]').forEach(checkbox => {
+            //     checkbox.checked = competitiveAdvantages.includes(checkbox.value);
+            // });
+            // const editCompetitiveAdvantagesOther = document.getElementById('editCompetitiveAdvantagesOther');
+            // if (editCompetitiveAdvantagesOther) editCompetitiveAdvantagesOther.value = '';
             
-            document.getElementById('editMarketPosition').value = assessment.market_position || '';
+            const editMarketPosition = document.getElementById('editMarketPosition');
+            if (editMarketPosition) editMarketPosition.value = assessment.market_position || '';
             
             // Vendor Evaluation
             let vendorFeatures = [];
@@ -3064,78 +3110,93 @@ function editAssessment(id) {
             });
             
             // Risk Assessment
-            document.getElementById('editRiskTolerance').value = assessment.risk_tolerance || '';
-            let riskConcerns = [];
-            if (Array.isArray(assessment.risk_concerns)) {
-                riskConcerns = assessment.risk_concerns;
-            } else if (typeof assessment.risk_concerns === 'string') {
-                try {
-                    riskConcerns = JSON.parse(assessment.risk_concerns);
-                } catch (e) {
-                    riskConcerns = assessment.risk_concerns.split(',').map(item => item.trim()).filter(item => item);
-                }
-            }
-            document.querySelectorAll('[id^="editRiskConcern"]').forEach(checkbox => {
-                checkbox.checked = riskConcerns.includes(checkbox.value);
-            });
+            const editRiskTolerance = document.getElementById('editRiskTolerance');
+            if (editRiskTolerance) editRiskTolerance.value = assessment.risk_tolerance || '';
+            // Note: risk_concerns is now a textarea, not checkboxes
+            const editRiskConcerns = document.getElementById('editRiskConcerns');
+            if (editRiskConcerns) editRiskConcerns.value = assessment.risk_concerns || '';
+            
+            // Old checkbox handling - commented out since we changed to textarea
+            // let riskConcerns = [];
+            // if (Array.isArray(assessment.risk_concerns)) {
+            //     riskConcerns = assessment.risk_concerns;
+            // } else if (typeof assessment.risk_concerns === 'string') {
+            //     try {
+            //         riskConcerns = JSON.parse(assessment.risk_concerns);
+            //     } catch (e) {
+            //         riskConcerns = assessment.risk_concerns.split(',').map(item => item.trim()).filter(item => item);
+            //     }
+            // }
+            // Old checkbox handling - commented out since we changed to textarea
+            // document.querySelectorAll('[id^="editRiskConcern"]').forEach(checkbox => {
+            //     checkbox.checked = riskConcerns.includes(checkbox.value);
+            // });
             
             // Change Management
-            document.getElementById('editOrgStructure').value = assessment.org_structure || '';
-            document.getElementById('editDecisionProcess').value = assessment.decision_process || '';
+            const editOrgStructure = document.getElementById('editOrgStructure');
+            const editDecisionProcess = document.getElementById('editDecisionProcess');
+            const editTeamSize = document.getElementById('editTeamSize');
             
-            // Team & Hiring
-            document.getElementById('editTeamSize').value = assessment.team_size || '';
+            if (editOrgStructure) editOrgStructure.value = assessment.org_structure || '';
+            if (editDecisionProcess) editDecisionProcess.value = assessment.decision_process || '';
+            if (editTeamSize) editTeamSize.value = assessment.team_size || '';
             
-            // Skill Gaps - this is a checkbox group with "Other" input
-            let skillGaps = [];
-            if (Array.isArray(assessment.skill_gaps)) {
-                skillGaps = assessment.skill_gaps;
-            } else if (typeof assessment.skill_gaps === 'string') {
-                try {
-                    skillGaps = JSON.parse(assessment.skill_gaps);
-                } catch (e) {
-                    skillGaps = assessment.skill_gaps.split(',').map(item => item.trim()).filter(item => item);
-                }
-            }
-            document.querySelectorAll('[id^="editSkillGap"]').forEach(checkbox => {
-                checkbox.checked = skillGaps.includes(checkbox.value);
-            });
-            document.getElementById('editSkillGapsOther').value = '';
+            // Skill Gaps - now a textarea field (handled above in textarea section)
+            // Old checkbox handling - commented out since we changed to textarea
+            // let skillGaps = [];
+            // if (Array.isArray(assessment.skill_gaps)) {
+            //     skillGaps = assessment.skill_gaps;
+            // } else if (typeof assessment.skill_gaps === 'string') {
+            //     try {
+            //         skillGaps = JSON.parse(assessment.skill_gaps);
+            //     } catch (e) {
+            //         skillGaps = assessment.skill_gaps.split(',').map(item => item.trim()).filter(item => item);
+            //     }
+            // }
+            // document.querySelectorAll('[id^="editSkillGap"]').forEach(checkbox => {
+            //     checkbox.checked = skillGaps.includes(checkbox.value);
+            // });
+            // const editSkillGapsOther = document.getElementById('editSkillGapsOther');
+            // if (editSkillGapsOther) editSkillGapsOther.value = '';
             
             // Budget Planning
-            document.getElementById('editBudgetAllocation').value = assessment.budget_allocation || '';
-            document.getElementById('editRoiTimeline').value = assessment.roi_timeline || '';
+            const editBudgetAllocation = document.getElementById('editBudgetAllocation');
+            const editRoiTimeline = document.getElementById('editRoiTimeline');
             
-            // Success Metrics
-            // Current KPIs - this is a checkbox group with "Other" input
-            let currentKpis = [];
-            if (Array.isArray(assessment.current_kpis)) {
-                currentKpis = assessment.current_kpis;
-            } else if (typeof assessment.current_kpis === 'string') {
-                try {
-                    currentKpis = JSON.parse(assessment.current_kpis);
-                } catch (e) {
-                    currentKpis = assessment.current_kpis.split(',').map(item => item.trim()).filter(item => item);
-                }
-            }
-            document.querySelectorAll('[id^="editKpi"]').forEach(checkbox => {
-                checkbox.checked = currentKpis.includes(checkbox.value);
-            });
-            document.getElementById('editCurrentKpisOther').value = '';
+            if (editBudgetAllocation) editBudgetAllocation.value = assessment.budget_allocation || '';
+            if (editRoiTimeline) editRoiTimeline.value = assessment.roi_timeline || '';
             
-            let improvementGoals = [];
-            if (Array.isArray(assessment.improvement_goals)) {
-                improvementGoals = assessment.improvement_goals;
-            } else if (typeof assessment.improvement_goals === 'string') {
-                try {
-                    improvementGoals = JSON.parse(assessment.improvement_goals);
-                } catch (e) {
-                    improvementGoals = assessment.improvement_goals.split(',').map(item => item.trim()).filter(item => item);
-                }
-            }
-            document.querySelectorAll('[id^="editGoal"]').forEach(checkbox => {
-                checkbox.checked = improvementGoals.includes(checkbox.value);
-            });
+            // Success Metrics - now textarea fields (handled above in textarea section)
+            // Old checkbox handling - commented out since we changed to textareas
+            // let currentKpis = [];
+            // if (Array.isArray(assessment.current_kpis)) {
+            //     currentKpis = assessment.current_kpis;
+            // } else if (typeof assessment.current_kpis === 'string') {
+            //     try {
+            //         currentKpis = JSON.parse(assessment.current_kpis);
+            //     } catch (e) {
+            //         currentKpis = assessment.current_kpis.split(',').map(item => item.trim()).filter(item => item);
+            //     }
+            // }
+            // document.querySelectorAll('[id^="editKpi"]').forEach(checkbox => {
+            //     checkbox.checked = currentKpis.includes(checkbox.value);
+            // });
+            // const editCurrentKpisOther = document.getElementById('editCurrentKpisOther');
+            // if (editCurrentKpisOther) editCurrentKpisOther.value = '';
+            
+            // let improvementGoals = [];
+            // if (Array.isArray(assessment.improvement_goals)) {
+            //     improvementGoals = assessment.improvement_goals;
+            // } else if (typeof assessment.improvement_goals === 'string') {
+            //     try {
+            //         improvementGoals = JSON.parse(assessment.improvement_goals);
+            //     } catch (e) {
+            //         improvementGoals = assessment.improvement_goals.split(',').map(item => item.trim()).filter(item => item);
+            //     }
+            // }
+            // document.querySelectorAll('[id^="editGoal"]').forEach(checkbox => {
+            //     checkbox.checked = improvementGoals.includes(checkbox.value);
+            // });
             
             // Show modal
             console.log('Showing edit modal');
@@ -3171,10 +3232,10 @@ function saveAssessment() {
         timeline: document.getElementById('editTimeline').value,
         current_tools: collectCheckboxValues('editTool', 'editCurrentToolsOther'),
         tool_preferences: collectCheckboxValues('editPref', 'editToolPreferencesOther'),
-        implementation_priority: document.getElementById('editImplementationPriority').value,
+        implementation_priority: collectCheckboxValues('editImpPri', 'editImplementationPriorityOther'),
         team_availability: document.getElementById('editTeamAvailability').value,
         change_management_experience: document.getElementById('editChangeManagementExperience').value,
-        data_governance: collectCheckboxValues('editDataGov', 'editDataGovernanceOther'),
+        data_governance: document.getElementById('editDataGovernance').value,
         security_requirements: collectCheckboxValues('editSec', 'editSecurityRequirementsOther'),
         compliance_needs: collectCheckboxValues('editComp', 'editComplianceNeedsOther'),
         integration_requirements: collectCheckboxValues('editInt', 'editIntegrationRequirementsOther'),
@@ -3187,20 +3248,20 @@ function saveAssessment() {
         resource_requirements: collectCheckboxValues('editRes', 'editResourceRequirementsOther'),
         training_needs: collectCheckboxValues('editTrain', 'editTrainingNeedsOther'),
         vendor_criteria: collectCheckboxValues('editVendor', 'editVendorCriteriaOther'),
-        competitors: collectCheckboxValues('editCompetitor', 'editCompetitorsOther'),
-        competitive_advantages: collectCheckboxValues('editAdv', 'editCompetitiveAdvantagesOther'),
+        competitors: document.getElementById('editCompetitors').value,
+        competitive_advantages: document.getElementById('editCompetitiveAdvantages').value,
         market_position: document.getElementById('editMarketPosition').value,
         vendor_features: collectCheckboxValues('editVendorFeat', 'editVendorFeaturesOther'),
         risk_tolerance: document.getElementById('editRiskTolerance').value,
-        risk_concerns: collectCheckboxValues('editRiskConcern', 'editRiskConcernsOther'),
+        risk_concerns: document.getElementById('editRiskConcerns').value,
         org_structure: document.getElementById('editOrgStructure').value,
         decision_process: document.getElementById('editDecisionProcess').value,
         team_size: document.getElementById('editTeamSize').value,
-        skill_gaps: collectCheckboxValues('editSkillGap', 'editSkillGapsOther'),
+        skill_gaps: document.getElementById('editSkillGaps').value,
         budget_allocation: document.getElementById('editBudgetAllocation').value,
         roi_timeline: document.getElementById('editRoiTimeline').value,
-        current_kpis: collectCheckboxValues('editKpi', 'editCurrentKpisOther'),
-        improvement_goals: collectCheckboxValues('editGoal', 'editImprovementGoalsOther'),
+        current_kpis: document.getElementById('editCurrentKpis').value,
+        improvement_goals: document.getElementById('editImprovementGoals').value,
         ai_score: document.getElementById('editAiScore').value,
         report_type: document.getElementById('editReportType').value,
         opportunities: document.getElementById('editOpportunities').value
@@ -3294,6 +3355,9 @@ function toggleBatchDeleteButton() {
     const selectedCount = Array.from(checkboxes).filter(checkbox => checkbox.checked).length;
     document.getElementById('selectedCount').textContent = selectedCount + ' selected';
     document.getElementById('batchDeleteBtn').disabled = selectedCount === 0;
+    
+    // Show/hide batch controls based on selection
+    document.getElementById('batchControls').style.display = selectedCount > 0 ? 'block' : 'none';
 }
 
 function batchDeleteAssessments() {
@@ -3334,6 +3398,10 @@ function toggleSelectAll() {
     }
 
     toggleBatchDeleteButton();
+    
+    // Show/hide batch controls based on selection
+    const selectedCount = Array.from(checkboxes).filter(checkbox => checkbox.checked).length;
+    document.getElementById('batchControls').style.display = selectedCount > 0 ? 'block' : 'none';
 }
 
 function generateAssessmentReportFromView(assessmentId) {
@@ -5432,6 +5500,305 @@ function bulkUpdateFieldRequired(fieldNames, isRequired) {
         showNotification('Network error updating fields', 'error');
         // Refresh to get correct state
         loadFieldConfigurations();
+    });
+}
+
+// Client Notes Functions
+function saveClientNotes(assessmentId) {
+    const notes = document.getElementById('clientNotes').value;
+    
+    // Show saving status
+    const button = event.target;
+    const originalText = button.textContent;
+    button.textContent = '⏳ Saving...';
+    button.disabled = true;
+    
+    fetch('/api/assessment/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            assessment_id: assessmentId,
+            client_notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('✅ Client notes saved successfully! Notes will be included in LLM report generation.', 'success');
+            // Update the textarea to show it's saved
+            document.getElementById('clientNotes').style.borderColor = '#10b981';
+            setTimeout(() => {
+                document.getElementById('clientNotes').style.borderColor = '#d1d5db';
+            }, 2000);
+        } else {
+            showNotification('Error saving notes: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error saving notes', 'error');
+    })
+    .finally(() => {
+        // Restore button
+        button.textContent = originalText;
+        button.disabled = false;
+    });
+}
+
+function regenerateReportWithNotes(assessmentId) {
+    if (!confirm('Regenerate the report with updated client notes? This will create a new personalized report using the LLM.')) {
+        return;
+    }
+    
+    showNotification('Regenerating report with client notes...', 'info');
+    
+    fetch('/api/assessment/regenerate_report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            assessment_id: assessmentId,
+            include_notes: true
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Report regenerated successfully! Download available.', 'success');
+            // Optionally open download link
+            if (data.download_url) {
+                window.open(data.download_url, '_blank');
+            }
+        } else {
+            showNotification('Error regenerating report: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error regenerating report', 'error');
+    });
+}
+
+function addNewClient() {
+    // Create a comprehensive form modal for adding new client data
+    const modalContent = `
+        <div id="addClientModal" class="modal" style="display: block;">
+            <div class="modal-content" style="max-width: 90%; max-height: 90vh; overflow-y: auto;">
+                <div class="modal-header">
+                    <h2>➕ Add New Client</h2>
+                    <span class="close" onclick="closeModal('addClientModal')">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="addClientForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <!-- Contact & Company Information -->
+                            <div>
+                                <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Contact & Company Information</h3>
+                                
+                                <div class="form-group">
+                                    <label>First Name *</label>
+                                    <input type="text" id="newFirstName" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Last Name *</label>
+                                    <input type="text" id="newLastName" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Email *</label>
+                                    <input type="email" id="newEmail" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Phone *</label>
+                                    <input type="tel" id="newPhone" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Company Name *</label>
+                                    <input type="text" id="newCompanyName" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Website</label>
+                                    <input type="url" id="newWebsite" placeholder="https://example.com">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Role *</label>
+                                    <select id="newRole" required>
+                                        <option value="">Select Role</option>
+                                        <option value="ceo">CEO</option>
+                                        <option value="cto">CTO</option>
+                                        <option value="it-director">IT Director</option>
+                                        <option value="ops-manager">Operations Manager</option>
+                                        <option value="project-manager">Project Manager</option>
+                                        <option value="business-analyst">Business Analyst</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Industry *</label>
+                                    <select id="newIndustry" required>
+                                        <option value="">Select Industry</option>
+                                        <option value="technology">Technology</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="finance">Finance</option>
+                                        <option value="retail">Retail</option>
+                                        <option value="manufacturing">Manufacturing</option>
+                                        <option value="education">Education</option>
+                                        <option value="automotive">Automotive</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Company Size *</label>
+                                    <select id="newCompanySize" required>
+                                        <option value="">Select Size</option>
+                                        <option value="1-10">1-10 employees</option>
+                                        <option value="11-50">11-50 employees</option>
+                                        <option value="51-100">51-100 employees</option>
+                                        <option value="101-250">101-250 employees</option>
+                                        <option value="251-500">251-500 employees</option>
+                                        <option value="501-1000">501-1000 employees</option>
+                                        <option value="1000+">1000+ employees</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Assessment Information -->
+                            <div>
+                                <h3 style="color: #374151; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Assessment Information</h3>
+                                
+                                <div class="form-group">
+                                    <label>Current Tech Level</label>
+                                    <select id="newCurrentTech">
+                                        <option value="">Select Level</option>
+                                        <option value="basic">Basic</option>
+                                        <option value="intermediate">Intermediate</option>
+                                        <option value="advanced">Advanced</option>
+                                        <option value="expert">Expert</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>AI Experience</label>
+                                    <select id="newAiExperience">
+                                        <option value="">Select Experience</option>
+                                        <option value="none">No experience</option>
+                                        <option value="learning">Learning/Exploring</option>
+                                        <option value="piloting">Piloting</option>
+                                        <option value="implemented">Implemented</option>
+                                        <option value="advanced">Advanced usage</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Budget Range</label>
+                                    <select id="newBudget">
+                                        <option value="">Select Budget</option>
+                                        <option value="under-10k">Under $10K</option>
+                                        <option value="10k-25k">$10K - $25K</option>
+                                        <option value="25k-50k">$25K - $50K</option>
+                                        <option value="50k-100k">$50K - $100K</option>
+                                        <option value="100k-250k">$100K - $250K</option>
+                                        <option value="250k+">$250K+</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Timeline</label>
+                                    <select id="newTimeline">
+                                        <option value="">Select Timeline</option>
+                                        <option value="1-month">1 month</option>
+                                        <option value="3-months">3 months</option>
+                                        <option value="6-months">6 months</option>
+                                        <option value="12-months">12 months</option>
+                                        <option value="flexible">Flexible</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>AI Score</label>
+                                    <input type="number" id="newAiScore" min="0" max="100" placeholder="0-100">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Report Type</label>
+                                    <select id="newReportType">
+                                        <option value="assessment">Assessment Report</option>
+                                        <option value="strategy">Strategy Blueprint</option>
+                                        <option value="both">Both</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Client Notes</label>
+                                    <textarea id="newClientNotes" rows="4" placeholder="Additional notes for LLM context..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem; text-align: center;">
+                            <button type="button" onclick="saveNewClient()" style="background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 1rem;">
+                                💾 Save Client
+                            </button>
+                            <button type="button" onclick="closeModal('addClientModal')" style="background: #6b7280; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                ❌ Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalContent);
+}
+
+function saveNewClient() {
+    const formData = {
+        first_name: document.getElementById('newFirstName').value,
+        last_name: document.getElementById('newLastName').value,
+        email: document.getElementById('newEmail').value,
+        phone: document.getElementById('newPhone').value,
+        company_name: document.getElementById('newCompanyName').value,
+        website: document.getElementById('newWebsite').value,
+        role: document.getElementById('newRole').value,
+        industry: document.getElementById('newIndustry').value,
+        company_size: document.getElementById('newCompanySize').value,
+        current_tech: document.getElementById('newCurrentTech').value,
+        ai_experience: document.getElementById('newAiExperience').value,
+        budget: document.getElementById('newBudget').value,
+        timeline: document.getElementById('newTimeline').value,
+        ai_score: document.getElementById('newAiScore').value || 0,
+        report_type: document.getElementById('newReportType').value,
+        client_notes: document.getElementById('newClientNotes').value,
+        form_source: 'admin',
+        created_at: new Date().toISOString()
+    };
+    
+    fetch('/api/add_new_client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            closeModal('addClientModal');
+            loadAssessments();
+            alert('New client added successfully!');
+        } else {
+            alert('Error adding client: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error adding client');
     });
 }
 

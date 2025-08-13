@@ -46,6 +46,7 @@ class ReportGenerator:
             pilot_project = assessment_data.get('pilot_project', '')
             scalability_requirements = assessment_data.get('scalability_requirements', '')
             maintenance_plan = assessment_data.get('maintenance_plan', '')
+            client_notes = assessment_data.get('client_notes', '')
             
             # Generate personalized content using LLM with enhanced data
             personalized_content = self._generate_personalized_assessment_content(
@@ -53,7 +54,8 @@ class ReportGenerator:
                 tool_preferences, implementation_priority, team_availability, 
                 change_management_experience, data_governance, security_requirements,
                 compliance_needs, integration_requirements, success_metrics, 
-                expected_roi, payback_period, risk_factors, mitigation_strategies
+                expected_roi, payback_period, risk_factors, mitigation_strategies,
+                client_notes
             )
             
             # Calculate comprehensive scores based on enhanced assessment data
@@ -268,7 +270,7 @@ class ReportGenerator:
                                                security_requirements: List[str], compliance_needs: List[str],
                                                integration_requirements: List[str], success_metrics: List[str],
                                                expected_roi: str, payback_period: str, risk_factors: List[str],
-                                               mitigation_strategies: List[str]) -> Dict:
+                                               mitigation_strategies: List[str], client_notes: str = '') -> Dict:
         """Generate personalized assessment content using LLM"""
         if not self.llm_service.enabled:
             return self._get_default_assessment_content()
@@ -276,6 +278,8 @@ class ReportGenerator:
         try:
             # Create context for LLM
             context = f"Company: {company_name}, Industry: {industry}, Size: {company_size}, Role: {role}, Challenges: {', '.join(challenges)}"
+            if client_notes:
+                context += f", Additional Context: {client_notes}"
             
             # Generate strengths for each area
             tech_strengths = self._generate_strengths_prompt(context, "technology infrastructure")
